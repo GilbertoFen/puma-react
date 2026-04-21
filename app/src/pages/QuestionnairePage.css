@@ -1,0 +1,150 @@
+.questionnaire-page {
+  min-height: 100vh;
+}
+
+.q-user-header {
+  position: relative;
+  z-index: 2;
+  padding: 28px 80px 12px;
+}
+
+.q-user-name {
+  font-family: var(--font-display);
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+.q-user-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Progress bar */
+.q-progress-wrap {
+  position: relative;
+  z-index: 2;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 0 80px;
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.q-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-blue-light), var(--border-gold));
+  border-radius: 100px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Main question area */
+.q-main {
+  flex: 1;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 40px 32px;
+  gap: 40px;
+  overflow: hidden;
+}
+
+/* Animated content wrapper */
+.q-content {
+  width: 100%;
+  max-width: 760px;
+}
+
+.q-content.out-left {
+  animation: slideOutLeft 0.32s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.q-content.out-right {
+  animation: slideOutRight 0.32s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.q-content.in-right {
+  animation: slideInRight 0.38s cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+.q-content.in-left {
+  animation: slideInLeft 0.38s cubic-bezier(0, 0, 0.2, 1) both;
+}
+
+.q-content.idle {
+  animation: none;
+}
+
+.q-nav {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.q-btn {
+  padding: 16px 60px;
+  border-radius: var(--radius-xl);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  border: 1.5px solid transparent;
+}
+
+.q-btn.primary {
+  background: var(--btn-primary);
+  color: var(--text-white);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.q-btn.primary:hover:not(:disabled) {
+  background: var(--btn-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+.q-btn.secondary {
+  background: var(--btn-secondary);
+  color: var(--text-muted);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.q-btn.secondary:hover:not(:disabled) {
+  color: var(--text-white);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.q-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.q-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.q-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
+}
+
+.q-dot.active {
+  background: var(--border-gold);
+  width: 24px;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(201, 168, 76, 0.5);
+}
+
+.q-dot.done {
+  background: rgba(201, 168, 76, 0.4);
+}

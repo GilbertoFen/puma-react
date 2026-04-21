@@ -1,0 +1,61 @@
+.welcome-main {
+  flex: 1;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 80px 80px;
+}
+
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeInUp 0.6s ease both;
+}
+
+.welcome-title {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 700;
+  color: var(--text-white);
+}
+
+.welcome-sub {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin-top: -8px;
+}
+
+.welcome-prompt {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-weight: 700;
+  color: var(--text-white);
+  max-width: 680px;
+  line-height: 1.4;
+  margin-top: 32px;
+}
+
+.welcome-btn {
+  margin-top: 24px;
+  padding: 18px 64px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-xl);
+  color: var(--text-white);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  align-self: flex-start;
+}
+
+.welcome-btn:hover {
+  background: var(--btn-primary);
+  border-color: rgba(201, 168, 76, 0.4);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
