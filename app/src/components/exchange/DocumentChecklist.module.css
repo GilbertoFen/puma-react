@@ -1,0 +1,93 @@
+.panel {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.4;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1.5px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.checked {
+  background: rgba(26,79,168,0.8);
+  border-color: rgba(26,79,168,0.9);
+}
+
+.docLabel {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.docLabel:hover { color: rgba(255,255,255,0.95); }
+
+.docLabelChecked {
+  color: rgba(255,255,255,0.4);
+  text-decoration: line-through;
+}
+
+.hint {
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Botón guardar en perfil */
+.saveBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(201,168,76,0.12);
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.75);
+  font-size: 11px;
+  line-height: 1.4;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.2s, border-color 0.2s;
+  margin-top: auto;
+}
+
+.saveBtn:hover {
+  background: rgba(201,168,76,0.2);
+  border-color: rgba(201,168,76,0.4);
+  color: #fff;
+}

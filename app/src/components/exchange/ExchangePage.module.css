@@ -1,0 +1,171 @@
+.root {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+  overflow-x: hidden;
+}
+
+.bgMesh {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 30%, rgba(26, 79, 168, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 70%, rgba(11, 23, 51, 0.8) 0%, transparent 60%),
+    linear-gradient(160deg, #0b1733 0%, #060d1f 50%, #0a1628 100%);
+}
+
+.bgMesh::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(255,255,255,0.02) 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 60px 60px, 40px 40px;
+}
+
+.goldLine {
+  position: relative;
+  z-index: 2;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(201,168,76,0.8), rgba(201,168,76,0.2));
+  flex-shrink: 0;
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  background: rgba(201,168,76,0.18);
+  border-bottom: 1px solid rgba(201,168,76,0.15);
+  flex-shrink: 0;
+}
+
+.hamburgerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.hamburgerBtn:hover { background: rgba(255,255,255,0.08); }
+
+.componentBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(201,168,76,0.8);
+}
+
+.toolbarGreeting {
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+  margin-left: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Main ── */
+.main {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-bottom: 48px;
+}
+
+/* ── CTA row ── */
+.ctaRow {
+  display: flex;
+  justify-content: center;
+  padding: 28px 24px 12px;
+}
+
+.ctaTitle {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: clamp(18px, 3vw, 28px);
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+}
+
+/* ── Filtros ── */
+.filtersRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 0 24px 20px;
+  flex-wrap: wrap;
+}
+
+/* ── Lista de universidades ── */
+.universityList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0 24px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 48px 24px;
+  color: rgba(255,255,255,0.4);
+  font-size: 15px;
+}
+
+/* ── Footer ── */
+.footer {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 24px;
+  background: rgba(6,13,31,0.7);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  margin-top: auto;
+}
+
+.footerLink {
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+  text-decoration: none;
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+  transition: color 0.2s;
+}
+
+.footerLink:hover { color: rgba(255,255,255,0.8); }

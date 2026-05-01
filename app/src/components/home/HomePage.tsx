@@ -23,6 +23,10 @@ export default function HomePage() {
 
   const goToChat = () => router.push('/chat');
   const goToSettings = () => router.push('/settings');
+  const goToProfile = () => router.push('/profile');
+  const goToUpdateInfo = () => router.push('/update-info');
+  const goToExchange = () => router.push('/exchange');
+
 
   return (
     <div className={styles.root}>
@@ -54,6 +58,9 @@ export default function HomePage() {
           setDrawerOpen(false);
           if (section === 'pumaia') goToChat()
           if (section === 'ajustes') goToSettings();
+          if(section==='perfil') goToProfile();
+          if(section==='intercambio') goToExchange();
+          if(section==='actualizar') goToUpdateInfo();
         }}
       />
 

@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../Navbar';
 import styles from './SettingsPage.module.css';
 import HomeDrawer from '../home/HomeDrawer';
-
 type ToggleSetting = {
   kind: 'toggle';
   id: string;
@@ -191,6 +190,7 @@ function buildSections(router: ReturnType<typeof useRouter>): SettingsSection[] 
 
 export default function SettingsPage() {
   const router = useRouter();
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const SECTIONS = buildSections(router);
 
   const initialToggles = SECTIONS.flatMap((s) =>
@@ -209,8 +209,36 @@ export default function SettingsPage() {
   return (
     <div className={styles.root}>
       <div className={styles.bgMesh} />
-      <Navbar showAcatlan userInitial="E" />
+      <Navbar showAcatlan userInitial="R" />
       <div className={styles.goldLine} />
+
+      {/* Toolbar con hamburguesa */}
+      <div className={styles.toolbar}>
+        <button
+          className={styles.hamburgerBtn}
+          onClick={() => setDrawerOpen(true)}
+          aria-label="Abrir menú"
+        >
+          <HamburgerIcon />
+        </button>
+        <span className={styles.toolbarTitle}>Actualizar información</span>
+      </div>
+
+      <HomeDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onNavigate={(section) => {
+          setDrawerOpen(false);
+          if (section === 'pumaia') router.push('/chat');
+          if (section === 'perfil') router.push('/profile');
+          if (section === 'ajustes') router.push('/settings');
+        }}
+      />
+
+      {drawerOpen && (
+        <div className={styles.overlay} onClick={() => setDrawerOpen(false)} />
+      )}
+
 
       <main className={styles.main}>
         <div className={styles.pageHeader}>
@@ -301,7 +329,7 @@ function AccountIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
     </svg>
   );
 }
@@ -309,8 +337,8 @@ function BellIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
   );
 }
@@ -318,7 +346,7 @@ function ShieldIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
   );
 }
@@ -326,8 +354,8 @@ function LinkIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
     </svg>
   );
 }
@@ -335,8 +363,8 @@ function InfoIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/>
-      <line x1="12" y1="8" x2="12.01" y2="8"/>
+      <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
     </svg>
   );
 }
@@ -344,7 +372,7 @@ function BackArrowIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="15 18 9 12 15 6"/>
+      <polyline points="15 18 9 12 15 6" />
     </svg>
   );
 }
@@ -352,8 +380,8 @@ function ExternalLinkIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-      <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
     </svg>
   );
 }
@@ -361,7 +389,17 @@ function ChevronRightIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9 18 15 12 9 6"/>
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
+  );
+}
+function HamburgerIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="6"  x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
     </svg>
   );
 }

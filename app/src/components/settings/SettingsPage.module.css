@@ -36,7 +36,6 @@
 
 .main {
   position: relative;
-  z-index: 2;
   flex: 1;
   max-width: 680px;
   width: 100%;

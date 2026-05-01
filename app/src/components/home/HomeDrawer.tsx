@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import styles from './HomeDrawer.module.css';
+import { useRouter } from 'next/navigation';
 import { AI_LOGO, EXCHANGE_ICON, UPDATE_INFO_ICON } from '../../utils/img/assets';
 
 // Secciones del menu
@@ -8,15 +9,15 @@ type NavItem = {
   id: string;
   label: string;
   Icon: React.FC;
-  enabled: boolean; 
+  enabled: boolean;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'perfil',      label: 'Mi perfil',            Icon: ProfileIcon,     enabled: false },
-  { id: 'pumaia',      label: 'PumaIA',               Icon: PumaIAIcon,      enabled: true  },
-  { id: 'actualizar',  label: 'Actualizar información',Icon: UpdateIcon,      enabled: false },
-  { id: 'intercambio', label: 'Intercambio',           Icon: ExchangeIcon,    enabled: false },
-  { id: 'ajustes',     label: 'Ajustes',               Icon: SettingsIcon,    enabled: true },
+  { id: 'perfil', label: 'Mi perfil', Icon: ProfileIcon, enabled: true },
+  { id: 'pumaia', label: 'PumaIA', Icon: PumaIAIcon, enabled: true },
+  { id: 'actualizar', label: 'Actualizar información', Icon: UpdateIcon, enabled: true },
+  { id: 'intercambio', label: 'Intercambio', Icon: ExchangeIcon, enabled: true },
+  { id: 'ajustes', label: 'Ajustes', Icon: SettingsIcon, enabled: true },
 ];
 
 type Props = {
@@ -72,27 +73,27 @@ function ProfileIcon() {
 function PumaIAIcon() {
   return (
     <img
-        src={AI_LOGO}
-        alt="PUMA IA"
-        />
+      src={AI_LOGO}
+      alt="PUMA IA"
+    />
   );
 }
 
 function UpdateIcon() {
   return (
     <img
-        src={UPDATE_INFO_ICON}
-        alt="Actualizar informacion"
-        />
+      src={UPDATE_INFO_ICON}
+      alt="Actualizar informacion"
+    />
   );
 }
 
 function ExchangeIcon() {
   return (
     <img
-        src={EXCHANGE_ICON}
-        alt="Intercambio"
-        />
+      src={EXCHANGE_ICON}
+      alt="Intercambio"
+    />
   );
 }
 
