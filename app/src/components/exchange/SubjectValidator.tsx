@@ -27,7 +27,7 @@ export default function SubjectValidator({
         </div>
         <p className={styles.headerText}>
           <strong>{userName}.</strong> Tu semestre actual es{' '}
-          <em>({currentSemestre})</em>, Tu semestre Previsto para el intercambio es{' '}
+          <em>({currentSemester})</em>, Tu semestre Previsto para el intercambio es{' '}
           <em>({targetSemester}mo)</em>
           <br />
           Selecciona las materias Optativas para encontrar sugerencias en la (universidad)
