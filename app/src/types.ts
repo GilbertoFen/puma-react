@@ -5,3 +5,4 @@ export interface UserData {
   semestre: string;
   initial: string;
 }
+

@@ -1,12 +1,12 @@
 'use client';
-import React, { useState,FormEvent,ChangeEvent } from 'react';
+import React, { useState, FormEvent, ChangeEvent } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import './LoginPage.css';
 import { FESA_LOGO } from '../utils/img/assets';
 import { UserData } from '../types';
-
-interface LoginProps{
+import { authService } from '../services/auth.service';
+interface LoginProps {
   onLogin: (user: UserData) => void;
 }
 
@@ -17,7 +17,7 @@ export default function LoginPage({ onLogin }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!cuenta.trim()) {
       setError('Ingresa tu número de cuenta');
@@ -25,18 +25,22 @@ export default function LoginPage({ onLogin }: LoginProps) {
     }
     setLoading(true);
     setError('');
-    // Conectarse al login real 
-    setTimeout(() => {
-      setLoading(false);
-      // Datos simulados del usuario
+    try {
+      const data = await authService.login({ email: cuenta, password: password });
+      localStorage.setItem('token', data.accesToken);
+
       onLogin({
         nombre: 'Emmanuel Milislas Romero',
-        cuenta: cuenta,
+        cuenta: data.email,
         carrera: 'Matemáticas Aplicadas y Computación',
         semestre: '6to semestre',
-        initial: 'E',
+        initial: data.email.charAt(0).toUpperCase(),
       });
-    }, 1000);
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false);
+    };
   };
 
   return (
@@ -126,3 +130,4 @@ export default function LoginPage({ onLogin }: LoginProps) {
     </div>
   );
 }
+
