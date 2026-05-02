@@ -7,7 +7,7 @@ import ChoiceQuestion from '../components/questions/ChoiceQuestion';
 import MultiQuestion from '../components/questions/MultiQuestion';
 import InputListQuestion from '../components/questions/InputListQuestion';
 import BranchQuestion from '../components/questions/BranchQuestion';
-import { QUESTIONS } from '../utils/img/questions';
+import { QUESTIONS } from '../utils/questions';
 import './QuestionnairePage.css';
 
 export default function QuestionnairePage({ user, onFinish }) {
