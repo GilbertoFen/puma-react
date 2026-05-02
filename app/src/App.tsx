@@ -41,6 +41,10 @@ export default function App() {
   }
 
   if (screen === SCREENS.WELCOME) {
+    if (!user) {
+    setScreen(SCREENS.LOGIN); 
+    return null;
+  }
     return <WelcomePage user={user} onBegin={handleBegin} />;
   }
 
