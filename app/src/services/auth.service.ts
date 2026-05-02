@@ -1,7 +1,7 @@
 import { API_URL } from '../utils/api';
 //Consumo a Servicio del Login
 export const authService = {
-  login: async (credentials: { email: string; password: string }): Promise<any> => {
+  login: async (credentials: { accountNumber: number; password: string }): Promise<any> => {
     try {
       const response = await fetch(`${API_URL}/autenticacion/login`, {
         method: 'POST',

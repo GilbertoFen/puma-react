@@ -6,12 +6,13 @@ import './LoginPage.css';
 import { FESA_LOGO } from '../utils/img/assets';
 import { UserData } from '../types';
 import { authService } from '../services/auth.service';
+
 interface LoginProps {
   onLogin: (user: UserData) => void;
 }
 
 export default function LoginPage({ onLogin }: LoginProps) {
-  const [cuenta, setCuenta] = useState('');
+  const [cuenta, setCuenta] = useState<number | null>(null);
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -19,22 +20,22 @@ export default function LoginPage({ onLogin }: LoginProps) {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!cuenta.trim()) {
+    if (!cuenta) {
       setError('Ingresa tu número de cuenta');
       return;
     }
     setLoading(true);
     setError('');
     try {
-      const data = await authService.login({ email: cuenta, password: password });
-      localStorage.setItem('token', data.accesToken);
+      const data = await authService.login({ accountNumber: cuenta, password: password });
+      localStorage.setItem('token', data.accessToken);
 
       onLogin({
-        nombre: 'Emmanuel Milislas Romero',
-        cuenta: data.email,
+        nombre: data.name,
+        cuenta: cuenta,
         carrera: 'Matemáticas Aplicadas y Computación',
         semestre: '6to semestre',
-        initial: data.email.charAt(0).toUpperCase(),
+        initial: data.name.charAt(0).toUpperCase(),
       });
     } catch (err: any) {
       setError(err.message)
@@ -73,9 +74,12 @@ export default function LoginPage({ onLogin }: LoginProps) {
             <div className="field-group">
               <input
                 className="login-input"
-                type="text"
-                value={cuenta}
-                onChange={(e) => setCuenta(e.target.value)}
+                type="number"
+                value={cuenta === null ? '' : cuenta}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCuenta(val === '' ? null : Number(val));
+                }}
                 placeholder="Ej: 321190239"
                 autoComplete="username"
               />
