@@ -14,9 +14,10 @@ type FeatureCard = {
 
 type Props = {
   onPumaIA: () => void;
+  onExchange: () => void; // Añadido
+  onUpdate: () => void;   // Añadido
 };
-
-export default function FeatureCards({ onPumaIA }: Props) {
+export default function FeatureCards({ onPumaIA, onExchange, onUpdate }: Props) {
   const CARDS: FeatureCard[] = [
     {
       id: 'pumaia',
@@ -32,7 +33,7 @@ export default function FeatureCards({ onPumaIA }: Props) {
       title: 'Intercambio',
       description: 'Descubre cómo realizar un intercambio paso a paso según tus necesidades',
       actionLabel: 'Ver más información',
-      onAction: undefined,
+      onAction: onExchange,
     },
     {
       id: 'actualizar',
@@ -40,7 +41,7 @@ export default function FeatureCards({ onPumaIA }: Props) {
       title: 'Actualizar información',
       description: 'Actualiza tus datos en cualquier momento para continuar descubriendo tus verdaderos intereses',
       actionLabel: 'Ver más información',
-      onAction: undefined,
+      onAction: onUpdate,
     },
   ];
 

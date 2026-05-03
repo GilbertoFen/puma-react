@@ -1,19 +1,16 @@
 import React from 'react';
 import './Question.css';
 
-/**
- * MultiQuestion
- * Selección múltiple con chips/tags
- *
- * Props:
- *   question  {string}   - Texto de la pregunta
- *   options   {string[]} - Opciones disponibles
- *   value     {string[]} - Opciones seleccionadas
- *   onChange  {fn}       - Callback (selectedArray) => void
- *   maxSelect {number}   - Máximo de selecciones (opcional)
- */
-export default function MultiQuestion({ question, options, value = [], onChange, maxSelect }) {
-  const toggle = (opt) => {
+interface MultiQuestionProps {
+  question: string;
+  options: string[];
+  value?: string[];
+  onChange: (selected: string[]) => void;
+  maxSelect?: number;
+}
+
+export default function MultiQuestion({ question, options, value = [], onChange, maxSelect }: MultiQuestionProps) {
+  const toggle = (opt: string) => {
     if (value.includes(opt)) {
       onChange(value.filter((v) => v !== opt));
     } else {
@@ -25,9 +22,7 @@ export default function MultiQuestion({ question, options, value = [], onChange,
   return (
     <div className="question-body">
       <h2 className="question-title">{question}</h2>
-      {maxSelect && (
-        <p className="q-hint">Selecciona hasta {maxSelect} opciones</p>
-      )}
+      {maxSelect && <p className="q-hint">Selecciona hasta {maxSelect} opciones</p>}
       <div className="q-chips-wrap">
         {options.map((opt) => (
           <button

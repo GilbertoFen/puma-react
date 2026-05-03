@@ -14,6 +14,15 @@
   font-weight: 700;
   color: var(--text-white);
 }
+.login-error {
+  background: rgba(220, 38, 38, 0.15);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #fca5a5;
+  margin-bottom: 4px;
+}
 
 .q-user-sub {
   font-size: 14px;
@@ -147,4 +156,34 @@
 
 .q-dot.done {
   background: rgba(201, 168, 76, 0.4);
+}
+
+@media (max-width: 768px) {
+  .login-main, .welcome-main, .q-main {
+    flex-direction: column;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .login-hero, .welcome-content {
+    margin-bottom: 2rem;
+  }
+
+  .login-title, .welcome-title {
+    font-size: 2rem; /* Títulos más pequeños en móvil */
+  }
+
+  .login-card, .q-content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .q-nav {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .q-btn {
+    width: 100%; /* Botones de ancho completo */
+  }
 }

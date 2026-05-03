@@ -8,7 +8,7 @@ import CountrySelector from './CountrySelector';
 import LanguageFilter from './LanguageFilter';
 import UniversityCard from './UniversityCard';
 import { MOCK_UNIVERSITIES } from '../../mock/mockExchangeData';
-import { COUNTRIES } from '../../types/exchange.types';
+import { COUNTRIES } from '../../utils/const';
 import type { Language } from '../../types/exchange.types';
 import styles from './ExchangePage.module.css';
 

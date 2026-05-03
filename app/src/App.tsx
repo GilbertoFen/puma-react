@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import WelcomePage from './pages/WelcomePage';
 import QuestionnairePage from './pages/QuestionnairePage';
 import { useRouter } from 'next/navigation';
+import { StudentProfile } from './types';
 
 
 // Pantallas disponibles
@@ -20,16 +21,20 @@ export default function App() {
   const [screen, setScreen] = useState(SCREENS.LOGIN);
   const [user, setUser] = useState(null);
   const router = useRouter();
+  const [fullProfile, setFullProfile] = useState<StudentProfile | null>(null);
 
+  
   const handleLogin = (userData: any) => {
     setUser(userData);
     setScreen(SCREENS.WELCOME);
   };
 
 
-  const handleBegin = () => {
-    setScreen(SCREENS.QUESTIONNAIRE);
-  };
+  const handleBegin = (profileData: StudentProfile) => {
+  setFullProfile(profileData);
+  localStorage.setItem('student_profile', JSON.stringify(profileData)); // Lo guardamos
+  setScreen(SCREENS.QUESTIONNAIRE);
+};
 
   const handleFinish = (answers: any) => {
     console.log('Respuestas del cuestionario:', answers);
@@ -42,14 +47,25 @@ export default function App() {
 
   if (screen === SCREENS.WELCOME) {
     if (!user) {
-    setScreen(SCREENS.LOGIN); 
-    return null;
-  }
-    return <WelcomePage user={user} onBegin={handleBegin} />;
+      setScreen(SCREENS.LOGIN);
+      return null;
+    }
+    return <WelcomePage user={user} onBegin={handleBegin} />;;
   }
 
   if (screen === SCREENS.QUESTIONNAIRE) {
-    return <QuestionnairePage user={user} onFinish={handleFinish} />;
+    // Si user es null, no permitimos que se renderice el componente
+    if (!user) {
+      setScreen(SCREENS.LOGIN);
+      return null;
+    }
+
+    // Ahora TS sabe que 'user' NO es null aquí
+    return <QuestionnairePage 
+        user={user} 
+        profile={fullProfile} // <-- Ya tienes los datos de carrera/semestre aquí
+        onFinish={handleFinish} 
+      />;
   }
 
   if (screen === SCREENS.DONE) {

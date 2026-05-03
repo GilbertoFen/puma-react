@@ -1,18 +1,15 @@
 import React from 'react';
 import './Question.css';
 
-/**
- * BranchQuestion
- * Pregunta de sí/no con contenido condicional si se elige "Sí"
- *
- * Props:
- *   question    {string}     - Texto de la pregunta principal
- *   value       {Object}     - { answer: 'Si'|'No', details: {} }
- *   onChange    {fn}         - Callback (value) => void
- *   yesContent  {ReactNode}  - Contenido extra si la respuesta es "Sí"
- *   yesLabel    {string}     - Label del botón positivo (default "Sí")
- *   noLabel     {string}     - Label del botón negativo (default "No")
- */
+interface BranchQuestionProps {
+  question: string;
+  value?: { answer?: string; [key: string]: any };
+  onChange: (val: any) => void;
+  yesContent?: React.ReactNode;
+  yesLabel?: string;
+  noLabel?: string;
+}
+
 export default function BranchQuestion({
   question,
   value = {},
@@ -20,10 +17,10 @@ export default function BranchQuestion({
   yesContent,
   yesLabel = 'Sí',
   noLabel = 'No',
-}) {
+}: BranchQuestionProps) {
   const answer = value.answer;
 
-  const setAnswer = (ans) => {
+  const setAnswer = (ans: string) => {
     onChange({ ...value, answer: ans });
   };
 
@@ -46,11 +43,8 @@ export default function BranchQuestion({
           {yesLabel}
         </button>
       </div>
-
       {answer === yesLabel && yesContent && (
-        <div className="q-branch-content">
-          {yesContent}
-        </div>
+        <div className="q-branch-content">{yesContent}</div>
       )}
     </div>
   );

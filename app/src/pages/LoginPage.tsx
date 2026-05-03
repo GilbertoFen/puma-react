@@ -28,7 +28,16 @@ export default function LoginPage({ onLogin }: LoginProps) {
     setError('');
     try {
       const data = await authService.login({ accountNumber: cuenta, password: password });
-      localStorage.setItem('token', data.accessToken);
+
+      // Guardamos el token
+      const tokenValue = data.accessToken;
+      localStorage.setItem('token', tokenValue);
+
+      // IMPORTANTE: Definir la cookie con Path raíz para que sea visible en /home
+      // Eliminamos 'Secure' por ahora ya que en localhost a veces da problemas si no tienes SSL
+      document.cookie = `token=${tokenValue}; path=/; max-age=3600; SameSite=Lax`;
+
+      console.log("Cookie generada:", document.cookie); // Verifica esto en la consola del F12
 
       onLogin({
         nombre: data.name,

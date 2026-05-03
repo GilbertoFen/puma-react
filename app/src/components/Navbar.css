@@ -88,3 +88,43 @@
   font-size: 16px;
   color: white;
 }
+
+@media (max-width: 600px) {
+  .navbar {
+    padding: 0.5rem 1rem;
+  }
+
+  /* Ocultamos el texto de la UNAM en móvil para evitar la superposición */
+  .navbar-logo-text {
+    display: none;
+  }
+
+  /* Ajustamos el tamaño de los logos para ganar espacio */
+  .navbar-logo-img {
+    height: 35px;
+  }
+
+  .navbar-left, .navbar-right {
+    gap: 8px;
+  }
+
+  /* Reducimos un poco el avatar para que no presione el logo de Acatlán */
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Para pantallas extremadamente pequeñas */
+@media (max-width: 360px) {
+  .navbar-acatlan {
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Si aún así se amontona, podemos reducir el margen del avatar */
+  .navbar-right {
+    gap: 5px;
+  }
+}

@@ -156,3 +156,45 @@
 }
 
 .footerLink:hover { color: rgba(255,255,255,0.8); }
+
+/* ── Responsive Design ── */
+@media (max-width: 768px) {
+  .toolbar {
+    padding: 8px 16px;
+  }
+
+  .toolbarGreeting {
+    font-size: 12px; /* Ajuste sutil para pantallas pequeñas */
+  }
+
+  .section {
+    padding: 20px 16px; /* Menos espacio lateral en móvil */
+  }
+
+  .companiesSection {
+    padding: 32px 16px;
+  }
+
+  .companiesTitle {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .companiesGrid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas en móvil */
+    gap: 12px;
+  }
+
+  .footer {
+    align-items: center;
+    text-align: center;
+    padding: 24px 16px;
+  }
+}
+
+/* Ajuste adicional para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .companiesGrid {
+    grid-template-columns: 1fr; /* 1 columna en teléfonos pequeños */
+  }
+}

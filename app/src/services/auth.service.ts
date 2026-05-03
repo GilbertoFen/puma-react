@@ -15,7 +15,7 @@ export const authService = {
         throw new Error(data.message || 'Error en la autenticación');
       }
 
-      return data; 
+      return data;
     } catch (error) {
       console.error("AuthService Login Error:", error);
       throw error;
@@ -25,5 +25,7 @@ export const authService = {
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userData');
+    // Agrega esto a tu función de logout actual
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
   }
 };

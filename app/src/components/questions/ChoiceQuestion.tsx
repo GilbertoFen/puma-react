@@ -1,17 +1,14 @@
 import React from 'react';
 import './Question.css';
 
-/**
- * ChoiceQuestion
- * Pregunta de selección única con botones
- *
- * Props:
- *   question  {string}   - Texto de la pregunta
- *   options   {string[]} - Opciones a mostrar
- *   value     {string}   - Opción seleccionada
- *   onChange  {fn}       - Callback (value) => void
- */
-export default function ChoiceQuestion({ question, options, value, onChange }) {
+interface ChoiceQuestionProps {
+  question: string;
+  options: string[];
+  value: string;
+  onChange: (val: string) => void;
+}
+
+export default function ChoiceQuestion({ question, options, value, onChange }: ChoiceQuestionProps) {
   return (
     <div className="question-body">
       <h2 className="question-title">{question}</h2>

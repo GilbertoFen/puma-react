@@ -59,3 +59,33 @@
   transform: translateY(-2px);
   box-shadow: var(--shadow-glow);
 }
+
+@media (max-width: 768px) {
+  .login-main, .welcome-main, .q-main {
+    flex-direction: column;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .login-hero, .welcome-content {
+    margin-bottom: 2rem;
+  }
+
+  .login-title, .welcome-title {
+    font-size: 2rem; /* Títulos más pequeños en móvil */
+  }
+
+  .login-card, .q-content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .q-nav {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .q-btn {
+    width: 100%; /* Botones de ancho completo */
+  }
+}

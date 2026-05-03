@@ -8,7 +8,7 @@ import { StudentProfile, UserData } from '../types';
 
 interface WelcomePageProps {
   user: UserData;
-  onBegin: () => void;
+  onBegin: (fullProfile: StudentProfile) => void;
 }
 
 export default function WelcomePage({ user, onBegin }: WelcomePageProps) {
@@ -24,6 +24,7 @@ export default function WelcomePage({ user, onBegin }: WelcomePageProps) {
         .finally(() => setLoading(false));
     }
   }, [user?.cuenta]);
+
 
   if (loading) return <div className="loading-state">Cargando perfil...</div>;
   if (!profile) return <div>No se pudo cargar la información.</div>;
@@ -45,7 +46,9 @@ export default function WelcomePage({ user, onBegin }: WelcomePageProps) {
             Responde un breve cuestionario para que la IA conozca más acerca de tus intereses
           </p>
 
-          <button className="welcome-btn" onClick={onBegin}>
+          <button
+            className="welcome-btn"
+            onClick={() => profile && onBegin(profile)}>
             Comenzar
           </button>
         </div>
