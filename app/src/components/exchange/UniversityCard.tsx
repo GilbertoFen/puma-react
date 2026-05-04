@@ -40,7 +40,6 @@ export default function UniversityCard({
           ) : (
             <div className={styles.imagePlaceholder}>
               <ImageIcon />
-              <span>{university.name}</span>
             </div>
           )}
           <button className={styles.assessBtn} onClick={onToggleExpand}>
@@ -132,6 +131,7 @@ export default function UniversityCard({
         </div>
       )}
     </div>
+    
   );
 }
 
@@ -176,11 +176,10 @@ function MatchIcon() {
 }
 function ImageIcon() {
   return (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none"
-      stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="2"/>
-      <circle cx="8.5" cy="8.5" r="1.5"/>
-      <polyline points="21 15 16 10 5 21"/>
-    </svg>
+    <img
+      src="https://res.cloudinary.com/dheg6jjxx/image/upload/v1774939554/espan%CC%83a1_cxhyt8.jpg"
+      alt="Universidad sin imagen"
+      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+    />
   );
 }

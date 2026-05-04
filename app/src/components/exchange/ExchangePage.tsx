@@ -118,6 +118,7 @@ export default function ExchangePage() {
             ))
           )}
         </div>
+        <br/>
       </main>
 
       {/* Footer */}

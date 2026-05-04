@@ -23,22 +23,31 @@ export default function App() {
   const router = useRouter();
   const [fullProfile, setFullProfile] = useState<StudentProfile | null>(null);
 
-  
+
   const handleLogin = (userData: any) => {
+    // 1. Guardamos físicamente en el disco para que /home lo vea
+    localStorage.setItem('userData', JSON.stringify(userData));
+
+    // 2. Actualizamos el estado para la navegación actual (Welcome/Questionnaire)
     setUser(userData);
     setScreen(SCREENS.WELCOME);
   };
 
 
   const handleBegin = (profileData: StudentProfile) => {
-  setFullProfile(profileData);
-  localStorage.setItem('student_profile', JSON.stringify(profileData)); // Lo guardamos
-  setScreen(SCREENS.QUESTIONNAIRE);
-};
+    setFullProfile(profileData);
+    localStorage.setItem('student_profile', JSON.stringify(profileData)); // Lo guardamos
+    setScreen(SCREENS.QUESTIONNAIRE);
+  };
 
   const handleFinish = (answers: any) => {
     console.log('Respuestas del cuestionario:', answers);
-    router.push('/home')
+
+    // Opcional: Guardar las respuestas también por si el Home las necesita
+    localStorage.setItem('quiz_answers', JSON.stringify(answers));
+
+    // Al hacer push, el HomeRoute leerá el 'userData' que guardamos en handleLogin
+    router.push('/home');
   };
 
   if (screen === SCREENS.LOGIN) {
@@ -61,11 +70,11 @@ export default function App() {
     }
 
     // Ahora TS sabe que 'user' NO es null aquí
-    return <QuestionnairePage 
-        user={user} 
-        profile={fullProfile} // <-- Ya tienes los datos de carrera/semestre aquí
-        onFinish={handleFinish} 
-      />;
+    return <QuestionnairePage
+      user={user}
+      profile={fullProfile} // <-- Ya tienes los datos de carrera/semestre aquí
+      onFinish={handleFinish}
+    />;
   }
 
   if (screen === SCREENS.DONE) {
