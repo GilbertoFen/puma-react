@@ -448,3 +448,75 @@
   color: rgba(255,255,255,0.3);
   flex-shrink: 0;
 }
+
+/* --- Añade esto al final de tu ProfilePage.module.css --- */
+
+.historyContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.subjectsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px; /* Espaciado entre materias */
+}
+
+.historyItem {
+  display: flex;
+}
+
+/* Ajuste específico para que el badge contenga el nombre y la nota alineados */
+.historyItem .badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  background: rgba(26, 79, 168, 0.15); /* Color azulado sutil */
+}
+
+.subjectNameText {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.gradeContainer {
+  display: flex;
+  align-items: center;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  padding-left: 8px;
+}
+
+.gradeValueText {
+  font-weight: 100;
+  color: rgb(255, 255, 255); /* Dorado */
+  font-size: 12px;
+}
+
+.miniEditBtn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  margin-left: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.miniEditBtn:hover {
+  color: #fff;
+}
+
+.editGradeWrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Asegurar que el input de edición no sea gigante */
+.editGradeWrapper .fieldInput {
+  height: 22px;
+  margin: 0;
+}

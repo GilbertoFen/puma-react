@@ -1,6 +1,7 @@
 .root {
   position: relative;
   display: flex;
+  flex-direction: column;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
@@ -8,7 +9,7 @@
 }
 
 .bgMesh {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 0;
   background:
@@ -25,4 +26,54 @@
     radial-gradient(circle at 25% 25%, rgba(255,255,255,0.02) 1px, transparent 1px),
     radial-gradient(circle at 75% 75%, rgba(255,255,255,0.015) 1px, transparent 1px);
   background-size: 60px 60px, 40px 40px;
+}
+.goldLine {
+  position: relative;
+  z-index: 2;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(201,168,76,0.8), rgba(201,168,76,0.2));
+}
+
+.toolbar {
+  position: relative;
+  z-index: 5; /* 🔥 CLAVE */
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 24px;
+  background: rgba(201, 168, 76, 0.18);
+  border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+}
+
+.hamburgerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  cursor: pointer;
+}
+
+.toolbarGreeting {
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(2px);
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 1;
+  overflow: hidden;
 }

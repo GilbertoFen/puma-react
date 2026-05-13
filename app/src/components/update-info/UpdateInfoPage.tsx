@@ -9,13 +9,14 @@ import ReportSection from './ReportSection';
 import DocumentsSection from './DocumentsSection';
 import { MOCK_ANSWERS, MOCK_REPORT, MOCK_DOCUMENTS, MOCK_USER } from '../../mock/mockData';
 import styles from './UpdateInfoPage.module.css';
-
+import AcademicHistoryManager  from '../update-info/AcademicHistoryManager';
+import { MOCK_RESPONSE } from '../academic-upload/AcademicUploadPage';
 type Tab = 'questionnaire' | 'report' | 'documents';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'questionnaire', label: 'Mis respuestas' },
-  { id: 'report',        label: 'Análisis profesional' },
-  { id: 'documents',     label: 'Documentos' },
+  { id: 'report', label: 'Análisis profesional' },
+  { id: 'documents', label: 'Documentos' },
 ];
 
 export default function UpdateInfoPage() {
@@ -88,7 +89,22 @@ export default function UpdateInfoPage() {
                 <ReportSection report={MOCK_REPORT} />
               )}
               {activeTab === 'documents' && (
-                <DocumentsSection documents={MOCK_DOCUMENTS} />
+                
+                <div className={styles.card}>
+                  <DocumentsSection documents={MOCK_DOCUMENTS} />
+                  <div className={styles.cardHeader}>
+                    <h2 className={styles.cardTitle}>Documentación Académica</h2>
+                  </div>
+                  <p className={styles.cardDesc}>
+                    Aquí puedes gestionar el historial que PumaIA utiliza para tu análisis.
+                  </p>
+
+                  {/* Componente con colapso activado */}
+                  <AcademicHistoryManager
+                    initialSubjects={MOCK_RESPONSE.subjects}
+                    isCollapsible={true}
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -102,7 +118,7 @@ function HamburgerIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="3" y1="6"  x2="21" y2="6" />
+      <line x1="3" y1="6" x2="21" y2="6" />
       <line x1="3" y1="12" x2="21" y2="12" />
       <line x1="3" y1="18" x2="21" y2="18" />
     </svg>

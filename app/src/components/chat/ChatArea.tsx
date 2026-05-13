@@ -1,17 +1,21 @@
 'use client';
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import type { Conversation } from './ChatLayout';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import Navbar from '../Navbar';
 import styles from './ChatArea.module.css';
+import { HamburgerIcon } from '../home/HomePage';
 import { AI_LOGO, EDIT_ICON, COPY_ICON, SEND_ICON } from '../../utils/img/assets';
+import ChatSidebar from './ChatSidebar';
 type Props = {
   conversation: Conversation | null;
   suggestions: string[];
   onSend: (text: string) => void;
   onEdit: (messageId: string, newText: string) => void;
   sidebarOpen: boolean;
+  displayName: string;
+  setDrawerOpen: (open: boolean) => void;
 };
 
 function AiLogo() {
@@ -19,12 +23,12 @@ function AiLogo() {
     <img
       src={AI_LOGO}
       alt="IA"
-      style={{ width:'124px', height:'124px', objectFit:'contain', marginBottom:'12px' }}  
+      style={{ width: '124px', height: '124px', objectFit: 'contain', marginBottom: '12px' }}
     />
   );
 }
 
-export default function ChatArea({ conversation, suggestions, onSend, onEdit, sidebarOpen }: Props) {
+export default function ChatArea({ conversation, suggestions, onSend, onEdit, sidebarOpen, displayName, setDrawerOpen }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isEmpty = !conversation || conversation.messages.length === 0;
 
@@ -33,8 +37,6 @@ export default function ChatArea({ conversation, suggestions, onSend, onEdit, si
   }, [conversation?.messages.length]);
 
   return (
-    <div className={`${styles.area} ${sidebarOpen ? styles.withSidebar : ''}`}>
-      <Navbar showAcatlan={true} />
 
       <div className={styles.main}>
         <div className={styles.container}>
@@ -67,6 +69,5 @@ export default function ChatArea({ conversation, suggestions, onSend, onEdit, si
           </div>
         </div>
       </div>
-    </div>
   );
 }

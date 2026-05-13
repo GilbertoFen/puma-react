@@ -1,16 +1,45 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../Navbar';
 import HomeDrawer from '../home/HomeDrawer';
+import { gradeService, Subject } from '../../services/grades.service';
 import { MOCK_USER, MOCK_REPORT, MOCK_ANSWERS } from '../../mock/mockData';
 import styles from './ProfilePage.module.css';
+import AcademicHistoryManager from "../update-info/AcademicHistoryManager";
+import { MOCK_RESPONSE } from '../academic-upload/AcademicUploadPage';
 
 export default function ProfilePage() {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingContact, setEditingContact] = useState(false);
   const [phone, setPhone] = useState(MOCK_USER.telefono ?? '');
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      // 1. Obtenemos el token del localStorage
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // 2. Llamamos al servicio real
+        const data = await gradeService.getMyGrades(token);
+        setSubjects(data);
+      } catch (error) {
+        console.error("Error al cargar historial:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, []);
 
   return (
     <div className={styles.root}>
@@ -160,18 +189,30 @@ export default function ProfilePage() {
               </ul>
             </div>
 
-            {/* Actividad reciente */}
+
+            {/* SECCIÓN DE HISTORIAL ACADÉMICO */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}><ClockIcon /> Actividad reciente</h2>
+                <h2 className={styles.cardTitle}>Historial Académico</h2>
               </div>
-              <ul className={styles.activityList}>
-                <ActivityItem icon="💬" text="Conversación con PumaIA" date="Hoy" />
-                <ActivityItem icon="📄" text="Documento subido: CV_Emmanuel_2025.pdf" date="Hace 2 días" />
-                <ActivityItem icon="🔄" text="Cuestionario respondido" date="Hace 3 semanas" />
-                <ActivityItem icon="✅" text="Perfil completado" date="Hace 1 mes" />
-              </ul>
+              
+              {loading ? (
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
+                  Cargando tus materias...
+                </p>
+              ) : subjects.length > 0 ? (
+                <AcademicHistoryManager 
+                  initialSubjects={subjects} 
+                  isCollapsible={false} 
+                />
+              ) : (
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
+                  Aún no has subido tu historial académico.
+                </p>
+              )}
             </div>
+
+            
 
           </div>
         </div>

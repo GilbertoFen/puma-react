@@ -4,6 +4,7 @@ import './styles/globals.css';
 import LoginPage from './pages/LoginPage';
 import WelcomePage from './pages/WelcomePage';
 import QuestionnairePage from './pages/QuestionnairePage';
+import AcademicUploadPage from './components/academic-upload/AcademicUploadPage';
 import { useRouter } from 'next/navigation';
 import { StudentProfile } from './types';
 
@@ -13,6 +14,7 @@ const SCREENS = {
   LOGIN: 'login',
   WELCOME: 'welcome',
   QUESTIONNAIRE: 'questionnaire',
+  ACADEMIC: 'academic',
   DONE: 'done',
   CHAT: 'chat',
 };
@@ -47,7 +49,7 @@ export default function App() {
     localStorage.setItem('quiz_answers', JSON.stringify(answers));
 
     // Al hacer push, el HomeRoute leerá el 'userData' que guardamos en handleLogin
-    router.push('/home');
+    setScreen(SCREENS.ACADEMIC);
   };
 
   if (screen === SCREENS.LOGIN) {
@@ -75,6 +77,18 @@ export default function App() {
       profile={fullProfile} // <-- Ya tienes los datos de carrera/semestre aquí
       onFinish={handleFinish}
     />;
+  }
+  if (screen === SCREENS.ACADEMIC) {
+    if (!user) {
+      setScreen(SCREENS.LOGIN);
+      return null;
+    }
+    return (
+      <AcademicUploadPage
+        user={user}
+        onContinue={() => router.push('/home')}
+      />
+    );
   }
 
   if (screen === SCREENS.DONE) {

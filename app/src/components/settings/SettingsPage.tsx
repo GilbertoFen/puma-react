@@ -190,6 +190,7 @@ function buildSections(router: ReturnType<typeof useRouter>): SettingsSection[] 
 
 export default function SettingsPage() {
   const router = useRouter();
+  const [user, setUser] = useState<any>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const SECTIONS = buildSections(router);
 
@@ -198,6 +199,16 @@ export default function SettingsPage() {
       .filter((item): item is ToggleSetting => item.kind === 'toggle')
       .map((item) => [item.id, item.defaultValue] as [string, boolean])
   );
+  const goToChat = () => router.push('/chat');
+  const goToSettings = () => router.push('/settings');
+  const goToProfile = () => router.push('/profile');
+  const goToUpdateInfo = () => router.push('/update-info');
+  const goToExchange = () => router.push('/exchange');
+
+  // Si no hay perfil aún, mostramos la inicial del login o una por defecto
+  const userInitial = user?.fullName?.charAt(0);
+  const displayName = user?.fullName || user?.nombre || "Usuario";
+
   const [toggles, setToggles] = useState<Record<string, boolean>>(
     Object.fromEntries(initialToggles)
   );
@@ -209,10 +220,9 @@ export default function SettingsPage() {
   return (
     <div className={styles.root}>
       <div className={styles.bgMesh} />
-      <Navbar showAcatlan userInitial="R" />
+      <Navbar showAcatlan userInitial="J" />
       <div className={styles.goldLine} />
 
-      {/* Toolbar con hamburguesa */}
       <div className={styles.toolbar}>
         <button
           className={styles.hamburgerBtn}
@@ -221,7 +231,9 @@ export default function SettingsPage() {
         >
           <HamburgerIcon />
         </button>
-        <span className={styles.toolbarTitle}>Actualizar información</span>
+        <span className={styles.toolbarGreeting}>
+          Ajustes
+        </span>
       </div>
 
       <HomeDrawer
@@ -229,22 +241,24 @@ export default function SettingsPage() {
         onClose={() => setDrawerOpen(false)}
         onNavigate={(section) => {
           setDrawerOpen(false);
-          if (section === 'pumaia') router.push('/chat');
-          if (section === 'perfil') router.push('/profile');
-          if (section === 'ajustes') router.push('/settings');
+          if (section === 'pumaia') goToChat();
+          if (section === 'ajustes') goToSettings();
+          if (section === 'perfil') goToProfile();
+          if (section === 'intercambio') goToExchange();
+          if (section === 'actualizar') goToUpdateInfo();
         }}
       />
 
       {drawerOpen && (
-        <div className={styles.overlay} onClick={() => setDrawerOpen(false)} />
+        <div
+          className={styles.overlay}
+          onClick={() => setDrawerOpen(false)}
+        />
       )}
 
 
       <main className={styles.main}>
         <div className={styles.pageHeader}>
-          <button className={styles.backBtn} onClick={() => router.back()}>
-            <BackArrowIcon /> Volver
-          </button>
           <h1 className={styles.pageTitle}>Ajustes</h1>
           <p className={styles.pageSubtitle}>Personaliza tu experiencia en PumaIA</p>
         </div>
@@ -397,7 +411,7 @@ function HamburgerIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="3" y1="6"  x2="21" y2="6" />
+      <line x1="3" y1="6" x2="21" y2="6" />
       <line x1="3" y1="12" x2="21" y2="12" />
       <line x1="3" y1="18" x2="21" y2="18" />
     </svg>

@@ -2,7 +2,7 @@
 import React from 'react';
 import type { Conversation } from './ChatLayout';
 import styles from './ChatSidebar.module.css';
-import HomeDrawer from '../home/HomeDrawer';
+import { useRouter } from 'next/navigation';
 
 type Props = {
   open: boolean;
@@ -23,6 +23,7 @@ export default function ChatSidebar({
   onSelect,
   onNewChat,
 }: Props) {
+  const router = useRouter();
   return (
     <aside className={`${styles.sidebar} ${open ? styles.open : styles.closed}`}>
       <div className={styles.header}>
@@ -34,13 +35,6 @@ export default function ChatSidebar({
           <ArrowIcon />
         </button>
 
-        <button
-          className={styles.headerBtn}
-          onClick={onNavigate}
-          title="Menú principal"
-        >
-          <HamburgerIcon />
-        </button>
       </div>
 
       {open && (
@@ -73,7 +67,8 @@ export default function ChatSidebar({
             </div>
           )}
 
-          <button className={styles.settings} title="Configuración">
+          <button className={styles.settings} title="Configuración"
+            onClick={() => router.push('/settings')}>
             ⚙️ Configuración
           </button>
         </>
