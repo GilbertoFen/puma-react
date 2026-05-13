@@ -4,31 +4,40 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../Navbar';
 import HomeDrawer from '../home/HomeDrawer';
 import { gradeService, Subject } from '../../services/grades.service';
-import { MOCK_USER, MOCK_REPORT, MOCK_ANSWERS } from '../../mock/mockData';
+import { MOCK_REPORT } from '../../mock/mockData'; // Mantenemos reporte por ahora
 import styles from './ProfilePage.module.css';
 import AcademicHistoryManager from "../update-info/AcademicHistoryManager";
-import { MOCK_RESPONSE } from '../academic-upload/AcademicUploadPage';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editingContact, setEditingContact] = useState(false);
-  const [phone, setPhone] = useState(MOCK_USER.telefono ?? '');
+  
+  // --- ESTADOS DE DATOS REALES ---
+  const [user, setUser] = useState<any>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // --- ESTADOS DE UI ---
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState(false);
+  const [phone, setPhone] = useState('');
 
   useEffect(() => {
+    // 1. Cargar datos del usuario desde LocalStorage
+    const savedUser = localStorage.getItem('userData');
+    if (savedUser) {
+      const parsedUser = JSON.parse(savedUser);
+      setUser(parsedUser);
+      setPhone(parsedUser.telefono || '');
+    }
+
+    // 2. Cargar historial académico desde la API
     const fetchHistory = async () => {
-      // 1. Obtenemos el token del localStorage
       const token = localStorage.getItem('token');
-      
       if (!token) {
         setLoading(false);
         return;
       }
-
       try {
-        // 2. Llamamos al servicio real
         const data = await gradeService.getMyGrades(token);
         setSubjects(data);
       } catch (error) {
@@ -41,11 +50,14 @@ export default function ProfilePage() {
     fetchHistory();
   }, []);
 
+  // Si aún no carga el usuario del localStorage, evitamos mostrar mocks
+  if (!user) return <div className={styles.root}><div className={styles.bgMesh} /></div>;
+
   return (
     <div className={styles.root}>
       <div className={styles.bgMesh} />
 
-      <Navbar showAcatlan userInitial={MOCK_USER.initial} />
+      <Navbar showAcatlan userInitial={user.initial} />
       <div className={styles.goldLine} />
 
       {/* Toolbar */}
@@ -73,25 +85,24 @@ export default function ProfilePage() {
 
       <main className={styles.main}>
 
-        {/* ── Hero de perfil ── */}
+        {/* ── Hero de perfil (DATOS REALES) ── */}
         <section className={styles.heroCard}>
           <div className={styles.avatarWrap}>
-            {MOCK_USER.fotoPerfil ? (
-              <img src={MOCK_USER.fotoPerfil} alt="Foto" className={styles.avatarImg} />
+            {user.fotoPerfil ? (
+              <img src={user.fotoPerfil} alt="Foto" className={styles.avatarImg} />
             ) : (
-              <div className={styles.avatarInitial}>{MOCK_USER.initial}</div>
+              <div className={styles.avatarInitial}>{user.initial}</div>
             )}
-            {/* Botón para cambiar foto — conectar con Cloudinary */}
             <button className={styles.avatarEditBtn} title="Cambiar foto">
               <CameraIcon />
             </button>
           </div>
           <div className={styles.heroInfo}>
-            <h1 className={styles.heroName}>{MOCK_USER.nombre} {MOCK_USER.apellidos}</h1>
-            <p className={styles.heroCareer}>{MOCK_USER.carrera}</p>
+            <h1 className={styles.heroName}>{user.nombre}</h1>
+            <p className={styles.heroCareer}>{user.carrera}</p>
             <div className={styles.heroBadges}>
-              <span className={styles.badge}>{MOCK_USER.semestre}</span>
-              <span className={styles.badge}>Cuenta: {MOCK_USER.cuenta}</span>
+              <span className={styles.badge}>{user.semestre}</span>
+              <span className={styles.badge}>Cuenta: {user.cuenta}</span>
             </div>
           </div>
           <button
@@ -117,7 +128,7 @@ export default function ProfilePage() {
                 </button>
               </div>
               <div className={styles.fieldList}>
-                <Field label="Correo institucional" value={MOCK_USER.email ?? '—'} />
+                <Field label="Correo institucional" value={user.email || `${user.cuenta}@pcpuma.acatlan.unam.mx`} />
                 <Field
                   label="Teléfono"
                   value={phone || '—'}
@@ -134,9 +145,9 @@ export default function ProfilePage() {
                 <h2 className={styles.cardTitle}><BookIcon /> Información académica</h2>
               </div>
               <div className={styles.fieldList}>
-                <Field label="Carrera"   value={MOCK_USER.carrera} />
-                <Field label="Semestre"  value={MOCK_USER.semestre} />
-                <Field label="Número de cuenta" value={MOCK_USER.cuenta} />
+                <Field label="Carrera"   value={user.carrera} />
+                <Field label="Semestre"  value={user.semestre} />
+                <Field label="Número de cuenta" value={user.cuenta} />
                 <Field label="Facultad"  value="FES Acatlán" />
                 <Field label="Universidad" value="UNAM" />
               </div>
@@ -147,7 +158,7 @@ export default function ProfilePage() {
           {/* ── Columna derecha ── */}
           <div className={styles.colRight}>
 
-            {/* Carrera más compatible */}
+            {/* Carrera más compatible (Mock por ahora hasta tener endpoint de análisis) */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <h2 className={styles.cardTitle}><StarIcon /> Ruta profesional sugerida</h2>
@@ -175,22 +186,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Fortalezas detectadas */}
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}><BoltIcon /> Fortalezas detectadas</h2>
-              </div>
-              <ul className={styles.strengthList}>
-                {MOCK_REPORT.strengths.map((s) => (
-                  <li key={s} className={styles.strengthItem}>
-                    <span className={styles.strengthDot} />{s}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-
-            {/* SECCIÓN DE HISTORIAL ACADÉMICO */}
+            {/* Historial Académico (REAL) */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <h2 className={styles.cardTitle}>Historial Académico</h2>
@@ -211,8 +207,6 @@ export default function ProfilePage() {
                 </p>
               )}
             </div>
-
-            
 
           </div>
         </div>
