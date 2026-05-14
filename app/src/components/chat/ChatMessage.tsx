@@ -6,7 +6,6 @@ import { COPY_ICON, MORE_ICON, EDIT_ICON, AI_LOGO } from '../../utils/img/assets
 
 type Props = {
   message: Message;
-  onEdit: (id: string, newText: string) => void;
 };
 
 function AiAvatar() {
@@ -22,8 +21,8 @@ function AiAvatar() {
   );
 }
 
-export default function ChatMessage({ message, onEdit }: Props) {
-  const isUser = message.role === 'user';
+export default function ChatMessage({ message }: Props) {
+  const isUser = message.role === 'USER';
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState(message.content);
@@ -50,7 +49,6 @@ export default function ChatMessage({ message, onEdit }: Props) {
       cancelEdit();
       return;
     }
-    onEdit(message.id, trimmed);
     setEditing(false);
   };
 

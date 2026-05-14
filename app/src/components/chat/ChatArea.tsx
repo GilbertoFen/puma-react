@@ -12,7 +12,6 @@ type Props = {
   conversation: Conversation | null;
   suggestions: string[];
   onSend: (text: string) => void;
-  onEdit: (messageId: string, newText: string) => void;
   sidebarOpen: boolean;
   displayName: string;
   setDrawerOpen: (open: boolean) => void;
@@ -28,46 +27,44 @@ function AiLogo() {
   );
 }
 
-export default function ChatArea({ conversation, suggestions, onSend, onEdit, sidebarOpen, displayName, setDrawerOpen }: Props) {
+export default function ChatArea({ conversation, suggestions, onSend, sidebarOpen, displayName, setDrawerOpen }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const isEmpty = !conversation || conversation.messages.length === 0;
-
+  const isEmpty = !conversation || !conversation.messages || conversation.messages.length === 0;
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversation?.messages.length]);
-
+  }, [conversation?.messages?.length]); // Añadimos el "?" antes de length
   return (
 
-      <div className={styles.main}>
-        <div className={styles.container}>
-          {isEmpty ? (
-            <div className={styles.emptyState}>
-              <AiLogo />
-              <div className={styles.emptyText}>
-                <h2 className={styles.emptyGreeting}>Hola Emmanuel Romero.</h2>
-                <h2 className={styles.emptyQuestion}>¿Qué necesitas el día de hoy?</h2>
-              </div>
-              <div className={styles.suggestions}>
-                {suggestions.map((s) => (
-                  <button key={s} className={styles.suggestion} onClick={() => onSend(s)}>
-                    {s}
-                  </button>
-                ))}
-              </div>
+    <div className={styles.main}>
+      <div className={styles.container}>
+        {isEmpty ? (
+          <div className={styles.emptyState}>
+            <AiLogo />
+            <div className={styles.emptyText}>
+              <h2 className={styles.emptyGreeting}>Hola Emmanuel Romero.</h2>
+              <h2 className={styles.emptyQuestion}>¿Qué necesitas el día de hoy?</h2>
             </div>
-          ) : (
-            <div className={styles.messages}>
-              {conversation!.messages.map((msg) => (
-                <ChatMessage key={msg.id} message={msg} onEdit={onEdit} />
+            <div className={styles.suggestions}>
+              {suggestions.map((s) => (
+                <button key={s} className={styles.suggestion} onClick={() => onSend(s)}>
+                  {s}
+                </button>
               ))}
-              <div ref={messagesEndRef} />
             </div>
-          )}
-
-          <div className={styles.inputWrapper}>
-            <ChatInput onSend={onSend} />
           </div>
+        ) : (
+          <div className={styles.messages}>
+            {conversation!.messages.map((msg) => (
+              <ChatMessage key={msg.id} message={msg} />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+        )}
+
+        <div className={styles.inputWrapper}>
+          <ChatInput onSend={onSend} />
         </div>
       </div>
+    </div>
   );
 }

@@ -7,11 +7,12 @@ import styles from './ChatLayout.module.css';
 import HomeDrawer from '../home/HomeDrawer';
 import { HamburgerIcon } from '../home/HomePage';
 import Navbar from '../Navbar';
+import { chatService } from '../../services/chat.service';
 export type Message = {
   id: string;
-  role: 'user' | 'assistant';
+  role: 'USER' | 'ASSISTANT';
   content: string;
-  timestamp: Date;
+  createdAt: string;
 };
 
 export type Conversation = {
@@ -23,7 +24,7 @@ export type Conversation = {
 const INITIAL_SUGGESTIONS = [
   'Ayúdame a armar un plan de estudios para MAC',
   'Ayúdame a validar materias de un intercambio',
-  'Recomiéndame plugs',
+  'Recomiéndame algo',
   '...',
 ];
 
@@ -35,93 +36,128 @@ export default function ChatLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isTyping, setIsTyping] = useState(false)
 
   const userInitial = user?.fullName?.charAt(0);
   const displayName = user?.fullName || userInitial?.nombre || "Usuario";
 
-  const activeConversation = conversations.find((c) => c.id === activeId) ?? null;
+  const activeConversation = Array.isArray(conversations)
+    ? conversations.find((c) => c.id === activeId) ?? null
+    : null;
+
   useEffect(() => {
-    const rawData = localStorage.getItem('userData');
-    if (rawData) {
-      setUser(JSON.parse(rawData));
-    } else {
-      router.push('/');
-    }
-    setLoading(false);
-  }, [router]);
+    // Simplemente hacer una petición vacía al entrar a la página de chat
+    // para que FastAPI empiece a "despertar" antes de que el usuario escriba.
+    fetch('https://server-genai.onrender.com', { method: 'GET' }).catch(() => { });
+  }, []);
+  // 1. Efecto de Carga Inicial (Usuario y Lista de Conversaciones)
+  useEffect(() => {
+    const init = async () => {
+      const rawData = localStorage.getItem('userData');
+
+      if (!rawData) {
+        router.push('/');
+        return;
+      }
+
+      try {
+        const parsedUser = JSON.parse(rawData);
+        setUser(parsedUser);
+
+        // Cargamos la lista de la BD inmediatamente
+        const data = await chatService.getConversations();
+
+        // IMPORTANTE: Aseguramos que cada conversación tenga un array de mensajes vacío
+        // para que ChatArea no explote al leer .length
+        const formattedData = Array.isArray(data)
+          ? data.map((c: any) => ({ ...c, messages: c.messages || [] }))
+          : [];
+
+        setConversations(formattedData);
+      } catch (error) {
+        console.error("Error en la carga inicial:", error);
+        setConversations([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, [router]); // Solo se ejecuta una vez al montar
+
+  // 2. Efecto para cargar Mensajes cuando cambias de chat
+  useEffect(() => {
+    const loadMessages = async () => {
+      if (!activeId) return;
+
+      try {
+        const messages = await chatService.getMessages(activeId);
+
+        setConversations(prev => prev.map(c =>
+          c.id === activeId ? { ...c, messages: Array.isArray(messages) ? messages : [] } : c
+        ));
+      } catch (error) {
+        console.error("Error cargando mensajes del chat:", error);
+      }
+    };
+
+    loadMessages();
+  }, [activeId]); // Se ejecuta cada vez que haces clic en un chat diferente
   if (loading || !user) return <div className={styles.loadingScreen}>Cargando PumaIA...</div>;
-  const newConversation = (): Conversation => {
-    const id = crypto.randomUUID();
-    const conv: Conversation = { id, title: 'Conversación actual', messages: [] };
-    setConversations((prev) => [...prev, conv]);
-    setActiveId(id);
-    return conv;
-  };
 
-  const sendMessage = (text: string) => {
-    let conv = activeConversation;
-    if (!conv) conv = newConversation();
+  const sendMessage = async (text: string) => {
+    if (!text.trim() || isTyping) return;
 
+    setIsTyping(true); // Bloqueamos el input y mostramos carga
+
+    // 1. Añadimos el mensaje del usuario localmente (Optimistic UI)
     const userMsg: Message = {
       id: crypto.randomUUID(),
-      role: 'user',
+      role: 'USER',
       content: text,
-      timestamp: new Date(),
+      createdAt: new Date().toISOString(),
     };
 
-    const aiMsg: Message = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: `Claro, déjame ayudarte con: "${text}". Esta es una respuesta simulada.`,
-      timestamp: new Date(),
-    };
-
+    // Actualizamos la UI inmediatamente para que el usuario vea su mensaje
     setConversations((prev) =>
       prev.map((c) =>
-        c.id === conv!.id
-          ? {
-            ...c,
-            title: text.slice(0, 30) + (text.length > 30 ? '...' : ''),
-            messages: [...c.messages, userMsg, aiMsg],
-          }
+        (activeId ? c.id === activeId : c.id === 'temp') // 'temp' por si es nueva
+          ? { ...c, messages: [...(c.messages || []), userMsg] }
           : c
       )
     );
 
-    if (!activeConversation) setActiveId(conv.id);
+    try {
+      // 2. Llamada al servicio con el ID actual (si existe)
+      const response = await chatService.sendMessage(text, activeId || undefined);
+
+      if (response.error || response.statusCode >= 400) {
+        throw new Error(response.message || 'Error en el servidor');
+      }
+
+      // 3. Si era una conversación nueva, actualizamos el activeId
+      if (!activeId && response.conversationId) {
+        setActiveId(response.conversationId);
+      }
+
+      // 4. Refrescamos conversaciones para obtener los datos reales del DB
+      const updatedData = await chatService.getConversations();
+      setConversations(updatedData);
+
+    } catch (error) {
+      console.error("Error al enviar:", error);
+      // BLINDAJE: Si falla, avisamos al usuario pero NO rompemos la app
+      alert("PumaIA está tardando en despertar. Por favor, espera un momento y reintenta.");
+
+      // Opcional: Podrías eliminar el mensaje del usuario que no se pudo procesar
+    } finally {
+      setIsTyping(false); // Liberamos el estado de carga
+    }
   };
 
-  const editMessage = (messageId: string, newText: string) => {
-    if (!activeConversation) return;
-
-    const msgIndex = activeConversation.messages.findIndex((m) => m.id === messageId);
-    if (msgIndex === -1) return;
-
-    const updatedMsg: Message = {
-      ...activeConversation.messages[msgIndex],
-      content: newText,
-    };
-
-    const aiMsg: Message = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: `Entendido, respondo a tu mensaje editado: "${newText}". Respuesta simulada.`,
-      timestamp: new Date(),
-    };
-
-    const trimmedHistory = activeConversation.messages.slice(0, msgIndex);
-
-    setConversations((prev) =>
-      prev.map((c) =>
-        c.id === activeConversation.id
-          ? { ...c, messages: [...trimmedHistory, updatedMsg, aiMsg] }
-          : c
-      )
-    );
+  const handleNewChat = () => {
+    setActiveId(null);
   };
-
-  const handleNewChat = () => setActiveId(null);
-
   const handleNavigate = () => {
     router.push('/home');
   };
@@ -179,7 +215,6 @@ export default function ChatLayout() {
           conversation={activeConversation}
           suggestions={INITIAL_SUGGESTIONS}
           onSend={sendMessage}
-          onEdit={editMessage}
           sidebarOpen={sidebarOpen}
           displayName={displayName}
           setDrawerOpen={setDrawerOpen}

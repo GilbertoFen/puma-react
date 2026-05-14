@@ -40,10 +40,10 @@ export const MOCK_UNIVERSITIES: University[] = [
       'Seguro de Gastos Médicos',
     ],
     subjects: [
-      { id: 's1', name: 'Análisis de plugs',           equivalent: 'Análisis de plugs Español',     hasMatch: true  },
-      { id: 's2', name: 'Análisis de plugs 2',         equivalent: undefined,                        hasMatch: false },
-      { id: 's3', name: 'Análisis de plugs y Fourier', equivalent: 'Análisis de plugs y Fourier',    hasMatch: true  },
-      { id: 's4', name: 'Análisis de plugs avanzado',  equivalent: 'Análisis de plugs avanzado',     hasMatch: true  },
+      { id: 's1', name: 'Análisis de algo',           equivalent: 'Análisis de algo Español',     hasMatch: true  },
+      { id: 's2', name: 'Análisis de algo 2',         equivalent: undefined,                        hasMatch: false },
+      { id: 's3', name: 'Análisis de Fourier', equivalent: 'Análisis de algo y Fourier',    hasMatch: true  },
+      { id: 's4', name: 'Análisis de algo avanzado',  equivalent: 'Análisis de algo avanzado',     hasMatch: true  },
     ],
   },
   {
