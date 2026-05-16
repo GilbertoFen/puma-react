@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../Navbar';
 import HomeDrawer from '../home/HomeDrawer';
@@ -9,8 +9,10 @@ import ReportSection from './ReportSection';
 import DocumentsSection from './DocumentsSection';
 import { MOCK_ANSWERS, MOCK_REPORT, MOCK_DOCUMENTS, MOCK_USER } from '../../mock/mockData';
 import styles from './UpdateInfoPage.module.css';
-import AcademicHistoryManager  from '../update-info/AcademicHistoryManager';
+import AcademicHistoryManager from '../update-info/AcademicHistoryManager';
 import { MOCK_RESPONSE } from '../academic-upload/AcademicUploadPage';
+import { questionnaireService } from '../../services/questionnarie.service';
+import { QUESTIONS } from '../../utils/questions';
 type Tab = 'questionnaire' | 'report' | 'documents';
 
 const TABS: { id: Tab; label: string }[] = [
@@ -25,6 +27,36 @@ export default function UpdateInfoPage() {
   const [activeTab, setActiveTab] = useState<Tab>('questionnaire');
   const [heroVisible, setHeroVisible] = useState(true);
 
+
+  const [realAnswers, setRealAnswers] = useState<any[]>([]);
+  const [loadingAnswers, setLoadingAnswers] = useState(true);
+
+  useEffect(() => {
+    const fetchUserAnswers = async () => {
+      try {
+        // Trae el objeto estructurado clave-valor { id_pregunta: valor_respuesta }
+        const userAnswersObj = await questionnaireService.getAnswers();
+
+        // Mapeamos el arreglo QUESTIONS para armar la lista final combinando pregunta + respuesta
+        const formatted = QUESTIONS.map((q) => {
+          return {
+            questionId: q.id,
+            question: q.question, // Texto real de la pregunta
+            answer: userAnswersObj[q.id] ?? 'Sin responder', // Respuesta de la BD o fallback
+            type: q.type
+          };
+        });
+
+        setRealAnswers(formatted);
+      } catch (error) {
+        console.error("Error al obtener las respuestas verdaderas:", error);
+      } finally {
+        setLoadingAnswers(false);
+      }
+    };
+
+    fetchUserAnswers();
+  }, []);
   // Al hacer click en el hero se colapsa y se muestra el contenido
   const handleHeroDismiss = () => setHeroVisible(false);
 
@@ -83,27 +115,25 @@ export default function UpdateInfoPage() {
 
             <div className={styles.tabContent}>
               {activeTab === 'questionnaire' && (
-                <QuestionnaireSection answers={MOCK_ANSWERS} />
+                // 4. PASAMOS LAS NUEVAS VARIABLES AL HIJO
+                loadingAnswers ? (
+                  <div style={{ color: '#bb8800', padding: '20px' }}>Cargando tus respuestas...</div>
+                ) : (
+                  <QuestionnaireSection answers={realAnswers} />
+                )
               )}
+
               {activeTab === 'report' && (
                 <ReportSection report={MOCK_REPORT} />
               )}
               {activeTab === 'documents' && (
-                
+
                 <div className={styles.card}>
                   <DocumentsSection documents={MOCK_DOCUMENTS} />
-                  <div className={styles.cardHeader}>
-                    <h2 className={styles.cardTitle}>Documentación Académica</h2>
-                  </div>
-                  <p className={styles.cardDesc}>
-                    Aquí puedes gestionar el historial que PumaIA utiliza para tu análisis.
-                  </p>
+                  
+               
 
-                  {/* Componente con colapso activado */}
-                  <AcademicHistoryManager
-                    initialSubjects={MOCK_RESPONSE.subjects}
-                    isCollapsible={true}
-                  />
+                  
                 </div>
               )}
             </div>

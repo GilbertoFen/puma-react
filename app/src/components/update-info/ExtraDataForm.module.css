@@ -1,0 +1,223 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  margin-top: 4px;
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sectionTitle {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+}
+
+.sectionDesc {
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.5;
+}
+
+/* Grid — 2 columnas desktop */
+.fieldGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 580px) {
+  .fieldGrid { grid-template-columns: 1fr; }
+}
+
+.fieldWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fullWidth { grid-column: 1 / -1; }
+
+/* Cabecera del campo */
+.fieldHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: rgba(201,168,76,0.7);
+}
+
+/* Botones de acción (editar / agregar / eliminar) */
+.fieldActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.5);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.18s;
+}
+
+.actionBtn:hover {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.9);
+}
+
+.actionBtnDanger:hover {
+  background: rgba(220,38,38,0.12);
+  border-color: rgba(220,38,38,0.3);
+  color: #f87171;
+}
+
+/* ── Estado: dato guardado ── */
+.savedValue {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 13px;
+  background: rgba(74,222,128,0.05);
+  border: 1px solid rgba(74,222,128,0.15);
+  border-radius: 10px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+  line-height: 1.5;
+  animation: fadeIn 0.25s ease both;
+}
+
+/* ── Estado: sin datos ── */
+.emptyValue {
+  display: flex;
+  align-items: center;
+  padding: 10px 13px;
+  background: rgba(255,255,255,0.03);
+  border: 1px dashed rgba(255,255,255,0.1);
+  border-radius: 10px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.25);
+  font-style: italic;
+}
+
+/* ── Modo edición ── */
+.editBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: fadeIn 0.2s ease both;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 10px 13px;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(201,168,76,0.4);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.9);
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  outline: none;
+  resize: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: rgba(201,168,76,0.65);
+  background: rgba(255,255,255,0.08);
+}
+
+.input::placeholder,
+.textarea::placeholder { color: rgba(255,255,255,0.2); }
+
+.hint {
+  font-size: 11px;
+  color: rgba(255,255,255,0.28);
+}
+
+.cancelBtn {
+  align-self: flex-start;
+  padding: 4px 12px;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: rgba(255,255,255,0.4);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.18s;
+}
+
+.cancelBtn:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.8); }
+
+/* ── Guardar global ── */
+.saveRow {
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s ease both;
+}
+
+.saveBtn {
+  padding: 10px 24px;
+  background: rgba(26,79,168,0.7);
+  border: 1.5px solid rgba(26,79,168,0.9);
+  border-radius: 10px;
+  color: #fff;
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.saveBtn:hover:not(.saveBtnLoading) {
+  background: rgba(37,99,235,0.85);
+  transform: translateY(-1px);
+}
+
+.saveBtnLoading { opacity: 0.55; cursor: not-allowed; }
+
+/* ── Feedback éxito ── */
+.savedMsg {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: #4ade80;
+  padding: 10px 14px;
+  background: rgba(74,222,128,0.07);
+  border: 1px solid rgba(74,222,128,0.2);
+  border-radius: 10px;
+  animation: fadeIn 0.3s ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

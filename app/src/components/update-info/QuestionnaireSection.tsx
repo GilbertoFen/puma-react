@@ -2,16 +2,27 @@
 import React, { useState } from 'react';
 import type { QuestionnaireAnswer } from '../../types/shared.types';
 import styles from './Sections.module.css';
+import ExtraDataForm from './ExtraDataForm';
 
 type Props = {
   answers: QuestionnaireAnswer[];
+};
+const getDraftString = (answer: any): string => {
+  if (!answer) return '';
+  if (typeof answer === 'string') return answer;
+  if (Array.isArray(answer)) return answer.join(', ');
+  if (typeof answer === 'object') {
+    // Si es tipo branch condicional, mostramos la opción elegida y la experiencia guardada
+    return `${answer.answer} ${answer.exp ? ` - Experiencia: ${answer.exp}` : ''}`;
+  }
+  return '';
 };
 
 export default function QuestionnaireSection({ answers }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
 
-  const startEdit = (id: string, current: string) => {
+  const startEdit = (id: string, current: any) => {
     setDrafts((prev) => ({ ...prev, [id]: current }));
     setEditing(id);
   };
@@ -19,7 +30,7 @@ export default function QuestionnaireSection({ answers }: Props) {
   const cancelEdit = () => setEditing(null);
 
   const saveEdit = (id: string) => {
-    // TODO: llamada a API para guardar la respuesta editada
+    // TODO: llamada a API posterior para guardar modificaciones individuales si se requiere
     console.log('Guardar respuesta', id, drafts[id]);
     setEditing(null);
   };
@@ -60,21 +71,36 @@ export default function QuestionnaireSection({ answers }: Props) {
             ) : (
               <div className={styles.answerRow}>
                 <div className={styles.answerValue}>
-                  {Array.isArray(item.answer)
-                    ? item.answer.map((a) => (
-                        <span key={a} className={styles.chip}>{a}</span>
-                      ))
-                    : <span className={styles.answerText}>{item.answer}</span>
-                  }
+                  {/* 2. BLINDAJE DE RENDERIZADO SEGÚN TIPO DE DATO REAL */}
+                  {Array.isArray(item.answer) ? (
+                    item.answer.map((a) => (
+                      <span key={a} className={styles.chip}>{a}</span>
+                    ))
+                  ) : typeof item.answer === 'object' && item.answer !== null ? (
+                    (() => {
+                      const branchObj = item.answer as any;
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span className={styles.answerText}>
+                            <strong>¿Tiene experiencia?:</strong> {branchObj.answer}
+                          </span>
+                          {branchObj.exp && (
+                            <span className={styles.answerText} style={{ opacity: 0.8, fontSize: '0.9em' }}>
+                              <strong>Detalle:</strong> {branchObj.exp}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    // Texto estándar
+                    <span className={styles.answerText}>{item.answer}</span>
+                  )}
                 </div>
+
                 <button
                   className={styles.editBtn}
-                  onClick={() =>
-                    startEdit(
-                      item.questionId,
-                      Array.isArray(item.answer) ? item.answer.join(', ') : item.answer
-                    )
-                  }
+                  onClick={() => startEdit(item.questionId, item.answer)}
                   title="Editar respuesta"
                 >
                   <EditIcon />
@@ -88,6 +114,7 @@ export default function QuestionnaireSection({ answers }: Props) {
       <button className={styles.redoBtn}>
         <RefreshIcon /> Responder el cuestionario completo de nuevo
       </button>
+      <ExtraDataForm />
     </div>
   );
 }
@@ -96,8 +123,8 @@ function EditIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
     </svg>
   );
 }
@@ -105,7 +132,7 @@ function CheckIcon() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
       stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12"/>
+      <polyline points="20 6 9 17 4 12" />
     </svg>
   );
 }
@@ -113,8 +140,8 @@ function RefreshIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 4 23 10 17 10"/>
-      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      <polyline points="23 4 23 10 17 10" />
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
     </svg>
   );
 }

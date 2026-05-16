@@ -33,12 +33,27 @@ export default function LoginPage({ onLogin }: LoginProps) {
       localStorage.setItem('token', tokenValue);
       document.cookie = `token=${tokenValue}; path=/; max-age=3600; SameSite=Lax`;
 
+      let hasCompletedQuizReal = false;
+      try {
+        const { questionnaireService } = await import('../services/questionnarie.service');
+        const realAnswers = await questionnaireService.getAnswers();
+        
+        // Si el objeto tiene llaves (respuestas), significa que ya lo completó de verdad
+        if (realAnswers && Object.keys(realAnswers).length > 0) {
+          hasCompletedQuizReal = true;
+        }
+      } catch (checkErr) {
+        console.warn("No se pudo verificar el cuestionario en tiempo real, usando fallback del login:", checkErr);
+        // Si falla por Red, usamos el dato que mande el login por seguridad
+        hasCompletedQuizReal = data?.hasCompletedQuiz ?? data?.user?.hasCompletedQuiz ?? false;
+      }
       // ESTA PARTE ES LA QUE TUS LOGS DICEN QUE FALTA:
       const userToSave = {
         nombre: data.name,
         cuenta: cuenta,
         carrera: 'Matemáticas Aplicadas y Computación',
         semestre: '6to semestre',
+        hasCompletedQuiz: hasCompletedQuizReal,
         initial: data.name.charAt(0).toUpperCase(),
       };
 

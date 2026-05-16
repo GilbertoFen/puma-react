@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import type { UploadedDocument, DocumentCategory } from '../../types/shared.types';
 import { DOCUMENT_CATEGORY_LABELS } from '../../types/shared.types';
 import styles from './Sections.module.css';
+import AcademicHistoryDropdown from './AcademicHistoryDropdown';
 
 type Props = {
   documents: UploadedDocument[];
@@ -132,7 +133,9 @@ export default function DocumentsSection({ documents: initial }: Props) {
             </div>
           ))}
         </div>
+        
       )}
+       <AcademicHistoryDropdown /> 
     </div>
   );
 }

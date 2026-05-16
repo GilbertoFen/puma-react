@@ -4,25 +4,28 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../Navbar';
 import HomeDrawer from '../home/HomeDrawer';
 import { gradeService, Subject } from '../../services/grades.service';
-import { MOCK_REPORT } from '../../mock/mockData'; // Mantenemos reporte por ahora
+import { updateInfoService } from '../../services/updateInfo.service'; // <-- Importamos tu servicio maestro
+import { MOCK_REPORT } from '../../mock/mockData';
 import styles from './ProfilePage.module.css';
 import AcademicHistoryManager from "../update-info/AcademicHistoryManager";
+import ExperienceCard from '../profile/ExperienceCard';
 
 export default function ProfilePage() {
   const router = useRouter();
-  
+
   // --- ESTADOS DE DATOS REALES ---
   const [user, setUser] = useState<any>(null);
+  const [profileSummary, setProfileSummary] = useState<any>(null); // <-- Estado para guardar relaciones de la BD
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // --- ESTADOS DE UI ---
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingContact, setEditingContact] = useState(false);
   const [phone, setPhone] = useState('');
 
   useEffect(() => {
-    // 1. Cargar datos del usuario desde LocalStorage
+    // 1. Cargar datos básicos de sesión del alumno
     const savedUser = localStorage.getItem('userData');
     if (savedUser) {
       const parsedUser = JSON.parse(savedUser);
@@ -30,27 +33,32 @@ export default function ProfilePage() {
       setPhone(parsedUser.telefono || '');
     }
 
-    // 2. Cargar historial académico desde la API
-    const fetchHistory = async () => {
+    // 2. Cargar historial académico y sumario detallado del perfil profesional
+    const fetchProfileAndHistory = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
         setLoading(false);
         return;
       }
       try {
-        const data = await gradeService.getMyGrades(token);
-        setSubjects(data);
+        // Ejecutamos las llamadas asíncronas en paralelo para optimizar rendimiento
+        const [gradesData, summaryData] = await Promise.all([
+          gradeService.getMyGrades(token).catch(() => []),
+          updateInfoService.getProfileSummary().catch(() => null)
+        ]);
+
+        setSubjects(gradesData);
+        setProfileSummary(summaryData);
       } catch (error) {
-        console.error("Error al cargar historial:", error);
+        console.error("Error al cargar la información del perfil:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchHistory();
+    fetchProfileAndHistory();
   }, []);
 
-  // Si aún no carga el usuario del localStorage, evitamos mostrar mocks
   if (!user) return <div className={styles.root}><div className={styles.bgMesh} /></div>;
 
   return (
@@ -74,9 +82,9 @@ export default function ProfilePage() {
         onClose={() => setDrawerOpen(false)}
         onNavigate={(section) => {
           setDrawerOpen(false);
-          if (section === 'pumaia')     router.push('/chat');
+          if (section === 'pumaia') router.push('/chat');
           if (section === 'actualizar') router.push('/update-info');
-          if (section === 'ajustes')    router.push('/settings');
+          if (section === 'ajustes') router.push('/settings');
         }}
       />
       {drawerOpen && (
@@ -85,7 +93,7 @@ export default function ProfilePage() {
 
       <main className={styles.main}>
 
-        {/* ── Hero de perfil (DATOS REALES) ── */}
+        {/* Hero de perfil */}
         <section className={styles.heroCard}>
           <div className={styles.avatarWrap}>
             {user.fotoPerfil ? (
@@ -115,7 +123,7 @@ export default function ProfilePage() {
 
         <div className={styles.grid}>
 
-          {/* ── Columna izquierda ── */}
+          {/* Columna izquierda */}
           <div className={styles.colLeft}>
 
             {/* Información de contacto */}
@@ -145,20 +153,22 @@ export default function ProfilePage() {
                 <h2 className={styles.cardTitle}><BookIcon /> Información académica</h2>
               </div>
               <div className={styles.fieldList}>
-                <Field label="Carrera"   value={user.carrera} />
-                <Field label="Semestre"  value={user.semestre} />
+                <Field label="Carrera" value={user.carrera} />
+                <Field label="Semestre" value={user.semestre} />
                 <Field label="Número de cuenta" value={user.cuenta} />
-                <Field label="Facultad"  value="FES Acatlán" />
+                <Field label="Facultad" value="FES Acatlán" />
                 <Field label="Universidad" value="UNAM" />
               </div>
             </div>
 
+            {/* INYECCIÓN DE DATOS AL HIJO: Pasamos el sumario real de la base de datos */}
+            <ExperienceCard data={profileSummary} />
           </div>
 
-          {/* ── Columna derecha ── */}
+          {/* Columna derecha */}
           <div className={styles.colRight}>
 
-            {/* Carrera más compatible (Mock por ahora hasta tener endpoint de análisis) */}
+            {/* Ruta profesional sugerida */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <h2 className={styles.cardTitle}><StarIcon /> Ruta profesional sugerida</h2>
@@ -186,20 +196,20 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Historial Académico (REAL) */}
+            {/* Historial Académico */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <h2 className={styles.cardTitle}>Historial Académico</h2>
               </div>
-              
+
               {loading ? (
                 <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
                   Cargando tus materias...
                 </p>
               ) : subjects.length > 0 ? (
-                <AcademicHistoryManager 
-                  initialSubjects={subjects} 
-                  isCollapsible={false} 
+                <AcademicHistoryManager
+                  initialSubjects={subjects}
+                  isCollapsible={false}
                 />
               ) : (
                 <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
@@ -255,26 +265,26 @@ function ActivityItem({ icon, text, date }: ActivityItemProps) {
 
 // ── Íconos ────────────────────────────────────────────
 function HamburgerIcon() {
-  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
+  return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>;
 }
 function EditIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>;
 }
 function CameraIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>;
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>;
 }
 function PersonIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>;
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>;
 }
 function BookIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>;
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>;
 }
 function StarIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(201,168,76,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(201,168,76,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>;
 }
 function BoltIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(201,168,76,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(201,168,76,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>;
 }
 function ClockIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>;
 }

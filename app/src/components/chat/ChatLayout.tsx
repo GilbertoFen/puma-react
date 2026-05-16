@@ -8,6 +8,8 @@ import HomeDrawer from '../home/HomeDrawer';
 import { HamburgerIcon } from '../home/HomePage';
 import Navbar from '../Navbar';
 import { chatService } from '../../services/chat.service';
+import PageLoader from '../loaders/PageLoader';
+
 export type Message = {
   id: string;
   role: 'USER' | 'ASSISTANT';
@@ -36,7 +38,9 @@ export default function ChatLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [isTyping, setIsTyping] = useState(false)
+  const [isTyping, setIsTyping] = useState(false);
+  const [ready, setReady] = useState(false);
+
 
   const userInitial = user?.fullName?.charAt(0);
   const displayName = user?.fullName || userInitial?.nombre || "Usuario";
@@ -46,8 +50,7 @@ export default function ChatLayout() {
     : null;
 
   useEffect(() => {
-    // Simplemente hacer una petición vacía al entrar a la página de chat
-    // para que FastAPI empiece a "despertar" antes de que el usuario escriba.
+    // para que FastAPI encienda.
     fetch('https://server-genai.onrender.com', { method: 'GET' }).catch(() => { });
   }, []);
   // 1. Efecto de Carga Inicial (Usuario y Lista de Conversaciones)
@@ -74,11 +77,13 @@ export default function ChatLayout() {
           : [];
 
         setConversations(formattedData);
+        if (!ready) return <PageLoader message="Iniciando PumaIA..." />;
       } catch (error) {
         console.error("Error en la carga inicial:", error);
         setConversations([]);
       } finally {
         setLoading(false);
+        setReady(true);
       }
     };
 
@@ -108,50 +113,77 @@ export default function ChatLayout() {
   const sendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
 
-    setIsTyping(true); // Bloqueamos el input y mostramos carga
+    setIsTyping(true);
 
-    // 1. Añadimos el mensaje del usuario localmente (Optimistic UI)
+    // 1. Crear el mensaje del usuario inmediatamente para la UI (Optimistic UI)
     const userMsg: Message = {
-      id: crypto.randomUUID(),
+      id: `temp-${Date.now()}`,
       role: 'USER',
       content: text,
       createdAt: new Date().toISOString(),
     };
 
-    // Actualizamos la UI inmediatamente para que el usuario vea su mensaje
-    setConversations((prev) =>
-      prev.map((c) =>
-        (activeId ? c.id === activeId : c.id === 'temp') // 'temp' por si es nueva
-          ? { ...c, messages: [...(c.messages || []), userMsg] }
-          : c
-      )
-    );
+    // Guardamos el ID actual en una variable local para que no se pierda entre renders
+    const currentActiveId = activeId;
+
+    // Actualizar la pantalla de inmediato con el mensaje del usuario
+    setConversations((prev) => {
+      if (!currentActiveId) {
+        // Si es un chat nuevo, creamos una conversación temporal en el estado
+        return [
+          {
+            id: 'temp-conv',
+            title: text.slice(0, 30),
+            messages: [userMsg],
+          },
+          ...prev,
+        ];
+      }
+      // Si ya existe, solo le colgamos el mensaje del usuario
+      return prev.map((c) =>
+        c.id === currentActiveId ? { ...c, messages: [...(c.messages || []), userMsg] } : c
+      );
+    });
 
     try {
-      // 2. Llamada al servicio con el ID actual (si existe)
-      const response = await chatService.sendMessage(text, activeId || undefined);
+      // 2. Enviar al backend real (pasando el ID real o undefined si es nuevo)
+      const response = await chatService.sendMessage(text, currentActiveId || undefined);
 
       if (response.error || response.statusCode >= 400) {
         throw new Error(response.message || 'Error en el servidor');
       }
 
-      // 3. Si era una conversación nueva, actualizamos el activeId
-      if (!activeId && response.conversationId) {
+      // 3. ACTUALIZACIÓN CRÍTICA DEL ESTADO
+      if (!currentActiveId && response.conversationId) {
+        // ¡AQUÍ ESTÁ EL TRUCO! Primero fijamos el nuevo ID real que generó el Back
         setActiveId(response.conversationId);
+
+        // Traemos la lista actualizada de chats desde la BD
+        const updatedConvs = await chatService.getConversations();
+
+        // Buscamos los mensajes reales (User + IA) de este nuevo chat para meterlos de golpe
+        const realMessages = await chatService.getMessages(response.conversationId);
+
+        setConversations(
+          updatedConvs.map((c: any) =>
+            c.id === response.conversationId ? { ...c, messages: realMessages } : { ...c, messages: c.messages || [] }
+          )
+        );
+      } else if (currentActiveId) {
+        // Si el chat ya existía, NO volvemos a traer toda la lista del sidebar (evita parpadeos)
+        // Solo traemos los mensajes nuevos de esta conversación específica
+        const realMessages = await chatService.getMessages(currentActiveId);
+
+        setConversations((prev) =>
+          prev.map((c) => (c.id === currentActiveId ? { ...c, messages: realMessages } : c))
+        );
       }
 
-      // 4. Refrescamos conversaciones para obtener los datos reales del DB
-      const updatedData = await chatService.getConversations();
-      setConversations(updatedData);
-
     } catch (error) {
-      console.error("Error al enviar:", error);
-      // BLINDAJE: Si falla, avisamos al usuario pero NO rompemos la app
-      alert("PumaIA está tardando en despertar. Por favor, espera un momento y reintenta.");
-
-      // Opcional: Podrías eliminar el mensaje del usuario que no se pudo procesar
+      console.error("Error al procesar mensaje de la IA:", error);
+      alert("PumaIA tuvo un problema al responder. Intenta enviar tu mensaje de nuevo.");
     } finally {
-      setIsTyping(false); // Liberamos el estado de carga
+      setIsTyping(false);
     }
   };
 

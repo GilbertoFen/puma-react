@@ -8,7 +8,8 @@ import MultiQuestion from '../components/questions/MultiQuestion';
 import InputListQuestion from '../components/questions/InputListQuestion';
 import BranchQuestion from '../components/questions/BranchQuestion';
 import { QUESTIONS } from '../utils/questions';
-import { studentService } from '../services/student.service';
+import { questionnaireService } from '../services/questionnarie.service';
+import { useRouter } from 'next/navigation'; // O de 'next/router' si usas pages router
 import { StudentProfile, UserData } from '../types';
 import './QuestionnairePage.css';
 
@@ -18,8 +19,9 @@ interface QuestionnairePageProps {
   onFinish: (answers: Record<string, any>) => void;
 }
 
-export default function QuestionnairePage({ user, profile, onFinish }: QuestionnairePageProps, ) {
-
+export default function QuestionnairePage({ user, profile, onFinish }: QuestionnairePageProps,) {
+  const router = useRouter();
+  const [isSaving, setIsSaving] = useState(false); // Estado para deshabilitar botones al guardar
   const [current, setCurrent] = useState<number>(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [animDir, setAnimDir] = useState<string>('idle');
@@ -27,11 +29,18 @@ export default function QuestionnairePage({ user, profile, onFinish }: Questionn
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  
+
+
+  // QuestionnairePage.tsx
 
   const total = QUESTIONS.length;
-  const q = QUESTIONS[current];
-  const answer = answers[q.id] ?? '';
+
+  // BLINDAJE #1: Protegemos contra desbordamientos accidentales de índice
+  const currentSafe = Math.min(Math.max(0, current), total - 1);
+  const q = QUESTIONS[currentSafe];
+
+  // Si por una carrera de renders 'q' no existe momentáneamente, evitamos el pantallazo negro
+  const answer = q ? (answers[q.id] ?? '') : '';
 
   const animateTransition = (direction: 'next' | 'prev', callback: () => void) => {
     if (isAnimating) return;
@@ -49,9 +58,12 @@ export default function QuestionnairePage({ user, profile, onFinish }: Questionn
   };
 
   const goNext = () => {
+    if (isAnimating || isSaving) return; // Bloqueo estricto para evitar saltos dobles de preguntas
+
     let isValid = true;
     let errorMessage = "";
 
+    // Validaciones de seguridad
     if (q.type === 'text') {
       if (!answer || typeof answer !== 'string' || answer.trim() === '') {
         isValid = false;
@@ -66,7 +78,6 @@ export default function QuestionnairePage({ user, profile, onFinish }: Questionn
         errorMessage = "Selecciona 'Sí' o 'No' antes de seguir.";
       }
       else if (branchAnswer === 'Sí') {
-        // CORRECCIÓN: Buscamos dentro del mismo objeto de respuesta 'answer'
         const listItems = answer?._list || [];
         const extraInfo = answer?.exp || "";
 
@@ -87,19 +98,50 @@ export default function QuestionnairePage({ user, profile, onFinish }: Questionn
       return;
     }
 
+    // CONTROL DE FLUJO SARRACENO PARA PREVENIR SALTOS DE DOS EN DOS
     if (current < total - 1) {
-      animateTransition('next', () => setCurrent((c) => c + 1));
+      // Avanza estrictamente de uno en uno usando la animación controlada
+      animateTransition('next', () => setCurrent((c) => Math.min(c + 1, total - 1)));
     } else {
-      onFinish(answers);
+      // Bloque de guardado al final del cuestionario
+      const handleFinalize = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        setError("Guardando tus respuestas de PumaIA...");
+
+        try {
+          await questionnaireService.saveAnswers(answers);
+
+          const rawData = localStorage.getItem('userData');
+          if (rawData) {
+            const parsedData = JSON.parse(rawData);
+            parsedData.hasCompletedQuiz = true;
+            if (parsedData.user) parsedData.user.hasCompletedQuiz = true;
+            localStorage.setItem('userData', JSON.stringify(parsedData));
+          }
+
+          if (onFinish) {
+            onFinish(answers);
+          }
+
+        } catch (err: any) {
+          console.error("Error crítico al finalizar cuestionario:", err);
+          setError("Hubo un problema al guardar tus respuestas en Supabase. Por favor, reintenta.");
+          setTimeout(() => setError(''), 5000);
+        } finally {
+          setIsSaving(false);
+        }
+      };
+
+      handleFinalize();
     }
   };
 
   const goPrev = () => {
-    if (current > 0) {
-      animateTransition('prev', () => setCurrent((c) => c - 1));
+    if (current > 0 && !isAnimating && !isSaving) {
+      animateTransition('prev', () => setCurrent((c) => Math.max(c - 1, 0)));
     }
   };
-
   const setAnswer = (val: any) => {
     setAnswers((prev) => ({ ...prev, [q.id]: val }));
   };
@@ -182,8 +224,12 @@ export default function QuestionnairePage({ user, profile, onFinish }: Questionn
               Anterior
             </button>
           )}
-          <button className="q-btn primary" onClick={goNext} disabled={isAnimating}>
-            {current < total - 1 ? 'Siguiente' : 'Finalizar'}
+          <button
+            className="q-btn primary"
+            onClick={goNext}
+            disabled={isAnimating || isSaving} // <-- Agrega "isSaving" aquí
+          >
+            {isSaving ? 'Guardando...' : (current < total - 1 ? 'Siguiente' : 'Finalizar')}
           </button>
         </div>
 
