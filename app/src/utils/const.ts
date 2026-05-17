@@ -15,3 +15,21 @@ export const REQUIRED_DOCS = [
   'Visa de Estudios',
   'Seguro de Gastos Médicos',
 ];
+
+
+export function getSafeInitial(userData: any): string {
+  if (!userData) return 'U'; // 'U' de Usuario como fallback global
+  
+  // 1. Si el backend ya calculó una propiedad "initial" o "initials"
+  if (userData.initial) return userData.initial.toUpperCase();
+  if (userData.initials) return userData.initials.toUpperCase();
+  
+  // 2. Si no existe, la calculamos al vuelo usando el nombre o el correo
+  const nameToParse = userData.nombre || userData.name || userData.email;
+  
+  if (nameToParse && typeof nameToParse === 'string') {
+    return nameToParse.trim().charAt(0).toUpperCase();
+  }
+  
+  return 'U';
+}

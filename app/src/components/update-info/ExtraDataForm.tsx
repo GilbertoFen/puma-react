@@ -202,9 +202,12 @@ export default function ExtraDataForm() {
           </div>
           {editingField === 'cursos' ? (
             <div className={styles.editBlock}>
-              <select className={styles.input} style={{ background: '#0a1424', color: 'white' }} value={selectedCursoId} onChange={(e) => setSelectedCursoId(e.target.value)}>
-                {catalogos.cursos.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              <CustomSelect
+                options={catalogos.cursos.map((c) => ({ id: c.id, label: c.name }))}
+                value={selectedCursoId}
+                onChange={setSelectedCursoId}
+                placeholder="Selecciona un curso"
+              />
               <div className={styles.editActions} style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
                 <button className={styles.cancelBtn} onClick={() => setEditingField(null)}>Cancelar</button>
                 <button className={styles.saveBtn} onClick={() => handleSaveField('cursos')}>Vincular</button>
@@ -229,9 +232,12 @@ export default function ExtraDataForm() {
           </div>
           {editingField === 'becas' ? (
             <div className={styles.editBlock}>
-              <select className={styles.input} style={{ background: '#0a1424', color: 'white' }} value={selectedBecaId} onChange={(e) => setSelectedBecaId(e.target.value)}>
-                {catalogos.becas.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
+              <CustomSelect
+                options={catalogos.becas.map((b) => ({ id: b.id, label: b.name }))}
+                value={selectedBecaId}
+                onChange={setSelectedBecaId}
+                placeholder="Selecciona una beca"
+              />
               <div className={styles.editActions} style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
                 <button className={styles.cancelBtn} onClick={() => setEditingField(null)}>Cancelar</button>
                 <button className={styles.saveBtn} onClick={() => handleSaveField('becas')}>Asignar</button>
@@ -256,9 +262,12 @@ export default function ExtraDataForm() {
           </div>
           {editingField === 'concursos' ? (
             <div className={styles.editBlock}>
-              <select className={styles.input} style={{ background: '#0a1424', color: 'white' }} value={selectedConcursoId} onChange={(e) => setSelectedConcursoId(e.target.value)}>
-                {catalogos.concursos.map((cn) => <option key={cn.id} value={cn.id}>{cn.name}</option>)}
-              </select>
+              <CustomSelect
+                options={catalogos.concursos.map((cn) => ({ id: cn.id, label: cn.name }))}
+                value={selectedConcursoId}
+                onChange={setSelectedConcursoId}
+                placeholder="Selecciona un concurso"
+              />
               <div className={styles.editActions} style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
                 <button className={styles.cancelBtn} onClick={() => setEditingField(null)}>Cancelar</button>
                 <button className={styles.saveBtn} onClick={() => handleSaveField('concursos')}>Inscribir</button>
@@ -283,17 +292,24 @@ export default function ExtraDataForm() {
           </div>
           {editingField === 'idiomas' ? (
             <div className={styles.editBlock} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <select className={styles.input} style={{ background: '#0a1424', color: 'white' }} value={selectedIdiomaId} onChange={(e) => setSelectedIdiomaId(e.target.value)}>
-                {catalogos.idiomas.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-              </select>
-              <select className={styles.input} style={{ background: '#0a1424', color: 'white' }} value={selectedCEFR} onChange={(e) => setSelectedCEFR(e.target.value)}>
-                <option value="A1">A1 - Principiante</option>
-                <option value="A2">A2 - Elemental</option>
-                <option value="B1">B1 - Intermedio</option>
-                <option value="B2">B2 - Intermedio Avanzado</option>
-                <option value="C1">C1 - Avanzado</option>
-                <option value="C2">C2 - Maestría Nativa</option>
-              </select>
+              <CustomSelect
+                options={catalogos.idiomas.map((l) => ({ id: l.id, label: l.name }))}
+                value={selectedIdiomaId}
+                onChange={setSelectedIdiomaId}
+                placeholder="Selecciona un idioma"
+              />
+              <CustomSelect
+                options={[
+                  { id: 'A1', label: 'A1 — Principiante' },
+                  { id: 'A2', label: 'A2 — Elemental' },
+                  { id: 'B1', label: 'B1 — Intermedio' },
+                  { id: 'B2', label: 'B2 — Intermedio Avanzado' },
+                  { id: 'C1', label: 'C1 — Avanzado' },
+                  { id: 'C2', label: 'C2 — Maestría Nativa' },
+                ]}
+                value={selectedCEFR}
+                onChange={setSelectedCEFR}
+              />
               <div className={styles.editActions} style={{ display: 'flex', gap: '8px' }}>
                 <button className={styles.cancelBtn} onClick={() => setEditingField(null)}>Cancelar</button>
                 <button className={styles.saveBtn} onClick={() => handleSaveField('idiomas')}>Guardar</button>
@@ -320,13 +336,19 @@ export default function ExtraDataForm() {
           {editingField === 'experiencia' ? (
             <div className={styles.editBlock} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <span style={{ fontSize: '11px', color: '#bb8800' }}>Selecciona el Área de Especialización:</span>
-              <select className={styles.input} style={{ background: '#0a1424', color: 'white' }} value={selectedAreaId} onChange={(e) => setSelectedAreaId(e.target.value)}>
-                {catalogos.areas.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
-              </select>
+              <CustomSelect
+                options={catalogos.areas.map((a) => ({ id: a.id, label: a.label }))}
+                value={selectedAreaId}
+                onChange={setSelectedAreaId}
+                placeholder="Selecciona un área"
+              />
               <span style={{ fontSize: '11px', color: '#bb8800' }}>Selecciona la Categoría Asociada:</span>
-              <select className={styles.input} style={{ background: '#0a1424', color: 'white' }} value={selectedCategoriaId} onChange={(e) => setSelectedCategoriaId(e.target.value)}>
-                {catalogos.categorias.map((ct) => <option key={ct.id} value={ct.id}>{ct.category}</option>)}
-              </select>
+              <CustomSelect
+                options={catalogos.categorias.map((ct) => ({ id: ct.id, label: ct.category }))}
+                value={selectedCategoriaId}
+                onChange={setSelectedCategoriaId}
+                placeholder="Selecciona una categoría"
+              />
               <div className={styles.editActions} style={{ display: 'flex', gap: '8px' }}>
                 <button className={styles.cancelBtn} onClick={() => setEditingField(null)}>Cancelar</button>
                 <button className={styles.saveBtn} onClick={() => handleSaveField('experiencia')}>Vincular Perfil</button>
@@ -346,7 +368,80 @@ export default function ExtraDataForm() {
     </div>
   );
 }
+// ── Selector visual custom — reemplaza los <select> nativos ──
+type SelectOption = { id: string; label: string };
 
+type CustomSelectProps = {
+  options: SelectOption[];
+  value: string;
+  onChange: (id: string) => void;
+  placeholder?: string;
+};
+
+function CustomSelect({ options, value, onChange, placeholder }: CustomSelectProps) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+  const selected = options.find((o) => o.id === value);
+
+  React.useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className={styles.customSelect} ref={ref}>
+      <button
+        type="button"
+        className={`${styles.selectTrigger} ${open ? styles.selectTriggerOpen : ''}`}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className={selected ? styles.selectValue : styles.selectPlaceholder}>
+          {selected?.label ?? placeholder ?? 'Selecciona una opción'}
+        </span>
+        <ChevronSelectIcon open={open} />
+      </button>
+
+      {open && (
+        <div className={styles.selectDropdown}>
+          {options.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              className={`${styles.selectOption} ${opt.id === value ? styles.selectOptionActive : ''}`}
+              onClick={() => { onChange(opt.id); setOpen(false); }}
+            >
+              {opt.id === value && <CheckSelectIcon />}
+              <span>{opt.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChevronSelectIcon({ open }: { open: boolean }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+      style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.22s', flexShrink: 0 }}>
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+function CheckSelectIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+      stroke="rgba(201,168,76,0.9)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+      style={{ flexShrink: 0 }}>
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
 // Iconos Svg Auxiliares permanecen igual abajo...
 function PlusIcon() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>; }
 function EditIcon() { return <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>; }

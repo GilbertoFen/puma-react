@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import styles from './UpdateHero.module.css';
-
+import { UPDATE_INFO_ICON } from '../../utils/img/assets';
 type Props = {
   onDismiss: () => void;
 };
@@ -19,8 +19,8 @@ export default function UpdateHero({ onDismiss }: Props) {
     <div className={styles.hero} onClick={!loading ? onDismiss : undefined}>
       {/* Ícono circular — reemplaza con tu imagen de Cloudinary */}
       <div className={styles.iconWrap}>
-        {/* <img src="TU_URL_CLOUDINARY" alt="Análisis" style={{width:'100%',height:'100%',objectFit:'contain'}} /> */}
-        <HeroIcon />
+        <img src={UPDATE_INFO_ICON} alt="Análisis" style={{width:'80%',height:'80%',objectFit:'contain'}} /> 
+        {/*<HeroIcon />*/}
       </div>
 
       <div className={styles.textBlock}>

@@ -5,10 +5,11 @@ import Navbar from '../Navbar';
 import HomeDrawer from './HomeDrawer';
 import FeatureCards from './FeatureCards';
 import Carousel from './Carousel';
-import { studentService } from '../../services/student.service'; // Asegura la ruta
-import { StudentProfile } from '../../types'; // Asegura la ruta
+import { studentService } from '../../services/student.service'; 
+import { StudentProfile } from '../../types'; 
 import styles from './HomePage.module.css';
-
+import PageLoader from '../loaders/PageLoader';
+import AppFooter from '../AppFooter';
 export default function HomePage({
   user: initialUser,
   initialProfile
@@ -24,9 +25,8 @@ export default function HomePage({
     const savedProfile = localStorage.getItem('student_profile');
 
     if (savedProfile) {
-      setProfile(JSON.parse(savedProfile)); // Lo cargamos instantáneamente
+      setProfile(JSON.parse(savedProfile)); 
     } else if (initialUser?.cuenta) {
-      // Si no hay nada en cache, hacemos la petición como respaldo
       studentService.getProfileByAccount(initialUser.cuenta)
         .then(data => setProfile(data));
     }
@@ -36,10 +36,12 @@ export default function HomePage({
   const goToProfile = () => router.push('/profile');
   const goToUpdateInfo = () => router.push('/update-info');
   const goToExchange = () => router.push('/exchange');
+  const goToHome = () => router.push('/home');
 
   // Si no hay perfil aún, mostramos la inicial del login o una por defecto
   const userInitial = profile?.fullName?.charAt(0) || initialUser?.initial || "U";
   const displayName = profile?.fullName || initialUser?.nombre || "Usuario";
+  if (!initialUser) return <PageLoader message="Iniciando PumaIA..." />;
 
   return (
     <div className={styles.root}>
@@ -67,14 +69,6 @@ export default function HomePage({
       <HomeDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        onNavigate={(section) => {
-          setDrawerOpen(false);
-          if (section === 'pumaia') goToChat();
-          if (section === 'ajustes') goToSettings();
-          if (section === 'perfil') goToProfile();
-          if (section === 'intercambio') goToExchange();
-          if (section === 'actualizar') goToUpdateInfo();
-        }}
       />
 
       {drawerOpen && (
@@ -105,10 +99,8 @@ export default function HomePage({
           </div>
         </section>
 
-        <footer className={styles.footer}>
-          <a href="#" className={styles.footerLink}>Preguntas frecuentes</a>
-          <span className={styles.footerLink}>© 2026 PUMAIA - FES Acatlán</span>
-        </footer>
+        <AppFooter variant="dark" />
+
       </main>
     </div>
   );

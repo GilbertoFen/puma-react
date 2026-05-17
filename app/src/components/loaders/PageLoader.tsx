@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import styles from './PageLoader.module.css';
-
+import { AI_LOGO } from '../../utils/img/assets';
 type Props = {
   message?: string;   // texto opcional debajo del logo
 };
@@ -22,7 +22,7 @@ export default function PageLoader({ message }: Props) {
       <div className={styles.center}>
         {/* Logo animado — reemplaza el SVG con tu imagen de Cloudinary */}
         <div className={styles.logoWrap}>
-          <LogoIcon />
+          <img src={AI_LOGO} alt="Análisis" style={{width:'100%',height:'100%',objectFit:'contain'}} /> 
           <div className={styles.pulse} />
         </div>
 

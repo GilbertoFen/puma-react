@@ -1,14 +1,15 @@
 'use client';
 import React from 'react';
 import styles from './ExchangeHero.module.css';
+import { EXCHANGE_ICON } from '../../utils/img/assets';
 
 export default function ExchangeHero() {
   return (
     <div className={styles.hero}>
       {/* Ícono — reemplaza con tu imagen de Cloudinary */}
       <div className={styles.iconWrap}>
-        {/* <img src="TU_URL" alt="Intercambio" style={{width:'100%',height:'100%',objectFit:'contain'}} /> */}
-        <ExchangeHeroIcon />
+        <img src={EXCHANGE_ICON} alt="Intercambio" style={{width:'65%',height:'65%',objectFit:'contain'}} /> 
+        {/*<ExchangeHeroIcon />*/}
       </div>
 
       <div className={styles.text}>

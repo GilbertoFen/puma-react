@@ -8,6 +8,7 @@ import styles from './ChatArea.module.css';
 import { HamburgerIcon } from '../home/HomePage';
 import { AI_LOGO, EDIT_ICON, COPY_ICON, SEND_ICON } from '../../utils/img/assets';
 import ChatSidebar from './ChatSidebar';
+import TypingIndicator from '../loaders/TypingIndicator';
 type Props = {
   conversation: Conversation | null;
   suggestions: string[];
@@ -15,6 +16,8 @@ type Props = {
   sidebarOpen: boolean;
   displayName: string;
   setDrawerOpen: (open: boolean) => void;
+  isTyping: boolean;
+
 };
 
 function AiLogo() {
@@ -27,21 +30,21 @@ function AiLogo() {
   );
 }
 
-export default function ChatArea({ conversation, suggestions, onSend, sidebarOpen, displayName, setDrawerOpen }: Props) {
+export default function ChatArea({ conversation, suggestions, onSend, sidebarOpen, displayName, setDrawerOpen, isTyping }: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isEmpty = !conversation || !conversation.messages || conversation.messages.length === 0;
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversation?.messages?.length]); // Añadimos el "?" antes de length
+  }, [conversation?.messages?.length, isTyping]); // Añadimos el "?" antes de length
   return (
 
     <div className={styles.main}>
       <div className={styles.container}>
-        {isEmpty ? (
+        {isEmpty && !isTyping ? (
           <div className={styles.emptyState}>
             <AiLogo />
             <div className={styles.emptyText}>
-              <h2 className={styles.emptyGreeting}>Hola Emmanuel Romero.</h2>
+              <h2 className={styles.emptyGreeting}>Hola {displayName}.</h2>
               <h2 className={styles.emptyQuestion}>¿Qué necesitas el día de hoy?</h2>
             </div>
             <div className={styles.suggestions}>
@@ -53,10 +56,12 @@ export default function ChatArea({ conversation, suggestions, onSend, sidebarOpe
             </div>
           </div>
         ) : (
+          /* Mensajes + typing juntos */
           <div className={styles.messages}>
-            {conversation!.messages.map((msg) => (
+            {conversation?.messages?.map((msg) => (
               <ChatMessage key={msg.id} message={msg} />
             ))}
+            {isTyping && <TypingIndicator />}   {/* ← siempre visible aquí */}
             <div ref={messagesEndRef} />
           </div>
         )}

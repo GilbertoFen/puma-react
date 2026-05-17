@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import type { Message } from './ChatLayout';
 import styles from './ChatMessage.module.css';
 import { COPY_ICON, MORE_ICON, EDIT_ICON, AI_LOGO } from '../../utils/img/assets';
+import ReactMarkdown from 'react-markdown';
 
 type Props = {
   message: Message;
@@ -84,8 +85,18 @@ export default function ChatMessage({ message }: Props) {
               </button>
             </div>
           </div>
+        ) : message.content === '__error__' ? (
+          <div className={styles.errorBubble}>
+            <ErrorIcon />
+            <div>
+              <p className={styles.errorTitle}>PumaIA no pudo responder</p>
+              <p className={styles.errorDesc}>
+                Hubo un problema con el servidor. Intenta enviar tu mensaje de nuevo.
+              </p>
+            </div>
+          </div>
         ) : (
-          <p className={styles.text}>{message.content}</p>
+          <p className={styles.text}><ReactMarkdown>{message.content}</ReactMarkdown></p>
         )}
 
         {!editing && (
@@ -110,7 +121,17 @@ export default function ChatMessage({ message }: Props) {
     </div>
   );
 }
-
+function ErrorIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      style={{ flexShrink: 0, marginTop: 2 }}>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
+    </svg>
+  );
+}
 function EditIcon() {
   return (
     <img

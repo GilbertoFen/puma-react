@@ -1,8 +1,8 @@
-'use client'; 
+'use client';
 import HomePage from '../src/components/home/HomePage';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
+import PageLoader from '../src/components/loaders/PageLoader';
 export default function HomeRoute() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -33,18 +33,8 @@ export default function HomeRoute() {
   // Por eso el router.push('/') es vital.
   if (loading || !user) {
     return (
-      <div style={{ 
-        background: '#0b1733', 
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: '#bb8800',
-        gap: '10px'
-      }}>
-        <div className="spinner"></div> {/* Agrega un spinner CSS si tienes */}
-        <span>Cargando portal...</span>
+      <div>
+        <PageLoader message="Cargando PumaIA..." />
       </div>
     );
   }

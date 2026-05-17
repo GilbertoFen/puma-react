@@ -7,8 +7,15 @@
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .sectionHeader {
@@ -26,7 +33,7 @@
 
 .sectionDesc {
   font-size: 14px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   line-height: 1.5;
 }
 
@@ -38,8 +45,8 @@
 }
 
 .answerCard {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 16px 18px;
   display: flex;
@@ -48,12 +55,14 @@
   transition: border-color 0.2s;
 }
 
-.answerCard:hover { border-color: rgba(255,255,255,0.14); }
+.answerCard:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
 
 .question {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(201,168,76,0.8);
+  color: rgba(201, 168, 76, 0.8);
   line-height: 1.4;
 }
 
@@ -73,18 +82,18 @@
 
 .answerText {
   font-size: 14px;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.5;
 }
 
 .chip {
   display: inline-block;
   padding: 4px 10px;
-  background: rgba(26,79,168,0.25);
-  border: 1px solid rgba(26,79,168,0.4);
+  background: rgba(26, 79, 168, 0.25);
+  border: 1px solid rgba(26, 79, 168, 0.4);
   border-radius: 100px;
   font-size: 12px;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .editBtn {
@@ -93,16 +102,19 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   flex-shrink: 0;
   transition: background 0.2s, color 0.2s;
 }
 
-.editBtn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.editBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
 
 /* Modo edición */
 .editBlock {
@@ -114,10 +126,10 @@
 .editArea {
   width: 100%;
   padding: 10px 14px;
-  background: rgba(255,255,255,0.07);
-  border: 1.5px solid rgba(201,168,76,0.4);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(201, 168, 76, 0.4);
   border-radius: 10px;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
   font-family: var(--font-body, 'DM Sans', sans-serif);
   font-size: 14px;
   line-height: 1.5;
@@ -133,25 +145,28 @@
 
 .cancelBtn {
   padding: 6px 14px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 7px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 13px;
   cursor: pointer;
   font-family: inherit;
   transition: all 0.2s;
 }
 
-.cancelBtn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.cancelBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
 
 .saveBtn {
   display: flex;
   align-items: center;
   gap: 5px;
   padding: 6px 14px;
-  background: rgba(26,79,168,0.55);
-  border: 1px solid rgba(26,79,168,0.7);
+  background: rgba(26, 79, 168, 0.55);
+  border: 1px solid rgba(26, 79, 168, 0.7);
   border-radius: 7px;
   color: #fff;
   font-size: 13px;
@@ -161,7 +176,9 @@
   transition: all 0.2s;
 }
 
-.saveBtn:hover { background: rgba(37,99,235,0.7); }
+.saveBtn:hover {
+  background: rgba(37, 99, 235, 0.7);
+}
 
 /* Botón de rehacer */
 .redoBtn {
@@ -170,10 +187,10 @@
   gap: 7px;
   align-self: flex-start;
   padding: 10px 18px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -182,8 +199,8 @@
 }
 
 .redoBtn:hover {
-  background: rgba(255,255,255,0.09);
-  color: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* ── Sección reporte ── */
@@ -191,11 +208,11 @@
   display: flex;
   gap: 12px;
   padding: 16px 18px;
-  background: rgba(201,168,76,0.07);
-  border: 1px solid rgba(201,168,76,0.2);
+  background: rgba(201, 168, 76, 0.07);
+  border: 1px solid rgba(201, 168, 76, 0.2);
   border-radius: 12px;
   font-size: 14px;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   line-height: 1.65;
 }
 
@@ -209,7 +226,7 @@
   font-family: var(--font-display, 'Sora', sans-serif);
   font-size: 15px;
   font-weight: 700;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Carreras */
@@ -220,8 +237,8 @@
 }
 
 .careerCard {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 16px 18px;
   display: flex;
@@ -253,33 +270,33 @@
   font-family: var(--font-display, 'Sora', sans-serif);
   font-size: 20px;
   font-weight: 800;
-  color: rgba(201,168,76,0.9);
+  color: rgba(201, 168, 76, 0.9);
   line-height: 1;
 }
 
 .matchLabel {
   font-size: 10px;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   letter-spacing: 0.04em;
 }
 
 .matchBar {
   height: 4px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 100px;
   overflow: hidden;
 }
 
 .matchFill {
   height: 100%;
-  background: linear-gradient(90deg, rgba(26,79,168,0.8), rgba(201,168,76,0.7));
+  background: linear-gradient(90deg, rgba(26, 79, 168, 0.8), rgba(201, 168, 76, 0.7));
   border-radius: 100px;
-  transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .careerDesc {
   font-size: 13px;
-  color: rgba(255,255,255,0.6);
+  color: rgba(255, 255, 255, 0.6);
   line-height: 1.5;
 }
 
@@ -299,7 +316,7 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* ── Sección documentos ── */
@@ -309,7 +326,7 @@
   align-items: center;
   gap: 8px;
   padding: 28px 20px;
-  border: 2px dashed rgba(201,168,76,0.3);
+  border: 2px dashed rgba(201, 168, 76, 0.3);
   border-radius: 14px;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
@@ -317,19 +334,19 @@
 }
 
 .uploadArea:hover {
-  border-color: rgba(201,168,76,0.55);
-  background: rgba(201,168,76,0.04);
+  border-color: rgba(201, 168, 76, 0.55);
+  background: rgba(201, 168, 76, 0.04);
 }
 
 .uploadTitle {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255,255,255,0.75);
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .uploadHint {
   font-size: 12px;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .categorySelect {
@@ -341,15 +358,15 @@
 
 .categoryLabel {
   font-size: 12px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .select {
   padding: 5px 10px;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 7px;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 12px;
   font-family: inherit;
   outline: none;
@@ -358,7 +375,7 @@
 
 .emptyMsg {
   font-size: 14px;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255, 255, 255, 0.35);
   text-align: center;
   padding: 20px 0;
 }
@@ -380,9 +397,9 @@
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: rgba(201,168,76,0.6);
+  color: rgba(201, 168, 76, 0.6);
   padding-bottom: 4px;
-  border-bottom: 1px solid rgba(201,168,76,0.12);
+  border-bottom: 1px solid rgba(201, 168, 76, 0.12);
 }
 
 .docRow {
@@ -390,13 +407,15 @@
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 10px;
   transition: background 0.2s;
 }
 
-.docRow:hover { background: rgba(255,255,255,0.07); }
+.docRow:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
 
 .docInfo {
   flex: 1;
@@ -408,7 +427,7 @@
 
 .docName {
   font-size: 13px;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255, 255, 255, 0.85);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -416,7 +435,7 @@
 
 .docMeta {
   font-size: 11px;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .docActions {
@@ -431,19 +450,81 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255, 255, 255, 0.45);
   cursor: pointer;
   text-decoration: none;
   transition: all 0.2s;
 }
 
-.docBtn:hover { background: rgba(255,255,255,0.11); color: #fff; }
+.docBtn:hover {
+  background: rgba(255, 255, 255, 0.11);
+  color: #fff;
+}
 
 .docBtnDanger:hover {
-  background: rgba(220,38,38,0.15);
-  border-color: rgba(220,38,38,0.3);
-  color: rgba(252,165,165,0.9);
+  background: rgba(220, 38, 38, 0.15);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: rgba(252, 165, 165, 0.9);
+}
+
+/* ── AI Analysis Loader ── */
+.aiLoader {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 24px;
+  background: rgba(201, 168, 76, 0.06);
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 14px;
+  animation: fadeUp 0.3s ease both;
+}
+
+.aiLoaderIcon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.aiLoaderText {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
+}
+
+.aiLoaderTitle {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.aiLoaderStep {
+  font-size: 12px;
+  color: rgba(201, 168, 76, 0.75);
+  margin: 0;
+  min-height: 16px;
+  transition: opacity 0.3s;
+}
+
+.aiLoaderSteps {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.aiLoaderDot {
+  height: 3px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 100px;
+  transition: background 0.4s ease;
+}
+
+.aiLoaderDotActive {
+  background: rgba(201, 168, 76, 0.7);
 }

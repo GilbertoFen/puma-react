@@ -1,10 +1,19 @@
 'use client';
 import React from 'react';
-import styles from './HomeDrawer.module.css';
 import { useRouter } from 'next/navigation';
+import styles from './HomeDrawer.module.css';
 import { AI_LOGO, EXCHANGE_ICON, UPDATE_INFO_ICON } from '../../utils/img/assets';
 
-// Secciones del menu
+// Diccionario estático único de rutas (Punto único de verdad)
+const ROUTE_MAP: Record<string, string> = {
+  home: '/home',
+  pumaia: '/chat',
+  perfil: '/profile',
+  actualizar: '/update-info',
+  intercambio: '/exchange',
+  ajustes: '/settings',
+};
+
 type NavItem = {
   id: string;
   label: string;
@@ -13,6 +22,7 @@ type NavItem = {
 };
 
 const NAV_ITEMS: NavItem[] = [
+  { id: 'home', label: 'Página Principal', Icon: HomeIcon, enabled: true },
   { id: 'perfil', label: 'Mi perfil', Icon: ProfileIcon, enabled: true },
   { id: 'pumaia', label: 'PumaIA', Icon: PumaIAIcon, enabled: true },
   { id: 'actualizar', label: 'Actualizar información', Icon: UpdateIcon, enabled: true },
@@ -23,10 +33,22 @@ const NAV_ITEMS: NavItem[] = [
 type Props = {
   open: boolean;
   onClose: () => void;
-  onNavigate: (section: string) => void;
 };
 
-export default function HomeDrawer({ open, onClose, onNavigate }: Props) {
+export default function HomeDrawer({ open, onClose }: Props) {
+  const router = useRouter();
+
+  const handleNavigate = (id: string) => {
+    onClose(); 
+
+    const targetPath = ROUTE_MAP[id];
+    if (targetPath) {
+      router.push(targetPath);
+    } else {
+      console.warn(`La sección "${id}" no tiene una ruta asignada en el ROUTE_MAP.`);
+    }
+  };
+
   return (
     <aside className={`${styles.drawer} ${open ? styles.open : ''}`}>
 
@@ -44,7 +66,7 @@ export default function HomeDrawer({ open, onClose, onNavigate }: Props) {
           <button
             key={id}
             className={`${styles.navItem} ${!enabled ? styles.disabled : ''}`}
-            onClick={() => enabled && onNavigate(id)}
+            onClick={() => enabled && handleNavigate(id)}
             aria-disabled={!enabled}
             title={!enabled ? 'Próximamente' : label}
           >
@@ -60,6 +82,7 @@ export default function HomeDrawer({ open, onClose, onNavigate }: Props) {
   );
 }
 
+// ── Tus subcomponentes de iconos permanecen exactamente iguales ───────────────────────────
 function ProfileIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -69,34 +92,24 @@ function ProfileIcon() {
     </svg>
   );
 }
-
+function HomeIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
 function PumaIAIcon() {
-  return (
-    <img
-      src={AI_LOGO}
-      alt="PUMA IA"
-    />
-  );
+  return <img src={AI_LOGO} alt="PUMA IA" />;
 }
-
 function UpdateIcon() {
-  return (
-    <img
-      src={UPDATE_INFO_ICON}
-      alt="Actualizar informacion"
-    />
-  );
+  return <img src={UPDATE_INFO_ICON} alt="Actualizar informacion" />;
 }
-
 function ExchangeIcon() {
-  return (
-    <img
-      src={EXCHANGE_ICON}
-      alt="Intercambio"
-    />
-  );
+  return <img src={EXCHANGE_ICON} alt="Intercambio" />;
 }
-
 function SettingsIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -106,7 +119,6 @@ function SettingsIcon() {
     </svg>
   );
 }
-
 function CloseIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"

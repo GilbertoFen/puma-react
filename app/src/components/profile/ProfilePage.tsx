@@ -4,20 +4,26 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../Navbar';
 import HomeDrawer from '../home/HomeDrawer';
 import { gradeService, Subject } from '../../services/grades.service';
-import { updateInfoService } from '../../services/updateInfo.service'; // <-- Importamos tu servicio maestro
-import { MOCK_REPORT } from '../../mock/mockData';
+import { updateInfoService } from '../../services/updateInfo.service';
 import styles from './ProfilePage.module.css';
 import AcademicHistoryManager from "../update-info/AcademicHistoryManager";
 import ExperienceCard from '../profile/ExperienceCard';
+import PageLoader from '../loaders/PageLoader';
+import InlineLoader from '../loaders/InlineLoader';
 
 export default function ProfilePage() {
   const router = useRouter();
 
   // --- ESTADOS DE DATOS REALES ---
   const [user, setUser] = useState<any>(null);
-  const [profileSummary, setProfileSummary] = useState<any>(null); // <-- Estado para guardar relaciones de la BD
+  const [profileSummary, setProfileSummary] = useState<any>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [aiAnalysis, setAiAnalysis] = useState<any>(null); // <-- Nuevo estado para el informe de IA
+
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadingAI, setLoadingAI] = useState(true); // <-- Cargador independiente para la IA
 
   // --- ESTADOS DE UI ---
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -25,41 +31,68 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState('');
 
   useEffect(() => {
-    // 1. Cargar datos básicos de sesión del alumno
     const savedUser = localStorage.getItem('userData');
     if (savedUser) {
       const parsedUser = JSON.parse(savedUser);
       setUser(parsedUser);
       setPhone(parsedUser.telefono || '');
     }
+    setLoadingUser(false);
 
-    // 2. Cargar historial académico y sumario detallado del perfil profesional
     const fetchProfileAndHistory = async () => {
       const token = localStorage.getItem('token');
       if (!token) {
-        setLoading(false);
+        setLoadingHistory(false);
+        setLoadingProfile(false);
+        setLoadingAI(false);
         return;
       }
       try {
-        // Ejecutamos las llamadas asíncronas en paralelo para optimizar rendimiento
-        const [gradesData, summaryData] = await Promise.all([
-          gradeService.getMyGrades(token).catch(() => []),
-          updateInfoService.getProfileSummary().catch(() => null)
+        // Los tres fetch corren en paralelo optimizando la velocidad del ruteador
+        const [gradesData, summaryData, aiData] = await Promise.allSettled([
+          gradeService.getMyGrades(token),
+          updateInfoService.getProfileSummary(),
+          updateInfoService.getSavedAiAnalysis() // <-- Descarga real de Supabase
         ]);
 
-        setSubjects(gradesData);
-        setProfileSummary(summaryData);
+        if (gradesData.status === 'fulfilled') setSubjects(gradesData.value);
+        setLoadingHistory(false);
+
+        if (summaryData.status === 'fulfilled') setProfileSummary(summaryData.value);
+        setLoadingProfile(false);
+
+        if (aiData.status === 'fulfilled' && aiData.value.hasAnalysis) {
+          setAiAnalysis(aiData.value.data);
+        }
+        setLoadingAI(false); // ← Análisis de IA resuelto
+
       } catch (error) {
         console.error("Error al cargar la información del perfil:", error);
-      } finally {
-        setLoading(false);
+        setLoadingHistory(false);
+        setLoadingProfile(false);
+        setLoadingAI(false);
       }
     };
 
     fetchProfileAndHistory();
   }, []);
 
-  if (!user) return <div className={styles.root}><div className={styles.bgMesh} /></div>;
+  if (loadingUser) return <PageLoader message="Cargando tu perfil..." />;
+  if (!user) return <PageLoader message="Verificando sesión..." />;
+
+  // Función auxiliar para extraer el número entero del string "Match: 95%."
+  const extractMatchNumber = (desc: string): string => {
+    if (!desc) return '0';
+    const match = desc.match(/Match:\s*(\d+)%/i);
+    return match ? match[1] : '0';
+  };
+
+  // Preparamos las 3 primeras rutas profesionales mapeándolas dinámicamente si existen
+  const topThreeCareers = aiAnalysis ? [
+    { title: aiAnalysis.optionA, desc: aiAnalysis.descriptionA },
+    { title: aiAnalysis.optionB, desc: aiAnalysis.descriptionB },
+    { title: aiAnalysis.optionC, desc: aiAnalysis.descriptionC },
+  ].filter(c => c.title) : [];
 
   return (
     <div className={styles.root}>
@@ -80,12 +113,6 @@ export default function ProfilePage() {
       <HomeDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        onNavigate={(section) => {
-          setDrawerOpen(false);
-          if (section === 'pumaia') router.push('/chat');
-          if (section === 'actualizar') router.push('/update-info');
-          if (section === 'ajustes') router.push('/settings');
-        }}
       />
       {drawerOpen && (
         <div className={styles.overlay} onClick={() => setDrawerOpen(false)} />
@@ -161,39 +188,64 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* INYECCIÓN DE DATOS AL HIJO: Pasamos el sumario real de la base de datos */}
-            <ExperienceCard data={profileSummary} />
+            {/* Tarjeta relacional de Experiencia */}
+            <div style={{ position: 'relative' }}>
+              {loadingProfile && (
+                <InlineLoader variant="overlay" message="Cargando experiencia..." />
+              )}
+              <ExperienceCard data={profileSummary} />
+            </div>
           </div>
 
           {/* Columna derecha */}
           <div className={styles.colRight}>
 
-            {/* Ruta profesional sugerida */}
-            <div className={styles.card}>
+            {/* ── SECCIÓN DINÁMICA: Ruta profesional sugerida (MUESTRA LAS 3 MEJORES) ── */}
+            <div className={styles.card} style={{ position: 'relative' }}>
               <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}><StarIcon /> Ruta profesional sugerida</h2>
+                <h2 className={styles.cardTitle}><StarIcon /> Rutas sugeridas por PumaIA</h2>
                 <button className={styles.cardLinkBtn}
                   onClick={() => router.push('/update-info')}>
                   Ver análisis completo →
                 </button>
               </div>
-              <div className={styles.topCareer}>
-                <div className={styles.topCareerHeader}>
-                  <span className={styles.topCareerTitle}>
-                    {MOCK_REPORT.topCareers[0].title}
-                  </span>
-                  <span className={styles.topCareerMatch}>
-                    {MOCK_REPORT.topCareers[0].matchPercent}%
-                  </span>
+
+              {loadingAI && (
+                <InlineLoader variant="overlay" message="Calculando compatibilidades..." />
+              )}
+
+              {!loadingAI && topThreeCareers.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {topThreeCareers.map((ruta, idx) => {
+                    const pct = extractMatchNumber(ruta.desc);
+                    return (
+                      <div key={idx} className={styles.topCareer} style={{ borderBottom: idx < 2 ? '1px solid rgba(255,255,255,0.05)' : 'none', paddingBottom: idx < 2 ? '16px' : '0' }}>
+                        <div className={styles.topCareerHeader}>
+                          <span className={styles.topCareerTitle}>{ruta.title}</span>
+                          <span className={styles.topCareerMatch}>{pct}%</span>
+                        </div>
+                        <div className={styles.matchBar}>
+                          <div className={styles.matchFill} style={{ width: `${pct}%` }} />
+                        </div>
+                        <p className={styles.topCareerDesc}>{ruta.desc}</p>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className={styles.matchBar}>
-                  <div className={styles.matchFill}
-                    style={{ width: `${MOCK_REPORT.topCareers[0].matchPercent}%` }} />
+              ) : !loadingAI && (
+                <div style={{ textAlign: 'center', padding: '20px 10px' }}>
+                  <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', marginBottom: '12px' }}>
+                    Aún no has generado tu primer análisis profesional con Inteligencia Artificial.
+                  </p>
+                  <button
+                    className={styles.cardLinkBtn}
+                    style={{ background: 'rgba(201,168,76,0.1)', padding: '6px 14px', borderRadius: '6px', color: '#c9a84c' }}
+                    onClick={() => router.push('/update-info')}
+                  >
+                    Generar análisis ahora
+                  </button>
                 </div>
-                <p className={styles.topCareerDesc}>
-                  {MOCK_REPORT.topCareers[0].description}
-                </p>
-              </div>
+              )}
             </div>
 
             {/* Historial Académico */}
@@ -201,17 +253,16 @@ export default function ProfilePage() {
               <div className={styles.cardHeader}>
                 <h2 className={styles.cardTitle}>Historial Académico</h2>
               </div>
+              {loadingHistory && (
+                <InlineLoader variant="overlay" message="Cargando materias..." />
+              )}
 
-              {loading ? (
-                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
-                  Cargando tus materias...
-                </p>
-              ) : subjects.length > 0 ? (
+              {!loadingHistory && subjects.length > 0 ? (
                 <AcademicHistoryManager
                   initialSubjects={subjects}
                   isCollapsible={false}
                 />
-              ) : (
+              ) : !loadingHistory && (
                 <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '13px' }}>
                   Aún no has subido tu historial académico.
                 </p>
@@ -224,6 +275,8 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+// Subcomponentes auxiliares e iconos se mantienen exactamente iguales...
 
 // ── Sub-componentes ────────────────────────────────────
 type FieldProps = {

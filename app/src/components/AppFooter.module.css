@@ -1,0 +1,197 @@
+.footer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 28px 40px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Variante dark (home, chat, profile, etc.) ── */
+.dark {
+  background: rgba(6, 13, 31, 0.7);
+  border-top: 1px solid rgba(201, 168, 76, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+/* ── Variante light (login, faqs) ── */
+.light {
+  background: #1a2744;
+  border-top: 2px solid rgba(201, 168, 76, 0.3);
+}
+
+/* ── Variante minimal (una línea) ── */
+.minimal {
+  background: rgba(6, 13, 31, 0.5);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 14px 40px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.minimal .brand {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.minimal .brandSub,
+.minimal .copy,
+.minimal .help,
+.minimal .helpLabel { display: none; }
+
+.minimal .links {
+  flex-direction: row;
+  gap: 20px;
+}
+
+/* ── Brand ── */
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+
+.brandName {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 16px;
+  font-weight: 800;
+  color: rgba(201, 168, 76, 0.9);
+  letter-spacing: 0.04em;
+}
+
+.dark .brandSub,
+.minimal .brandSub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.light .brandSub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.copy {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.2);
+  margin-top: 4px;
+}
+
+/* ── Links ── */
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  max-width: 280px;
+}
+
+.link {
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.2s;
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+}
+
+.dark .link,
+.minimal .link {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.dark .link:hover,
+.minimal .link:hover {
+  color: rgba(201, 168, 76, 0.9);
+}
+
+.light .link {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.light .link:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Sección de ayuda ── */
+.help {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.helpBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.dark .helpBtn {
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dark .helpBtn:hover {
+  border-color: rgba(201, 168, 76, 0.6);
+  color: rgba(201, 168, 76, 0.9);
+  background: rgba(201, 168, 76, 0.07);
+}
+
+.light .helpBtn {
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.light .helpBtn:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+  color: #fff;
+}
+
+.helpLabel {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.helpLink {
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.dark .helpLink { color: rgba(201, 168, 76, 0.7); }
+.dark .helpLink:hover { color: rgba(201, 168, 76, 1); }
+
+.light .helpLink { color: rgba(255, 255, 255, 0.6); }
+.light .helpLink:hover { color: #fff; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .footer {
+    flex-direction: column;
+    gap: 20px;
+    padding: 24px 20px;
+  }
+
+  .help { align-items: flex-start; }
+  .links { max-width: 100%; }
+
+  .minimal {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .minimal .links {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}

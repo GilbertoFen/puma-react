@@ -515,7 +515,6 @@
   gap: 4px;
 }
 
-/* Asegurar que el input de edición no sea gigante */
 .editGradeWrapper .fieldInput {
   height: 22px;
   margin: 0;

@@ -9,7 +9,7 @@ import { HamburgerIcon } from '../home/HomePage';
 import Navbar from '../Navbar';
 import { chatService } from '../../services/chat.service';
 import PageLoader from '../loaders/PageLoader';
-
+import { getSafeInitial } from '../../utils/const';
 export type Message = {
   id: string;
   role: 'USER' | 'ASSISTANT';
@@ -33,6 +33,7 @@ const INITIAL_SUGGESTIONS = [
 export default function ChatLayout() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+
   const [loading, setLoading] = useState(true);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -40,10 +41,10 @@ export default function ChatLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isTyping, setIsTyping] = useState(false);
   const [ready, setReady] = useState(false);
+  const [userInitial, setUserInitial] = useState('U');
 
 
-  const userInitial = user?.fullName?.charAt(0);
-  const displayName = user?.fullName || userInitial?.nombre || "Usuario";
+  const displayName = user?.fullName;
 
   const activeConversation = Array.isArray(conversations)
     ? conversations.find((c) => c.id === activeId) ?? null
@@ -66,6 +67,7 @@ export default function ChatLayout() {
       try {
         const parsedUser = JSON.parse(rawData);
         setUser(parsedUser);
+        setUserInitial(getSafeInitial(parsedUser));
 
         // Cargamos la lista de la BD inmediatamente
         const data = await chatService.getConversations();
@@ -108,7 +110,7 @@ export default function ChatLayout() {
 
     loadMessages();
   }, [activeId]); // Se ejecuta cada vez que haces clic en un chat diferente
-  if (loading || !user) return <div className={styles.loadingScreen}>Cargando PumaIA...</div>;
+  if (loading || !user) return <PageLoader message="Iniciando PumaIA..." />;
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
@@ -139,7 +141,6 @@ export default function ChatLayout() {
           ...prev,
         ];
       }
-      // Si ya existe, solo le colgamos el mensaje del usuario
       return prev.map((c) =>
         c.id === currentActiveId ? { ...c, messages: [...(c.messages || []), userMsg] } : c
       );
@@ -181,7 +182,18 @@ export default function ChatLayout() {
 
     } catch (error) {
       console.error("Error al procesar mensaje de la IA:", error);
-      alert("PumaIA tuvo un problema al responder. Intenta enviar tu mensaje de nuevo.");
+      const errorMsg: Message = {
+        id: `error-${Date.now()}`,
+        role: 'ASSISTANT',
+        content: '__error__',          // señal especial que ChatMessage detecta
+        createdAt: new Date().toISOString(),
+      };
+      const targetId = activeId;
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.id === targetId ? { ...c, messages: [...(c.messages || []), errorMsg] } : c
+        )
+      );
     } finally {
       setIsTyping(false);
     }
@@ -210,20 +222,12 @@ export default function ChatLayout() {
         </button>
 
         <span className={styles.toolbarGreeting}>
-          Bienvenido al portal {displayName}
+          Chat con PUMAIA
         </span>
       </div>
       <HomeDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        onNavigate={(section) => {
-          setDrawerOpen(false);
-          if (section === 'pumaia') router.push('/chat');
-          if (section === 'perfil') router.push('/profile');
-          if (section === 'actualizar') router.push('/update-info');
-          if (section === 'intercambio') router.push('/exchange');
-          if (section === 'ajustes') router.push('/settings');
-        }}
       />
 
       {drawerOpen && (
@@ -250,6 +254,7 @@ export default function ChatLayout() {
           sidebarOpen={sidebarOpen}
           displayName={displayName}
           setDrawerOpen={setDrawerOpen}
+          isTyping={isTyping}
         />
       </div>
 

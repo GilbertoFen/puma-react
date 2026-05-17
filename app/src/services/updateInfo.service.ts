@@ -141,5 +141,32 @@ export const updateInfoService = {
         });
         if (!res.ok) throw new Error('Error al dar de alta la experiencia profesional');
         return res.json();
+    },
+
+    // 1. Obtener el análisis de IA guardado en la base de datos (si existe)
+    getSavedAiAnalysis: async () => {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/ai-analysis/current`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!res.ok) throw new Error('Error al consultar el análisis de IA actual');
+        return res.json();
+    },
+
+    // 2. Disparar la generación/actualización masiva contra FastAPI y Gemini
+    generateNewAiAnalysis: async () => {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/ai-analysis/generate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!res.ok) throw new Error('Error al procesar el motor de PumaIA');
+        return res.json();
     }
 };

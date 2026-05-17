@@ -7,7 +7,8 @@ import QuestionnairePage from './pages/QuestionnairePage';
 import AcademicUploadPage from './components/academic-upload/AcademicUploadPage';
 import { useRouter } from 'next/navigation';
 import { StudentProfile } from './types';
-
+import { updateInfoService } from './services/updateInfo.service';
+import  PageLoader  from '../src/components/loaders/PageLoader';
 // Definimos los estados de las pantallas de forma estricta
 const SCREENS = {
   LOGIN: 'login' as const,
@@ -29,33 +30,53 @@ export default function App() {
 
   // 1. COMPROBACIÓN DE SESIÓN AL CARGAR LA PÁGINA
   useEffect(() => {
-    const rawData = localStorage.getItem('userData');
-    const token = localStorage.getItem('token');
+    const checkActiveSession = async () => {
+      const rawData = localStorage.getItem('userData');
+      const token = localStorage.getItem('token');
 
-    // BLINDAJE: Solo intentamos saltar el login si existen TANTO el usuario como el token de sesión
-    if (rawData && token) {
+      // Si falta alguno, limpiamos por seguridad y directo al Login
+      if (!rawData || !token) {
+        localStorage.clear();
+        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+        setCurrentScreen(SCREENS.LOGIN);
+        setIsCheckingSession(false);
+        return;
+      }
+
       try {
         const parsedUser = JSON.parse(rawData);
         setUser(parsedUser);
 
-        const hasCompleted = parsedUser?.hasCompletedQuiz || parsedUser?.user?.hasCompletedQuiz;
+        // ────────────────────────────────────────────────────────────────
+        // EL FILTRO MAESTRO: Validamos el token en tiempo real contra el Back.
+        // Si el token expiró, el servicio arrojará un error e irá directo al CATCH.
+        const profile = await updateInfoService.getProfileSummary();
+
+        // Si el backend responde bien, usamos el dato fresco del perfil
+        const hasCompleted = profile?.hasCompletedQuiz || parsedUser?.hasCompletedQuiz;
 
         if (hasCompleted === true) {
           router.push('/home');
         } else {
-          // Si no ha completado el quiz pero es un usuario real con token, que vaya a bienvenida
           setCurrentScreen(SCREENS.WELCOME);
         }
+        // ────────────────────────────────────────────────────────────────
+
       } catch (e) {
-        console.error("Error leyendo sesión antigua:", e);
+        console.warn("⚠️ La sesión del almacenamiento local expiró o es inválida. Aplicando Cierre de Seguridad...", e);
+
+        // BORRADO AUTOMÁTICO CONTROLADO (Adiós pantalla azul fea)
         localStorage.clear();
+        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+
+        setUser(null);
         setCurrentScreen(SCREENS.LOGIN);
+      } finally {
+        setIsCheckingSession(false);
       }
-    } else {
-      // Si falta el token o el usuario, nos aseguramos de que se quede en el Login
-      setCurrentScreen(SCREENS.LOGIN);
-    }
-    setIsCheckingSession(false);
+    };
+
+    checkActiveSession();
   }, [router]);
 
   // 2. LOGIC PARA PROCESAR EL INICIO DE SESIÓN
@@ -114,14 +135,7 @@ export default function App() {
 
   // Loader inicial para evitar parpadeos visuales
   if (isCheckingSession) {
-    return (
-      <div style={{
-        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: '#060d1f', color: '#bb8800', fontFamily: 'Sora, sans-serif'
-      }}>
-        Cargando PumaIA...
-      </div>
-    );
+    return <PageLoader message="Verificando sesión..." />;
   }
 
   // --- MANEJADOR DE RENDERIZADO DE PANTALLAS ---

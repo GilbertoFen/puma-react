@@ -1,9 +1,10 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../Navbar';
 import styles from './SettingsPage.module.css';
 import HomeDrawer from '../home/HomeDrawer';
+
 type ToggleSetting = {
   kind: 'toggle';
   id: string;
@@ -40,12 +41,8 @@ type SettingsSection = {
   settings: Setting[];
 };
 
-// ─────────────────────────────────────────────────────
-// SECCIONES Y CONFIGURACIONES
-// Para agregar una nueva opción: añade un objeto al array `settings` de la sección correspondiente
-// Para agregar una nueva sección: añade un objeto a SECTIONS
-// ─────────────────────────────────────────────────────
-function buildSections(router: ReturnType<typeof useRouter>): SettingsSection[] {
+// Modificamos la fábrica de secciones para pasarle la función de Logout real
+function buildSections(router: ReturnType<typeof useRouter>, handleLogout: () => void): SettingsSection[] {
   return [
     {
       id: 'cuenta',
@@ -58,7 +55,7 @@ function buildSections(router: ReturnType<typeof useRouter>): SettingsSection[] 
           label: 'Actualizar información',
           description: 'Modifica tus datos personales y responde nuevamente el cuestionario de intereses',
           actionLabel: 'Actualizar',
-          onClick: () => router.push('/home'),
+          onClick: () => router.push('/update-info'), // Corregido: apunata a tu pestaña real de actualizar info
         },
         {
           kind: 'action',
@@ -75,7 +72,7 @@ function buildSections(router: ReturnType<typeof useRouter>): SettingsSection[] 
           description: 'Salir de tu cuenta en este dispositivo',
           actionLabel: 'Cerrar sesión',
           variant: 'danger',
-          onClick: () => router.push('/'),
+          onClick: handleLogout, // <-- Vinculado a la función destructora de tokens
         },
       ],
     },
@@ -178,7 +175,7 @@ function buildSections(router: ReturnType<typeof useRouter>): SettingsSection[] 
           kind: 'action',
           id: 'version',
           label: 'Versión de la plataforma',
-          description: 'PumaIA v1.0.0 — FES Acatlán © 2025',
+          description: 'PumaIA v1.0.0 — FES Acatlán © 2026',
           actionLabel: 'Ver novedades',
           onClick: () => router.push('/faqs'),
         },
@@ -187,27 +184,57 @@ function buildSections(router: ReturnType<typeof useRouter>): SettingsSection[] 
   ];
 }
 
-
 export default function SettingsPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const SECTIONS = buildSections(router);
+  const [userInitial, setUserInitial] = useState<string>('U'); 
+
+  
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userData');
+    localStorage.clear(); 
+    sessionStorage.clear(); 
+    if (typeof document !== 'undefined') {
+      const cookies = document.cookie.split(";");
+
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname};`;
+      }
+    }
+
+  
+    window.location.href = '/';
+  };
+
+  // Construimos las secciones pasándole la inyección del Logout
+  const SECTIONS = buildSections(router, handleLogout);
+
+  useEffect(() => {
+    // Jalamos la inicial real del disco de forma reactiva al montar
+    const savedUser = localStorage.getItem('userData');
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser);
+        const name = parsed?.nombre || parsed?.name || parsed?.fullName || '';
+        const initial = parsed?.initial || name.charAt(0) || 'L';
+        setUserInitial(initial.toUpperCase());
+      } catch (err) {
+        console.error("Error al mapear usuario en ajustes:", err);
+      }
+    }
+  }, []);
 
   const initialToggles = SECTIONS.flatMap((s) =>
     s.settings
       .filter((item): item is ToggleSetting => item.kind === 'toggle')
       .map((item) => [item.id, item.defaultValue] as [string, boolean])
   );
-  const goToChat = () => router.push('/chat');
-  const goToSettings = () => router.push('/settings');
-  const goToProfile = () => router.push('/profile');
-  const goToUpdateInfo = () => router.push('/update-info');
-  const goToExchange = () => router.push('/exchange');
-
-  // Si no hay perfil aún, mostramos la inicial del login o una por defecto
-  const userInitial = user?.fullName?.charAt(0);
-  const displayName = user?.fullName || user?.nombre || "Usuario";
 
   const [toggles, setToggles] = useState<Record<string, boolean>>(
     Object.fromEntries(initialToggles)
@@ -220,7 +247,9 @@ export default function SettingsPage() {
   return (
     <div className={styles.root}>
       <div className={styles.bgMesh} />
-      <Navbar showAcatlan userInitial="J" />
+
+      {/* ── INICIAL DINÁMICA DE TU PERFIL INTEGRADA CON ÉXITO ── */}
+      <Navbar showAcatlan userInitial={userInitial} />
       <div className={styles.goldLine} />
 
       <div className={styles.toolbar}>
@@ -236,18 +265,8 @@ export default function SettingsPage() {
         </span>
       </div>
 
-      <HomeDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onNavigate={(section) => {
-          setDrawerOpen(false);
-          if (section === 'pumaia') goToChat();
-          if (section === 'ajustes') goToSettings();
-          if (section === 'perfil') goToProfile();
-          if (section === 'intercambio') goToExchange();
-          if (section === 'actualizar') goToUpdateInfo();
-        }}
-      />
+      {/* Tu nuevo drawer limpio, modular y sin la prop repetitiva */}
+      <HomeDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       {drawerOpen && (
         <div
@@ -255,7 +274,6 @@ export default function SettingsPage() {
           onClick={() => setDrawerOpen(false)}
         />
       )}
-
 
       <main className={styles.main}>
         <div className={styles.pageHeader}>
@@ -289,6 +307,7 @@ export default function SettingsPage() {
   );
 }
 
+// Subcomponentes de renderizado de fila permanecen intactos...
 type SettingRowProps = {
   item: Setting;
   toggleValue?: boolean;
@@ -339,81 +358,12 @@ function SettingRow({ item, toggleValue, onToggle }: SettingRowProps) {
   );
 }
 
-function AccountIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
-    </svg>
-  );
-}
-function BellIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-    </svg>
-  );
-}
-function ShieldIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  );
-}
-function LinkIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-    </svg>
-  );
-}
-function InfoIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" />
-      <line x1="12" y1="8" x2="12.01" y2="8" />
-    </svg>
-  );
-}
-function BackArrowIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="15 18 9 12 15 6" />
-    </svg>
-  );
-}
-function ExternalLinkIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-      <polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" />
-    </svg>
-  );
-}
-function ChevronRightIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9 18 15 12 9 6" />
-    </svg>
-  );
-}
-function HamburgerIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="3" y1="6" x2="21" y2="6" />
-      <line x1="3" y1="12" x2="21" y2="12" />
-      <line x1="3" y1="18" x2="21" y2="18" />
-    </svg>
-  );
-}
+// Íconos SVG al final de tu archivo permanecen exactamente iguales...
+function AccountIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>; }
+function BellIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>; }
+function ShieldIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>; }
+function LinkIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>; }
+function InfoIcon() { return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>; }
+function ExternalLinkIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>; }
+function ChevronRightIcon() { return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>; }
+function HamburgerIcon() { return <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>; }

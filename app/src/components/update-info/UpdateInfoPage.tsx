@@ -13,6 +13,8 @@ import AcademicHistoryManager from '../update-info/AcademicHistoryManager';
 import { MOCK_RESPONSE } from '../academic-upload/AcademicUploadPage';
 import { questionnaireService } from '../../services/questionnarie.service';
 import { QUESTIONS } from '../../utils/questions';
+import { updateInfoService } from '../../services/updateInfo.service';
+import InlineLoader from '../loaders/InlineLoader';
 type Tab = 'questionnaire' | 'report' | 'documents';
 
 const TABS: { id: Tab; label: string }[] = [
@@ -23,6 +25,7 @@ const TABS: { id: Tab; label: string }[] = [
 
 export default function UpdateInfoPage() {
   const router = useRouter();
+  const [userInitial, setUserInitial] = useState<string>('U');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('questionnaire');
   const [heroVisible, setHeroVisible] = useState(true);
@@ -30,28 +33,44 @@ export default function UpdateInfoPage() {
 
   const [realAnswers, setRealAnswers] = useState<any[]>([]);
   const [loadingAnswers, setLoadingAnswers] = useState(true);
+  const [aiReport, setAiReport] = useState<any>(null);
+  const [loadingAI, setLoadingAI] = useState(true);
 
   useEffect(() => {
     const fetchUserAnswers = async () => {
       try {
+        const savedUser = localStorage.getItem('userData');
+        if (savedUser) {
+          try {
+            const parsedUser = JSON.parse(savedUser);
+            // Si tienes guardado parsedUser.initial o parsedUser.user.initial lo inyectamos aquí
+            const initial = parsedUser?.initial || parsedUser?.user?.initial || parsedUser?.nombre?.charAt(0) || 'L';
+            setUserInitial(initial.toUpperCase());
+          } catch (err) {
+            console.error("Error al extraer iniciales del localStorage:", err);
+          }
+        }
+
         // Trae el objeto estructurado clave-valor { id_pregunta: valor_respuesta }
         const userAnswersObj = await questionnaireService.getAnswers();
-
+        const aiData = await updateInfoService.getSavedAiAnalysis().catch(() => ({ hasAnalysis: false, data: null }))
+        await fetch('https://server-genai.onrender.com', { method: 'GET' }).catch(() => { });
         // Mapeamos el arreglo QUESTIONS para armar la lista final combinando pregunta + respuesta
-        const formatted = QUESTIONS.map((q) => {
-          return {
-            questionId: q.id,
-            question: q.question, // Texto real de la pregunta
-            answer: userAnswersObj[q.id] ?? 'Sin responder', // Respuesta de la BD o fallback
-            type: q.type
-          };
-        });
+        const formatted = QUESTIONS.map((q) => ({
+          questionId: q.id,
+          question: q.question,
+          answer: userAnswersObj[q.id] ?? 'Sin responder',
+          type: q.type
+        }));
 
         setRealAnswers(formatted);
+        setAiReport(aiData);
       } catch (error) {
         console.error("Error al obtener las respuestas verdaderas:", error);
       } finally {
         setLoadingAnswers(false);
+        setLoadingAI(false)
+
       }
     };
 
@@ -64,7 +83,7 @@ export default function UpdateInfoPage() {
     <div className={styles.root}>
       <div className={styles.bgMesh} />
 
-      <Navbar showAcatlan userInitial={MOCK_USER.initial} />
+      <Navbar showAcatlan userInitial={userInitial} />
       <div className={styles.goldLine} />
 
       {/* Toolbar con hamburguesa */}
@@ -82,12 +101,6 @@ export default function UpdateInfoPage() {
       <HomeDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        onNavigate={(section) => {
-          setDrawerOpen(false);
-          if (section === 'pumaia') router.push('/chat');
-          if (section === 'perfil') router.push('/profile');
-          if (section === 'ajustes') router.push('/settings');
-        }}
       />
 
       {drawerOpen && (
@@ -124,16 +137,18 @@ export default function UpdateInfoPage() {
               )}
 
               {activeTab === 'report' && (
-                <ReportSection report={MOCK_REPORT} />
+                loadingAI ? (
+                  <div style={{ padding: '40px 0', position: 'relative' }}>
+                    <InlineLoader message="Sincronizando análisis con PumaIA..." />
+                  </div>
+                ) : (
+                  <ReportSection initialReport={aiReport} />
+                )
               )}
               {activeTab === 'documents' && (
 
                 <div className={styles.card}>
                   <DocumentsSection documents={MOCK_DOCUMENTS} />
-                  
-               
-
-                  
                 </div>
               )}
             </div>

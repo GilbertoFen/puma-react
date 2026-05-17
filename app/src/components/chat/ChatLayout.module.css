@@ -23,20 +23,22 @@
   position: absolute;
   inset: 0;
   background-image:
-    radial-gradient(circle at 25% 25%, rgba(255,255,255,0.02) 1px, transparent 1px),
-    radial-gradient(circle at 75% 75%, rgba(255,255,255,0.015) 1px, transparent 1px);
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
   background-size: 60px 60px, 40px 40px;
 }
+
 .goldLine {
   position: relative;
   z-index: 2;
   height: 2px;
-  background: linear-gradient(90deg, rgba(201,168,76,0.8), rgba(201,168,76,0.2));
+  background: linear-gradient(90deg, rgba(201, 168, 76, 0.8), rgba(201, 168, 76, 0.2));
 }
 
 .toolbar {
   position: relative;
-  z-index: 5; /* 🔥 CLAVE */
+  z-index: 5;
+  /* 🔥 CLAVE */
   display: flex;
   align-items: center;
   gap: 16px;
@@ -49,24 +51,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: row;
   width: 32px;
   height: 32px;
   background: none;
   border: none;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
 }
 
 .toolbarGreeting {
   font-size: 13px;
-  color: rgba(255,255,255,0.85);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .overlay {
   position: fixed;
   inset: 0;
   z-index: 50;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(2px);
 }
 
@@ -76,4 +79,24 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+}
+
+/* ── Responsive móvil ── */
+@media (max-width: 640px) {
+  .content {
+    flex-direction: row;
+  }
+
+  .toolbar {
+    padding: 8px 14px;
+    gap: 10px;
+  }
+
+  .toolbarGreeting {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100vw - 80px);
+  }
 }

@@ -64,13 +64,6 @@ export default function ExchangePage() {
       <HomeDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        onNavigate={(section) => {
-          setDrawerOpen(false);
-          if (section === 'pumaia')     router.push('/chat');
-          if (section === 'perfil')     router.push('/profile');
-          if (section === 'actualizar') router.push('/update-info');
-          if (section === 'ajustes')    router.push('/settings');
-        }}
       />
       {drawerOpen && (
         <div className={styles.overlay} onClick={() => setDrawerOpen(false)} />
@@ -118,7 +111,7 @@ export default function ExchangePage() {
             ))
           )}
         </div>
-        <br/>
+        <br />
       </main>
 
       {/* Footer */}
@@ -134,7 +127,7 @@ function HamburgerIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="3" y1="6"  x2="21" y2="6" />
+      <line x1="3" y1="6" x2="21" y2="6" />
       <line x1="3" y1="12" x2="21" y2="12" />
       <line x1="3" y1="18" x2="21" y2="18" />
     </svg>
@@ -145,7 +138,7 @@ function SparkleIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+      <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
     </svg>
   );
 }
