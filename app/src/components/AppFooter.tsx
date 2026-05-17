@@ -26,7 +26,7 @@ export default function AppFooter({ variant = 'dark', appName = 'PUMAIA' }: Prop
 
       {/* Columna centro — links */}
       <nav className={styles.links}>
-        <Link href="/faqs" className={styles.link}>¿Qué es {appName}?</Link>
+        <Link href="/about-page" className={styles.link}>¿Qué es {appName}?</Link>
         <Link href="/faqs" className={styles.link}>Preguntas frecuentes</Link>
         <a
           href="https://www.acatlan.unam.mx"
@@ -44,13 +44,18 @@ export default function AppFooter({ variant = 'dark', appName = 'PUMAIA' }: Prop
         >
           Página oficial UNAM
         </a>
+        <a
+          href="https://mac.acatlan.unam.mx/portada/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.link}
+        >
+          Página oficial de MAC
+        </a>
       </nav>
 
       {/* Columna derecha — ayuda */}
       <div className={styles.help}>
-        <Link href="/faqs" className={styles.helpBtn} title="Ayuda y preguntas frecuentes">
-          ?
-        </Link>
         <span className={styles.helpLabel}>¿Necesitas ayuda?</span>
         <Link href="/faqs" className={styles.helpLink}>Visita las FAQs</Link>
       </div>

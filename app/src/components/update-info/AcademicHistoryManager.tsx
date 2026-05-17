@@ -80,10 +80,6 @@ export default function AcademicHistoryManager({ initialSubjects, isCollapsible 
               </div>
             ))}
           </div>
-
-          <button className={styles.editInfoBtn} style={{ marginTop: '20px', width: '100%', justifyContent: 'center' }}>
-            + Subir nuevo PDF
-          </button>
         </div>
       )}
     </div>

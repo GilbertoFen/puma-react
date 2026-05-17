@@ -5,11 +5,20 @@ import Navbar from '../Navbar';
 import HomeDrawer from './HomeDrawer';
 import FeatureCards from './FeatureCards';
 import Carousel from './Carousel';
-import { studentService } from '../../services/student.service'; 
-import { StudentProfile } from '../../types'; 
+import { studentService } from '../../services/student.service';
+import { StudentProfile } from '../../types';
 import styles from './HomePage.module.css';
 import PageLoader from '../loaders/PageLoader';
 import AppFooter from '../AppFooter';
+import { LOGO_ORACLE, LOGO_BBVA, LOGO_CHUTAZO, LOGO_IBM, LOGO_SANTANDER, LOGO_SLIM } from '../../utils/img/assets';
+const COMPANIES_DATA = [
+  { id: 'oracle', name: 'ORACLE', logo: LOGO_ORACLE },
+  { id: 'bbva', name: 'BBVA', logo: LOGO_BBVA },
+  { id: 'chutazo', name: 'CHUTAZO OFICIAL', logo: LOGO_CHUTAZO },
+  { id: 'santander', name: 'SANTANDER', logo: LOGO_SANTANDER },
+  { id: 'ibm', name: 'IBM', logo: LOGO_IBM },
+  { id: 'slim', name: 'FUNDACION SLIM', logo: LOGO_SLIM },
+];
 export default function HomePage({
   user: initialUser,
   initialProfile
@@ -25,7 +34,7 @@ export default function HomePage({
     const savedProfile = localStorage.getItem('student_profile');
 
     if (savedProfile) {
-      setProfile(JSON.parse(savedProfile)); 
+      setProfile(JSON.parse(savedProfile));
     } else if (initialUser?.cuenta) {
       studentService.getProfileByAccount(initialUser.cuenta)
         .then(data => setProfile(data));
@@ -90,18 +99,26 @@ export default function HomePage({
           <Carousel />
         </section>
 
+        {/* ── SECCIÓN DE LOGOS DE EMPRESAS DINÁMICA ── */}
         <section className={styles.companiesSection}>
           <h2 className={styles.companiesTitle}>Empresas que confían en PUMAIA</h2>
           <div className={styles.companiesGrid}>
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className={styles.companyPlaceholder} />
+            {COMPANIES_DATA.map((company) => (
+              <div key={company.id} className={styles.companyPlaceholder}>
+                <img
+                  src={company.logo}
+                  alt={`Logo de ${company.name}`}
+                  className={styles.companyLogoImg}
+                  title={company.name}
+                />
+              </div>
             ))}
           </div>
         </section>
 
-        <AppFooter variant="dark" />
-
       </main>
+      <AppFooter variant="dark" />
+
     </div>
   );
 }

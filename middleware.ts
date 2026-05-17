@@ -4,22 +4,22 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value;
   const { pathname } = request.nextUrl;
 
-  // 1. Definimos las rutas que son públicas (accesibles sin login)
-  // Agregamos excepciones para archivos estáticos y el login
-  const isPublicRoute = pathname === '/'; 
+  // 1. Aislamos la ruta estricta de Login
+  const isLoginRoute = pathname === '/';
 
-  // 2. Si el usuario intenta acceder a una ruta que NO es el login y NO tiene token
+  // 2. Definimos todas las rutas que son públicas e informativas
+  const isPublicRoute = isLoginRoute || pathname === '/faqs' || pathname === '/about-page';
+
+  // 3. Si el usuario intenta acceder a una ruta protegida y NO tiene token
   if (!isPublicRoute && !token) {
-    // Redirigir al login
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // 3. (Opcional) Si ya está logueado e intenta ir al login, mandarlo al home
-  if (isPublicRoute && token) {
+  // 4. Si ya está logueado e intenta ir EXCLUSIVAMENTE a la pantalla de Login, lo mandamos al home
+  // (Pero si decide visitar /faqs o /about-page, lo dejamos pasar libremente sin rebotarlo)
+  if (isLoginRoute && token) {
     return NextResponse.redirect(new URL('/home', request.url));
   }
-
-  return NextResponse.next();
 }
 
 // 4. EL MATCHER ES LA CLAVE:

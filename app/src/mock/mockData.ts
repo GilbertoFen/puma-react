@@ -84,7 +84,7 @@ export const MOCK_DOCUMENTS: UploadedDocument[] = [
   {
     id: 'doc-1',
     name: 'Tira_materias_2025-1.pdf',
-    category: 'tira_materias',
+    category: 'historial_academico',
     uploadedAt: '2025-02-10T08:00:00Z',
     size: 245000,
   },

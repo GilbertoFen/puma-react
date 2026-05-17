@@ -10,6 +10,7 @@ import AcademicHistoryManager from "../update-info/AcademicHistoryManager";
 import ExperienceCard from '../profile/ExperienceCard';
 import PageLoader from '../loaders/PageLoader';
 import InlineLoader from '../loaders/InlineLoader';
+import AppFooter from '../AppFooter';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -272,6 +273,8 @@ export default function ProfilePage() {
           </div>
         </div>
       </main>
+      <AppFooter variant='dark' />
+
     </div>
   );
 }

@@ -5,6 +5,7 @@
   flex-direction: column;
   font-family: var(--font-body, 'DM Sans', sans-serif);
   overflow-x: hidden;
+  
 }
 
 .bgMesh {
@@ -124,18 +125,42 @@
 }
 
 .companiesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Distribuye uniformemente de lado a lado */
   gap: 16px;
+  flex-wrap: wrap; /* Si la pantalla es chica, se bajan con elegancia */
+  width: 100%;
 }
 
 .companyPlaceholder {
-  height: 64px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  flex: 1;                     /* Hace que todas las tarjetas midan exactamente lo mismo */
+  min-width: 140px;            /* Evita que se colapsen en pantallas chicas */
+  height: 80px;
+  background: rgba(255, 255, 255, 0.03); /* El estilo que ya tenías */
+  border-radius: 8px;
+  height: 64px; /* O el alto que tengan tus tarjetas actuales */
+}
+.companyLogoImg {
+  width: 100%;                /* Obliga a la imagen a ensancharse al contenedor */
+  height: 100%;               /* Obliga a la imagen a estirarse a lo alto */
+  object-fit: contain;        /* Mantiene la proporción perfecta del logo sin deformarlo */
+  
+  opacity: 0.65;              /* Tono marca de agua elegante */
+  filter: grayscale(100%);    /* 🌟 TRUCO PRO: Los hace a todos grises/blancos homogéneos 
+                                 para que los logos de colores no peleen con tu diseño azul */
+  transition: all 0.25s ease;
 }
 
+/* Efecto elegante: cuando el alumno pasa el mouse, el logo se ilumina */
+.companyPlaceholder:hover .companyLogoImg {
+  opacity: 1;
+  filter: grayscale(0%);      /* Recupera su color original (Oracle rojo, BBVA azul, etc.) */
+}
 .footer {
   position: relative;
   z-index: 2;

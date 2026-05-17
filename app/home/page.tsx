@@ -9,7 +9,6 @@ export default function HomeRoute() {
   const router = useRouter();
 
   useEffect(() => {
-    // 1. Verificamos qué hay en el localStorage
     const rawData = localStorage.getItem('userData');
     console.log("Datos encontrados en localStorage:", rawData);
 
@@ -22,15 +21,11 @@ export default function HomeRoute() {
         router.push('/');
       }
     } else {
-      // 2. Si después de un intento no hay nada, regresamos al login
       console.warn("No hay userData, redirigiendo...");
       router.push('/');
     }
     setLoading(false);
   }, [router]);
-
-  // Si después de cargar NO hay usuario, esto se queda en azul. 
-  // Por eso el router.push('/') es vital.
   if (loading || !user) {
     return (
       <div>

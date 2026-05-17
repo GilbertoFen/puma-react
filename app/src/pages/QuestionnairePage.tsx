@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import TextQuestion from '../components/questions/TextQuestion';
 import ChoiceQuestion from '../components/questions/ChoiceQuestion';
 import MultiQuestion from '../components/questions/MultiQuestion';
@@ -12,6 +11,7 @@ import { questionnaireService } from '../services/questionnarie.service';
 import { useRouter } from 'next/navigation'; // O de 'next/router' si usas pages router
 import { StudentProfile, UserData } from '../types';
 import './QuestionnairePage.css';
+import AppFooter from '../components/AppFooter';
 
 interface QuestionnairePageProps {
   user: UserData;
@@ -241,7 +241,7 @@ export default function QuestionnairePage({ user, profile, onFinish }: Questionn
       </main>
 
       <div className="gold-line" />
-      <Footer />
+      <AppFooter variant='dark' />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../Navbar';
 import styles from './SettingsPage.module.css';
 import HomeDrawer from '../home/HomeDrawer';
+import AppFooter from '../AppFooter';
 
 type ToggleSetting = {
   kind: 'toggle';
@@ -187,14 +188,14 @@ function buildSections(router: ReturnType<typeof useRouter>, handleLogout: () =>
 export default function SettingsPage() {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [userInitial, setUserInitial] = useState<string>('U'); 
+  const [userInitial, setUserInitial] = useState<string>('U');
 
-  
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userData');
-    localStorage.clear(); 
-    sessionStorage.clear(); 
+    localStorage.clear();
+    sessionStorage.clear();
     if (typeof document !== 'undefined') {
       const cookies = document.cookie.split(";");
 
@@ -208,7 +209,7 @@ export default function SettingsPage() {
       }
     }
 
-  
+
     window.location.href = '/';
   };
 
@@ -303,6 +304,8 @@ export default function SettingsPage() {
           ))}
         </div>
       </main>
+      <AppFooter variant='dark' />
+
     </div>
   );
 }

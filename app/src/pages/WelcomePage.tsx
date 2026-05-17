@@ -1,10 +1,10 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import './WelcomePage.css';
 import { studentService } from '../services/student.service';
 import { StudentProfile, UserData } from '../types';
+import AppFooter from '../components/AppFooter';
 
 interface WelcomePageProps {
   user: UserData;
@@ -55,7 +55,7 @@ export default function WelcomePage({ user, onBegin }: WelcomePageProps) {
       </main>
 
       <div className="gold-line" />
-      <Footer />
+      <AppFooter variant='dark' />
     </div>
   );
 }

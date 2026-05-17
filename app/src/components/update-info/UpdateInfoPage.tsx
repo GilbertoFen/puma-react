@@ -15,6 +15,7 @@ import { questionnaireService } from '../../services/questionnarie.service';
 import { QUESTIONS } from '../../utils/questions';
 import { updateInfoService } from '../../services/updateInfo.service';
 import InlineLoader from '../loaders/InlineLoader';
+import AppFooter from '../AppFooter';
 type Tab = 'questionnaire' | 'report' | 'documents';
 
 const TABS: { id: Tab; label: string }[] = [
@@ -130,7 +131,7 @@ export default function UpdateInfoPage() {
               {activeTab === 'questionnaire' && (
                 // 4. PASAMOS LAS NUEVAS VARIABLES AL HIJO
                 loadingAnswers ? (
-                  <div style={{ color: '#bb8800', padding: '20px' }}>Cargando tus respuestas...</div>
+                  <InlineLoader message="Obteniendo respuests y datos del alumno..." />
                 ) : (
                   <QuestionnaireSection answers={realAnswers} />
                 )
@@ -155,6 +156,8 @@ export default function UpdateInfoPage() {
           </div>
         )}
       </main>
+      <AppFooter variant='dark' />
+
     </div>
   );
 }

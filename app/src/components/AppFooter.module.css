@@ -7,13 +7,17 @@
   flex-wrap: wrap;
   position: relative;
   z-index: 2;
+  position: relative;      
+  bottom: 0;             
+  width: 100%;           
+  box-sizing: border-box;
 }
 
-/* ── Variante dark (home, chat, profile, etc.) ── */
 .dark {
   background: rgba(6, 13, 31, 0.7);
   border-top: 1px solid rgba(201, 168, 76, 0.2);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 100px 0 0 #060d1f;
 }
 
 /* ── Variante light (login, faqs) ── */
@@ -24,7 +28,7 @@
 
 /* ── Variante minimal (una línea) ── */
 .minimal {
-  background: rgba(6, 13, 31, 0.5);
+  background: rgba(6, 13, 31, 0.8);
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   padding: 14px 40px;
   align-items: center;
@@ -40,7 +44,9 @@
 .minimal .brandSub,
 .minimal .copy,
 .minimal .help,
-.minimal .helpLabel { display: none; }
+.minimal .helpLabel {
+  display: none;
+}
 
 .minimal .links {
   flex-direction: row;
@@ -168,11 +174,21 @@
   transition: color 0.2s;
 }
 
-.dark .helpLink { color: rgba(201, 168, 76, 0.7); }
-.dark .helpLink:hover { color: rgba(201, 168, 76, 1); }
+.dark .helpLink {
+  color: rgba(201, 168, 76, 0.7);
+}
 
-.light .helpLink { color: rgba(255, 255, 255, 0.6); }
-.light .helpLink:hover { color: #fff; }
+.dark .helpLink:hover {
+  color: rgba(201, 168, 76, 1);
+}
+
+.light .helpLink {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.light .helpLink:hover {
+  color: #fff;
+}
 
 /* ── Responsive ── */
 @media (max-width: 640px) {
@@ -182,8 +198,13 @@
     padding: 24px 20px;
   }
 
-  .help { align-items: flex-start; }
-  .links { max-width: 100%; }
+  .help {
+    align-items: flex-start;
+  }
+
+  .links {
+    max-width: 100%;
+  }
 
   .minimal {
     flex-wrap: wrap;

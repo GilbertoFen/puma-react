@@ -4,86 +4,84 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../Navbar';
 import styles from './FaqsPage.module.css';
 
-// ─────────────────────────────────────────────────────
-// CONTENIDO — edita aquí para cambiar preguntas y grupos
-// Para agregar un grupo nuevo: añade un objeto a FAQ_GROUPS
-// Para agregar una pregunta: añade un objeto al array `items` del grupo
-// ─────────────────────────────────────────────────────
-type FaqItem = {
-  id: string;
-  question: string;
-  answer: string;
-};
+type FaqItem = { id: string; question: string; answer: string };
+type FaqGroup = { id: string; label: string; icon: string; items: FaqItem[] };
 
-type FaqGroup = {
-  id: string;
-  label: string;
-  items: FaqItem[];
-};
-
+// ─────────────────────────────────────────────────────
+// CONTENIDO — edita aquí
+// ─────────────────────────────────────────────────────
 const FAQ_GROUPS: FaqGroup[] = [
   {
     id: 'general',
-    label: 'Preguntas frecuentes',
+    label: 'Preguntas generales',
+    icon: '💬',
     items: [
       {
         id: 'q1',
-        question: '¿Pregunta A?',
-        answer:
-          'Esta es la respuesta a la Pregunta A. Aquí va una explicación clara y detallada que ayude al usuario a entender el tema.',
+        question: '¿Cómo inicio sesión en el portal?',
+        answer: 'Ingresa tu número de cuenta UNAM y la contraseña que utilizas para los servicios escolares. Si no tienes contraseña aún, sigue el enlace "¿Olvidaste tu contraseña?" en la pantalla de inicio.',
       },
       {
         id: 'q2',
-        question: '¿Cómo inicio sesión en el portal?',
-        answer:
-          'Ingresa tu número de cuenta UNAM y la contraseña que utilizas para los servicios escolares. Si no tienes contraseña aún, sigue el enlace "¿Olvidaste tu contraseña?" en la pantalla de inicio.',
+        question: '¿Mis datos están seguros?',
+        answer: 'Sí. La plataforma utiliza encriptación de extremo a extremo y no comparte tu información con terceros. Solo se usa para generar recomendaciones personalizadas dentro del sistema.',
       },
       {
         id: 'q3',
-        question: '¿Mis datos están seguros?',
-        answer:
-          'Sí. La plataforma utiliza encriptación de extremo a extremo y no comparte tu información con terceros. Solo se usa para generar recomendaciones personalizadas dentro del sistema.',
-      },
-      {
-        id: 'q4',
         question: '¿Puedo actualizar mis intereses después del cuestionario inicial?',
-        answer:
-          'Sí, en cualquier momento puedes ir a "Actualizar información" desde el menú principal para responder el cuestionario nuevamente o modificar tus respuestas anteriores.',
+        answer: 'Sí, en cualquier momento puedes ir a "Actualizar información" desde el menú principal para responder el cuestionario nuevamente o modificar tus respuestas anteriores.',
       },
     ],
   },
   {
     id: 'pumaia',
     label: 'Sobre PumaIA',
+    icon: '🤖',
     items: [
       {
-        id: 'q5',
+        id: 'q4',
         question: '¿Qué es PumaIA exactamente?',
-        answer:
-          'PumaIA es un asistente de inteligencia artificial desarrollado para estudiantes de la FES Acatlán. Te ayuda a orientar tu camino profesional basándose en tu historial académico e intereses personales.',
+        answer: 'PumaIA es un asistente de inteligencia artificial desarrollado para estudiantes de la FES Acatlán. Te ayuda a orientar tu camino profesional basándose en tu historial académico e intereses personales.',
       },
       {
-        id: 'q6',
+        id: 'q5',
         question: '¿Las recomendaciones de PumaIA son definitivas?',
-        answer:
-          'No. Las recomendaciones son orientativas y deben tomarse como punto de partida para explorar opciones. Te invitamos a contrastarlas con asesores académicos y profesionales del área.',
+        answer: 'No. Las recomendaciones son orientativas y deben tomarse como punto de partida para explorar opciones. Te invitamos a contrastarlas con asesores académicos y profesionales del área.',
       },
     ],
   },
   {
     id: 'intercambio',
     label: 'Intercambios',
+    icon: '🌍',
+    items: [
+      {
+        id: 'q6',
+        question: '¿Cómo funciona la sección de intercambios?',
+        answer: 'La sección de intercambios te guía paso a paso en el proceso de postulación a programas de movilidad estudiantil nacionales e internacionales disponibles para tu carrera.',
+      },
+    ],
+  },
+  {
+    id: 'academico',
+    label: 'Historial académico',
+    icon: '📄',
     items: [
       {
         id: 'q7',
-        question: '¿Cómo funciona la sección de intercambios?',
-        answer:
-          'La sección de intercambios te guía paso a paso en el proceso de postulación a programas de movilidad estudiantil nacionales e internacionales disponibles para tu carrera.',
+        question: '¿Cómo subo mi historial académico?',
+        answer: 'Ve a "Actualizar información" → pestaña "Documentos" y sube tu historial en PDF. El sistema lo procesará automáticamente para extraer tus materias y calificaciones.',
+      },
+      {
+        id: 'q8',
+        question: '¿Qué pasa si una calificación aparece incorrecta?',
+        answer: 'Puedes editar cualquier calificación manualmente desde la sección de Historial académico en tu perfil o en "Actualizar información". Los cambios se guardan en tu perfil de inmediato.',
       },
     ],
   },
 ];
 
+// ─────────────────────────────────────────────────────
 
 type Props = Record<string, never>;
 
@@ -91,7 +89,7 @@ export default function FaqsPage(_: Props) {
   const router = useRouter();
   const [openItems, setOpenItems] = useState<Set<string>>(new Set());
   const [openGroups, setOpenGroups] = useState<Set<string>>(
-    new Set(FAQ_GROUPS.map((g) => g.id)) // todos abiertos por defecto
+    new Set([FAQ_GROUPS[0].id]) // solo el primero abierto por defecto
   );
 
   const toggleItem = (id: string) => {
@@ -110,75 +108,115 @@ export default function FaqsPage(_: Props) {
     });
   };
 
+  const totalQuestions = FAQ_GROUPS.reduce((acc, g) => acc + g.items.length, 0);
+
   return (
     <div className={styles.root}>
       <div className={styles.bgMesh} />
       <Navbar />
 
       <main className={styles.main}>
-        <div className={styles.card}>
 
-          <button className={styles.backBtn} onClick={() => router.back()}>
-            <BackArrowIcon /> volver
-          </button>
+        {/* Botón volver */}
+        <button className={styles.backBtn} onClick={() => router.back()}>
+          <BackArrowIcon /> Volver
+        </button>
 
-          <section className={styles.hero}>
-            <h1 className={styles.heroTitle}>¿Qué es {'{nombre de la IA}'}?</h1>
-            <p className={styles.heroText}>
-              Un texto bastante largo explicando qué es la IA y para qué funciona. Aquí irá
-              la descripción oficial de PumaIA, sus objetivos, el equipo detrás y cómo puede
-              ayudarte a lo largo de tu trayectoria académica y profesional en la FES Acatlán.
-            </p>
-          </section>
+        {/* Hero */}
+        <section className={styles.hero}>
+          <span className={styles.heroBadge}>
+            <SparkleIcon /> Centro de ayuda
+          </span>
+          <h1 className={styles.heroTitle}>
+            ¿En qué podemos<br />
+            <span>ayudarte?</span>
+          </h1>
+          <p className={styles.heroText}>
+            Encuentra respuestas sobre PumaIA, tu historial académico, intercambios
+            y más. Si no encuentras lo que buscas, puedes contactarnos desde la
+            sección de ajustes.
+          </p>
+          <div className={styles.heroStats}>
+            <div className={styles.heroStat}>
+              <span className={styles.heroStatNum}>{totalQuestions}</span>
+              <span className={styles.heroStatLabel}>Preguntas respondidas</span>
+            </div>
+            <div className={styles.heroStat}>
+              <span className={styles.heroStatNum}>{FAQ_GROUPS.length}</span>
+              <span className={styles.heroStatLabel}>Categorías</span>
+            </div>
+            <div className={styles.heroStat}>
+              <span className={styles.heroStatNum}>FES</span>
+              <span className={styles.heroStatLabel}>Acatlán · UNAM</span>
+            </div>
+          </div>
+        </section>
 
-          <div className={styles.divider} />
-
-          <section className={styles.accordion}>
-            {FAQ_GROUPS.map((group) => (
+        {/* Acordeón */}
+        <section className={styles.accordion}>
+          {FAQ_GROUPS.map((group) => {
+            const isOpen = openGroups.has(group.id);
+            return (
               <div key={group.id} className={styles.group}>
                 <button
-                  className={styles.groupHeader}
+                  className={`${styles.groupHeader} ${isOpen ? styles.groupHeaderOpen : ''}`}
                   onClick={() => toggleGroup(group.id)}
                 >
-                  <span>{group.label} &gt;</span>
-                  <ChevronIcon open={openGroups.has(group.id)} />
+                  <span className={styles.groupLabel}>
+                    <span className={styles.groupIcon}>{group.icon}</span>
+                    {group.label}
+                    <span className={styles.groupCount}>({group.items.length})</span>
+                  </span>
+                  <ChevronIcon open={isOpen} />
                 </button>
 
-                {openGroups.has(group.id) && (
+                {isOpen && (
                   <div className={styles.groupItems}>
-                    {group.items.map((item) => (
-                      <div key={item.id} className={styles.faqItem}>
-                        <button
-                          className={styles.question}
-                          onClick={() => toggleItem(item.id)}
-                        >
-                          <span>{item.question}</span>
-                          <ChevronIcon open={openItems.has(item.id)} />
-                        </button>
+                    {group.items.map((item) => {
+                      const itemOpen = openItems.has(item.id);
+                      return (
+                        <div key={item.id} className={styles.faqItem}>
+                          <button
+                            className={`${styles.question} ${itemOpen ? styles.questionOpen : ''}`}
+                            onClick={() => toggleItem(item.id)}
+                          >
+                            <span className={styles.questionText}>{item.question}</span>
+                            <ChevronIcon open={itemOpen} />
+                          </button>
 
-                        {openItems.has(item.id) && (
-                          <div className={styles.answer}>
-                            <p>{item.answer}</p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                          {itemOpen && (
+                            <div className={styles.answer}>
+                              <div className={styles.answerInner}>
+                                <p>{item.answer}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
-            ))}
-          </section>
-        </div>
+            );
+          })}
+        </section>
       </main>
 
       <footer className={styles.footer}>
         <a href="/faqs" className={styles.footerLink}>Preguntas frecuentes</a>
-        <a href="#" className={styles.footerLink}>Cosas de footer</a>
+        <a href="https://www.acatlan.unam.mx" target="_blank" rel="noopener noreferrer"
+          className={styles.footerLink}>FES Acatlán</a>
+        <a href="https://www.unam.mx" target="_blank" rel="noopener noreferrer"
+          className={styles.footerLink}>Página oficial UNAM</a>
+        <span className={styles.footerLink} style={{ marginLeft: 'auto' }}>
+          © {new Date().getFullYear()} PUMAIA
+        </span>
       </footer>
     </div>
   );
 }
 
+// ── Íconos ────────────────────────────────────────────
 function BackArrowIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -190,12 +228,19 @@ function BackArrowIcon() {
 
 function ChevronIcon({ open }: { open: boolean }) {
   return (
-    <svg
-      width="14" height="14" viewBox="0 0 24 24" fill="none"
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-      style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.25s' }}
-    >
+      style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.25s', flexShrink: 0 }}>
       <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+function SparkleIcon() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
     </svg>
   );
 }

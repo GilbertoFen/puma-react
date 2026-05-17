@@ -1,12 +1,11 @@
 'use client';
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import './LoginPage.css';
 import { FESA_LOGO } from '../utils/img/assets';
 import { UserData } from '../types';
 import { authService } from '../services/auth.service';
-
+import AppFooter from '../components/AppFooter';
 interface LoginProps {
   onLogin: (user: UserData) => void;
 }
@@ -37,7 +36,7 @@ export default function LoginPage({ onLogin }: LoginProps) {
       try {
         const { questionnaireService } = await import('../services/questionnarie.service');
         const realAnswers = await questionnaireService.getAnswers();
-        
+
         // Si el objeto tiene llaves (respuestas), significa que ya lo completó de verdad
         if (realAnswers && Object.keys(realAnswers).length > 0) {
           hasCompletedQuizReal = true;
@@ -156,7 +155,7 @@ export default function LoginPage({ onLogin }: LoginProps) {
       </main>
 
       <div className="gold-line" />
-      <Footer />
+      <AppFooter variant="dark" />
     </div>
   );
 }

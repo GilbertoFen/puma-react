@@ -50,7 +50,7 @@ export type UploadedDocument = {
 };
 
 export type DocumentCategory =
-  | 'tira_materias'
+  | 'historial_academico'
   | 'cv'
   | 'certificado'
   | 'curso'
@@ -58,7 +58,7 @@ export type DocumentCategory =
   | 'otro';
 
 export const DOCUMENT_CATEGORY_LABELS: Record<DocumentCategory, string> = {
-  tira_materias: 'Tira de materias',
+  historial_academico: 'Tira de materias',
   cv: 'Currículum vitae',
   certificado: 'Certificado',
   curso: 'Constancia de curso',
