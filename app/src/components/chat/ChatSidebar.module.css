@@ -187,24 +187,65 @@
 @media (max-width: 768px) {
   .sidebar {
     position: absolute;
-    /* flota sobre el chat, no empuja */
     top: 0;
     left: 0;
     height: 100%;
-    z-index: 15;
+    z-index: 15 !important;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.3s ease; /* ← agregar esto */
   }
 
-  /* Cuando está cerrado se oculta completamente */
   .closed {
     transform: translateX(-100%);
-    border: none;
+    opacity: 0;
+    pointer-events: none;
+    width: 260px; /* ← mantener el ancho para que la animación sea suave */
   }
 
-  /* Si está abierto, regresa a su posición original (0) */
   .open {
     transform: translateX(0);
+    opacity: 1;
     width: 260px;
-    padding: 16px 14px;
   }
+}
+
+.suggestionHighlight {
+  position: relative;
+  overflow: hidden;
+  background: rgba(201,168,76,0.08);
+  border: 1px solid rgba(201,168,76,0.3);
+  color: rgba(201,168,76,0.95);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: all 0.25s;
+}
+
+.suggestionHighlight:hover {
+  background: rgba(201,168,76,0.14);
+  border-color: rgba(201,168,76,0.55);
+  transform: translateY(-1px);
+}
+
+/* Efecto brillo que barre horizontalmente */
+.suggestionHighlightGlow {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(201,168,76,0.15), transparent);
+  animation: shimmer 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0%   { left: -100%; }
+  50%  { left: 140%; }
+  100% { left: 140%; }
 }

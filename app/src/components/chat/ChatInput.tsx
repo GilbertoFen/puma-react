@@ -105,7 +105,6 @@ export default function ChatInput({ onSend }: Props) {
         <div className={styles.fileList}>
           {files.map((f) => (
             <div key={f.id} className={styles.fileChip}>
-              <FileIcon type={f.type} />
               <span className={styles.fileName}>{f.name}</span>
               <span className={styles.fileSize}>{formatSize(f.size)}</span>
               <button
@@ -129,15 +128,6 @@ export default function ChatInput({ onSend }: Props) {
           style={{ display: 'none' }}
           onChange={(e) => addFiles(e.target.files)}
         />
-
-        <button
-          className={styles.iconBtn}
-          onClick={openFilePicker}
-          type="button"
-          title="Adjuntar archivo"
-        >
-          <AttachIcon />
-        </button>
 
         <textarea
           ref={textareaRef}
@@ -165,12 +155,12 @@ export default function ChatInput({ onSend }: Props) {
 function AttachIcon() {
   return (
     <img
-    src={ATTACH_ICON}
-    alt="Adjuntar"
-    style={{
-      width:'24px',
-      height: '24px',
-    }}
+      src={ATTACH_ICON}
+      alt="Adjuntar"
+      style={{
+        width: '24px',
+        height: '24px',
+      }}
     />
   );
 }
@@ -178,22 +168,14 @@ function AttachIcon() {
 function SendIcon() {
   return (
     <img
-    src={SEND_ICON}
-    alt="Enviar"
-    style={{
-      transform: 'rotate(180deg)',
-      width:'24px',
-      height: '24px',
-    }}
+      src={SEND_ICON}
+      alt="Enviar"
+      style={{
+        transform: 'rotate(180deg)',
+        width: '24px',
+        height: '24px',
+      }}
     />
-  
-  );
-}
 
-function FileIcon({ type }: { type: string }) {
-  const isImage = type.startsWith('image/');
-  const isPdf = type === 'application/pdf';
-  if (isImage) return <span style={{ fontSize: 14 }}>🖼</span>;
-  if (isPdf)   return <span style={{ fontSize: 14 }}>📄</span>;
-  return        <span style={{ fontSize: 14 }}>📎</span>;
+  );
 }

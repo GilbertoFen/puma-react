@@ -40,6 +40,8 @@ export default function ExtraDataForm() {
   const [selectedCEFR, setSelectedCEFR] = useState('B2');
   const [selectedAreaId, setSelectedAreaId] = useState('');
   const [selectedCategoriaId, setSelectedCategoriaId] = useState('');
+  const [draftExperienciaText, setDraftExperienciaText] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // CARGA DE DATOS MAESTRA
   const loadAllData = async () => {
@@ -53,6 +55,7 @@ export default function ExtraDataForm() {
         updateInfoService.getGlobalAreasExpertise().catch(() => []),
         updateInfoService.getGlobalCategories().catch(() => []),
         updateInfoService.getGlobalSkills().catch(() => []), // <-- Descarga real
+
       ]);
 
       setStudentId(profile.id);
@@ -124,12 +127,14 @@ export default function ExtraDataForm() {
           }
           break;
         case 'experiencia':
-          if (selectedAreaId && selectedCategoriaId) {
-            await updateInfoService.addProfessionalExperience({
-              studentId,
-              areaExpertiseId: selectedAreaId,
-              categoryId: selectedCategoriaId
-            });
+          if (draftExperienciaText.trim() !== '') {
+            setIsAnalyzing(true);
+            try {
+              // Llamamos al puente de IA
+              await updateInfoService.analyzeExperience(draftExperienciaText);
+            } finally {
+              setIsAnalyzing(false);
+            }
           }
           break;
       }
@@ -323,39 +328,43 @@ export default function ExtraDataForm() {
         </div>
 
         {/* 6. EXPERIENCIA PROFESIONAL (Doble Selector Exclusivo: Área + Categoría macro) */}
-        <div className={`${styles.fieldWrap}`}>
+        <div className={`${styles.fieldWrap} ${styles.fullWidth}`}>
           <div className={styles.fieldHeader}>
             <label className={styles.label}>Experiencia Profesional</label>
             {editingField !== 'experiencia' && (
-              <button className={styles.actionBtn} onClick={() => setEditingField('experiencia')}>
+              <button className={styles.actionBtn} onClick={() => { setDraftExperienciaText(''); setEditingField('experiencia'); }}>
                 <PlusIcon /> Agregar Puesto
               </button>
             )}
           </div>
-          {/*   SELECTOR DE EXPERIENCIA Y DE CATEGORIAS */}
+
           {editingField === 'experiencia' ? (
-            <div className={styles.editBlock} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <span style={{ fontSize: '11px', color: '#bb8800' }}>Selecciona el Área de Especialización:</span>
-              <CustomSelect
-                options={catalogos.areas.map((a) => ({ id: a.id, label: a.label }))}
-                value={selectedAreaId}
-                onChange={setSelectedAreaId}
-                placeholder="Selecciona un área"
+            <div className={styles.editBlock}>
+              <p style={{ fontSize: '11px', color: '#c9a84c', marginBottom: '6px' }}>
+                Describe tu experiencia laboral con tus propias palabras. PumaIA la clasificará automáticamente.
+              </p>
+              <textarea
+                className={styles.textarea}
+                value={draftExperienciaText}
+                onChange={(e) => setDraftExperienciaText(e.target.value)}
+                placeholder="Ej: Fui desarrollador backend usando Node.js y bases de datos SQL durante 6 meses..."
+                rows={3}
+                disabled={isAnalyzing}
+                autoFocus
               />
-              <span style={{ fontSize: '11px', color: '#bb8800' }}>Selecciona la Categoría Asociada:</span>
-              <CustomSelect
-                options={catalogos.categorias.map((ct) => ({ id: ct.id, label: ct.category }))}
-                value={selectedCategoriaId}
-                onChange={setSelectedCategoriaId}
-                placeholder="Selecciona una categoría"
-              />
-              <div className={styles.editActions} style={{ display: 'flex', gap: '8px' }}>
-                <button className={styles.cancelBtn} onClick={() => setEditingField(null)}>Cancelar</button>
-                <button className={styles.saveBtn} onClick={() => handleSaveField('experiencia')}>Vincular Perfil</button>
+              <div className={styles.editActions} style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
+                <button className={styles.cancelBtn} onClick={() => setEditingField(null)} disabled={isAnalyzing}>Cancelar</button>
+                <button className={styles.saveBtn} onClick={() => handleSaveField('experiencia')} disabled={isAnalyzing}>
+                  {isAnalyzing ? 'Analizando con IA...' : 'Analizar y Guardar'}
+                </button>
               </div>
             </div>
           ) : savedData.experiencia ? (
-            <div className={styles.savedValue}><CheckBadgeIcon /> <span>{savedData.experiencia}</span></div>
+            <div className={styles.savedValue}>
+              <CheckBadgeIcon />
+              {/* Aquí mostramos lo que la BD ya guardó estructurado tras el análisis */}
+              <span>{savedData.experiencia}</span>
+            </div>
           ) : (
             <div className={styles.emptyValue}><span>No has agregado experiencia profesional</span></div>
           )}

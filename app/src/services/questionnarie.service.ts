@@ -1,6 +1,5 @@
 import { API_URL } from '../utils/api';
 
-// Función auxiliar para recuperar los headers con el token JWT
 const getHeaders = () => {
     const token = localStorage.getItem('token') || JSON.parse(localStorage.getItem('userData') || '{}').token;
     return {
@@ -9,8 +8,6 @@ const getHeaders = () => {
     };
 };
 
-// Mapeo manual de IDs a Categorías de tu Enum de Prisma
-// Ajusta las mayúsculas/nombres de acuerdo a cómo definiste tu CategoriaPregunta en Prisma
 const CATEGORY_MAP: Record<string, string> = {
     reaccion_problema: 'INTERESES',
     experiencia_laboral: 'EXPERIENCIA',
@@ -21,8 +18,7 @@ const CATEGORY_MAP: Record<string, string> = {
 
 export const questionnaireService = {
     /**
-     * Envia las respuestas del Frontend al Backend de NestJS
-     * @param frontendAnswers Objeto clave-valor con las respuestas del estado de tu formulario
+     * @param frontendAnswers 
      */
     saveAnswers: async (frontendAnswers: Record<string, any>) => {
 
@@ -49,9 +45,6 @@ export const questionnaireService = {
         return res.json();
     },
 
-    /**
-     * Recupera las respuestas de la Base de Datos y las reestructura al formato clave-valor
-     */
     getAnswers: async (): Promise<Record<string, any>> => {
         const res = await fetch(`${API_URL}/questionnaire/my-answers`, {
             headers: getHeaders(),
@@ -61,18 +54,14 @@ export const questionnaireService = {
             throw new Error('No se pudieron recuperar las respuestas anteriores.');
         }
 
-        const backendAnswers = await res.json(); // Devuelve un array de QuestionnaireAnswer
-
-        // Convertimos el array de la BD de vuelta a un objeto plano { id_pregunta: valor }
+        const backendAnswers = await res.json();
         const frontendStructure: Record<string, any> = {};
 
         if (Array.isArray(backendAnswers)) {
             backendAnswers.forEach((ans: any) => {
-                // En Prisma llamamos "questionId" al id de la pregunta y "answer" al campo JSON
                 frontendStructure[ans.questionId] = ans.answer;
             });
         }
-
         return frontendStructure;
     },
 };

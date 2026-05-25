@@ -50,8 +50,6 @@ export default function AcademicUploadPage({ user, onContinue }: Props) {
   const [dragging, setDragging] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [draftGrade, setDraftGrade] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
 
@@ -67,7 +65,6 @@ export default function AcademicUploadPage({ user, onContinue }: Props) {
     setDragging(false);
     handleFile(e.dataTransfer.files[0]);
   };
-
   // ── Enviar al backend ──────────────────────────────
   // Cuando tengas la ruta real:
   //   1. Reemplaza el setTimeout por un fetch real
@@ -79,54 +76,27 @@ export default function AcademicUploadPage({ user, onContinue }: Props) {
     setPageState('loading');
 
     try {
-      const data = await gradeService.analyzePDF(file);
+      // 1. Extraemos el token aquí, porque ahora la subida está protegida
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error("No hay sesión activa. Por favor inicia sesión.");
+
+      // 2. Enviamos el archivo Y el token. (El backend guarda en la BD aquí mismo)
+      const data = await gradeService.analyzePDF(file, token);
+
       setSubjects(data.subjects);
-      setPageState('review');
+      setPageState('review'); // Pasamos al estado visual de confirmación
     } catch (err: any) {
       setError(err.message);
       setPageState('upload');
     }
   };
 
-  // ── Editar calificación ────────────────────────────
-  const saveEdit = (id: string) => {
-    const parsed = parseInt(draftGrade, 10);
-    if (isNaN(parsed) || parsed < 0 || parsed > 10) return;
-    setSubjects((prev) =>
-      prev.map((s) => (s.subjectID === id ? { ...s, grade: parsed } : s))
-    );
-    setEditingId(null);
-  };
-
-  const startEdit = (s: Subject) => {
-    setEditingId(s.subjectID);
-    setDraftGrade(String(s.grade));
-  };
-
-  const cancelEdit = () => setEditingId(null);
-
   // ── Confirmar y notificar ──────────────────────────
   const handleConfirm = async () => {
-  try {
-    // 1. Buscamos directamente la llave 'token' que guardaste en el login
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      throw new Error("Sesión no encontrada. Por favor inicia sesión de nuevo.");
-    }
-
-    setPageState('loading');
-    
-    // 2. Enviamos el token al servicio
-    await gradeService.confirmGrades(subjects, token);
-    
+    // Como la información YA está guardada en la base de datos gracias al paso anterior,
+    // aquí simplemente avanzamos la pantalla al mensaje de éxito.
     setPageState('confirmed');
-  } catch (err: any) {
-    console.error("Error en confirmación:", err);
-    setError(err.message); // Usamos el banner de error que ya tienes
-    setPageState('review');
-  }
-};
+  };
 
   const resetUpload = () => {
     setFile(null);
@@ -169,6 +139,8 @@ export default function AcademicUploadPage({ user, onContinue }: Props) {
                 onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
               />
 
+
+
               {file ? (
                 /* Archivo seleccionado */
                 <div className={styles.fileReady}>
@@ -209,110 +181,93 @@ export default function AcademicUploadPage({ user, onContinue }: Props) {
                 </span>
               ) : 'Analizar historial'}
             </button>
+            <div style={{ marginTop: '16px', textAlign: 'center' }}>
+              <button
+                onClick={() => window.location.href = '/home'}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'rgba(201, 168, 76, 0.7)',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  padding: '8px'
+                }}
+              >
+                Omitir por ahora y volver al inicio
+              </button>
+            </div>
           </div>
-        )}
+        )
+        }
+
 
         {/* ══ ESTADO: review ══════════════════════════ */}
-        {pageState === 'review' && (
-          <div className={styles.reviewSection}>
-            <div className={styles.reviewHeader}>
-              <div className={styles.reviewTitleRow}>
-                <CheckCircleIcon />
-                <h1 className={styles.title}>Historial procesado correctamente</h1>
-              </div>
-              <p className={styles.subtitle}>
-                Revisa las materias detectadas. Puedes editar la calificación si detectas
-                algún error antes de confirmar.
-              </p>
-            </div>
-
-            {/* Tabla de materias */}
-            <div className={styles.table}>
-              <div className={styles.tableHead}>
-                <span>Materia</span>
-                <span className={styles.colGrade}>Calificación</span>
-                <span className={styles.colAction}></span>
+        {
+          pageState === 'review' && (
+            <div className={styles.reviewSection}>
+              <div className={styles.reviewHeader}>
+                <div className={styles.reviewTitleRow}>
+                  <CheckCircleIcon />
+                  <h1 className={styles.title}>Historial procesado correctamente</h1>
+                </div>
+                <p className={styles.subtitle}>
+                  Revisa las materias detectadas.
+                </p>
               </div>
 
-              {subjects.map((s) => (
-                <div key={s.subjectID} className={styles.tableRow}>
-                  <span className={styles.subjectName}>{s.subjectName}</span>
+              {/* Tabla de materias */}
+              <div className={styles.table}>
+                <div className={styles.tableHead}>
+                  <span>Materia</span>
+                  <span className={styles.colGrade}>Calificación</span>
+                  {/* Quitamos la columna vacía de acciones */}
+                </div>
 
-                  {editingId === s.subjectID ? (
-                    /* Modo edición */
-                    <div className={styles.gradeEditRow}>
-                      <input
-                        className={styles.gradeInput}
-                        type="number"
-                        min={0}
-                        max={10}
-                        value={draftGrade}
-                        onChange={(e) => setDraftGrade(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') saveEdit(s.subjectID);
-                          if (e.key === 'Escape') cancelEdit();
-                        }}
-                        autoFocus
-                      />
-                      <button className={styles.saveGradeBtn} onClick={() => saveEdit(s.subjectID)}>
-                        <CheckIcon />
-                      </button>
-                      <button className={styles.cancelGradeBtn} onClick={cancelEdit}>
-                        ✕
-                      </button>
-                    </div>
-                  ) : (
-                    /* Calificación normal */
+                {subjects.map((s) => (
+                  <div key={s.subjectID} className={styles.tableRow}>
+                    <span className={styles.subjectName}>{s.subjectName}</span>
                     <span className={`${styles.grade} ${gradeColor(s.grade)}`}>
                       {s.grade}
                     </span>
-                  )}
-
-                  {editingId !== s.subjectID && (
-                    <button
-                      className={styles.editBtn}
-                      onClick={() => startEdit(s)}
-                      title="Editar calificación"
-                    >
-                      <EditIcon />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* Acciones */}
-            <div className={styles.reviewActions}>
-              <button className={styles.reuploadBtn} onClick={resetUpload}>
-                <UploadIcon small /> Subir otro PDF
-              </button>
-              <button className={styles.confirmBtn} onClick={handleConfirm}>
-                Confirmar y continuar
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ══ ESTADO: confirmed ═══════════════════════ */}
-        {pageState === 'confirmed' && (
-          <div className={styles.confirmedSection}>
-            <div className={styles.confirmedCard}>
-              <div className={styles.confirmedIcon}>
-                <BigCheckIcon />
+                  </div>
+                ))}
               </div>
-              <h2 className={styles.confirmedTitle}>¡Documento registrado!</h2>
-              <p className={styles.confirmedDesc}>
-                Tu historial académico se subió correctamente y ya está disponible
-                en tu perfil para consulta.
-              </p>
-              <button className={styles.continueBtn} onClick={onContinue}>
-                Ir al portal →
-              </button>
+
+              {/* Acciones */}
+              <div className={styles.reviewActions}>
+                <button className={styles.reuploadBtn} onClick={resetUpload}>
+                  <UploadIcon small /> Subir otro PDF
+                </button>
+                <button className={styles.confirmBtn} onClick={handleConfirm}>
+                  Confirmar y continuar
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-      </main>
-    </div>
+          )
+        }
+
+        {
+          pageState === 'confirmed' && (
+            <div className={styles.confirmedSection}>
+              <div className={styles.confirmedCard}>
+                <div className={styles.confirmedIcon}>
+                  <BigCheckIcon />
+                </div>
+                <h2 className={styles.confirmedTitle}>¡Documento registrado!</h2>
+                <p className={styles.confirmedDesc}>
+                  Tu historial académico se subió correctamente y ya está disponible
+                  en tu perfil para consulta.
+                </p>
+                <button className={styles.continueBtn} onClick={onContinue}>
+                  Ir al portal →
+                </button>
+              </div>
+            </div>
+          )
+        }
+      </main >
+    </div >
   );
 }
 

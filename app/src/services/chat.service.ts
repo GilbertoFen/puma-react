@@ -1,26 +1,20 @@
 import { API_URL } from '../utils/api';
 
 const getHeaders = () => {
-    // 1. Intentamos obtener el token directamente (como lo hace tu logout)
     let token = localStorage.getItem('token');
-
-    // 2. Si no está directo, lo buscamos dentro de userData
     if (!token) {
         const rawData = localStorage.getItem('userData');
         if (rawData) {
             try {
                 const userData = JSON.parse(rawData);
-                // Probamos todas las combinaciones posibles
                 token = userData.token || userData.access_token || userData.accessToken;
             } catch (e) {
                 console.error("Error parseando userData para obtener token", e);
             }
         }
     }
-
-    // Debug en desarrollo (puedes quitarlo después)
     if (!token) {
-        console.warn("⚠️ No se encontró token en localStorage. Las peticiones fallarán (401).");
+        console.warn(" No se encontró token en localStorage. Las peticiones fallarán (401).");
     }
 
     return {
@@ -38,24 +32,27 @@ export const chatService = {
         if (res.status === 401) throw new Error('Sesión expirada');
         return res.json();
     },
-
-    // Obtener mensajes de un chat específico
-    // 2. OBTENER MENSAJES (Este es el que probablemente te falta o tiene otro nombre)
+    
+    // 2. OBTENER MENSAJES 
     getMessages: async (id: string) => {
         const res = await fetch(`${API_URL}/chat/conversations/${id}/messages`, { headers: getHeaders() });
         return res.json();
     },
-    // Enviar mensaje (Crea o continúa)
-    sendMessage: async (content: string, conversationId?: string) => {
+
+    sendMessage: async (content: string, conversationId: string | undefined, profile: string, history: any[]) => {
         const res = await fetch(`${API_URL}/chat/message`, {
             method: 'POST',
             headers: getHeaders(),
-            body: JSON.stringify({ content, conversationId }),
+            body: JSON.stringify({ 
+                content, 
+                conversationId,
+                student_profile: profile, 
+                history: history          
+            }),
         });
         return res.json();
     },
 
-    // Editar título
     updateTitle: async (id: string, title: string) => {
         const res = await fetch(`${API_URL}/chat/conversations/${id}`, {
             method: 'PATCH',
@@ -65,7 +62,6 @@ export const chatService = {
         return res.json();
     },
 
-    // Eliminar conversación (por si lo necesitas en el front)
     deleteConversation: async (id: string) => {
         const res = await fetch(`${API_URL}/chat/conversations/${id}`, {
             method: 'DELETE',

@@ -1,102 +1,218 @@
 .grid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   max-width: 760px;
   margin: 0 auto;
 }
 
 .card {
-  display: flex;
-  align-items: center;
-  gap: 20px;
+  position: relative;
+  min-height: 110px;
   padding: 20px 24px;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
   backdrop-filter: blur(10px);
-  transition: background 0.25s, border-color 0.25s, transform 0.2s;
-  animation: cardIn 0.4s ease both;
-}
-
-.card:nth-child(1) { animation-delay: 0.05s; }
-.card:nth-child(2) { animation-delay: 0.12s; }
-.card:nth-child(3) { animation-delay: 0.19s; }
-
-@keyframes cardIn {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+  transition: border-color 0.25s, background 0.25s, transform 0.2s, box-shadow 0.25s;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 .card:hover {
   background: rgba(255,255,255,0.07);
+  border-color: rgba(201,168,76,0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+/* Card destacada — Análisis */
+.cardHighlight {
   border-color: rgba(201,168,76,0.2);
-  transform: translateY(-1px);
+  background: rgba(201,168,76,0.04);
+}
+
+.cardHighlight:hover {
+  border-color: rgba(201,168,76,0.5);
+  background: rgba(201,168,76,0.08);
+  box-shadow: 0 8px 32px rgba(201,168,76,0.12);
+}
+
+.highlightBadge {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  background: rgba(201,168,76,0.15);
+  border: 1px solid rgba(201,168,76,0.35);
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(201,168,76,0.9);
+  letter-spacing: 0.05em;
+}
+
+/* ── Vista frontal ── */
+.cardFront {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.cardFrontHidden {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
 }
 
 .iconWrap {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255,255,255,0.04);
-  border-radius: 50%;
   border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 50%;
 }
 
-.content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.titleRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.content { display: flex; flex-direction: column; gap: 7px; flex: 1; min-width: 0; }
 
 .badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 13px;
-  font-weight: 700;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 13px; font-weight: 700;
   color: rgba(201,168,76,0.85);
   font-family: var(--font-display, 'Sora', sans-serif);
 }
 
-.description {
-  font-size: 14px;
-  line-height: 1.5;
-  color: rgba(255,255,255,0.7);
-  font-family: var(--font-body, 'DM Sans', sans-serif);
-}
+.description { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.65); }
 
 .actionBtn {
   align-self: flex-start;
-  padding: 8px 18px;
-  background: rgba(26,79,168,0.35);
-  border: 1px solid rgba(26,79,168,0.5);
+  padding: 7px 16px;
+  background: rgba(26,79,168,0.3);
+  border: 1px solid rgba(26,79,168,0.45);
   border-radius: 8px;
-  color: rgba(255,255,255,0.85);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
+  color: rgba(255,255,255,0.8);
+  font-size: 13px; font-weight: 600; cursor: pointer;
   font-family: var(--font-body, 'DM Sans', sans-serif);
   transition: background 0.2s, transform 0.15s;
 }
 
-.actionBtn:not(.disabled):hover {
-  background: rgba(37,99,235,0.5);
-  transform: translateY(-1px);
+.actionBtn:hover { background: rgba(37,99,235,0.45); transform: translateY(-1px); }
+
+.actionBtnHover {
+  background: rgba(201,168,76,0.15);
+  border-color: rgba(201,168,76,0.4);
+  color: rgba(201,168,76,0.95);
 }
 
-.actionBtn.disabled {
-  opacity: 0.4;
-  cursor: default;
+.actionBtnHover:hover {
+  background: rgba(201,168,76,0.25);
 }
+
+/* ── Vista hover ── */
+.cardBack {
+  position: absolute;
+  inset: 0;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.22s, transform 0.22s;
+  pointer-events: none;
+}
+
+.cardBackVisible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.hoverTitle {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 14px; font-weight: 700; color: rgba(201,168,76,0.9); margin: 0;
+}
+
+.hoverBody {
+  font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.65); margin: 0;
+}
+/* ── Efecto "glow giratorio" para tarjetas highlight ── */
+.cardHighlight {
+  border-color: transparent; /* el borde real lo pone el pseudo-elemento */
+  background: rgba(201,168,76,0.04);
+  isolation: isolate; /* crea un stacking context limpio */
+}
+
+.cardHighlight::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 18px; /* un poco más que el border-radius del card */
+  background: conic-gradient(
+    from var(--angle, 0deg),
+    rgba(201,168,76,0)     0%,
+    rgba(201,168,76,0.85) 25%,
+    rgba(255,220,100,1)   50%,
+    rgba(201,168,76,0.85) 75%,
+    rgba(201,168,76,0)   100%
+  );
+  z-index: -1;
+  animation: rotateBorder 3s linear infinite;
+}
+
+/* Fondo sólido detrás del contenido para que el gradiente no "traspase" */
+.cardHighlight::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 15px;
+  background: #0b1733; /* mismo tono que el fondo de la app */
+  z-index: -1;
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rotateBorder {
+  to { --angle: 360deg; }
+}
+
+.cardHighlight:hover {
+  background: rgba(201,168,76,0.08);
+  box-shadow: 0 0 28px rgba(201,168,76,0.25), 0 8px 32px rgba(201,168,76,0.12);
+}
+
+/* Badge "Destacado" para tarjetas highlight */
+.highlightBadge {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  background: rgba(201,168,76,0.15);
+  border: 1px solid rgba(201,168,76,0.35);
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(201,168,76,0.9);
+  letter-spacing: 0.05em;
+}
+@keyframes rotateBorderFallback {
+    to { transform: rotate(360deg); }
+  }
+
+

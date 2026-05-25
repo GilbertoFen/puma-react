@@ -2,7 +2,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './HomeDrawer.module.css';
-import { AI_LOGO, EXCHANGE_ICON, UPDATE_INFO_ICON } from '../../utils/img/assets';
+import { AI_ANALYZE, AI_LOGO, EXCHANGE_ICON, UPDATE_INFO_ICON } from '../../utils/img/assets';
 
 // Diccionario estático único de rutas (Punto único de verdad)
 const ROUTE_MAP: Record<string, string> = {
@@ -10,7 +10,8 @@ const ROUTE_MAP: Record<string, string> = {
   pumaia: '/chat',
   perfil: '/profile',
   actualizar: '/update-info',
-  intercambio: '/exchange',
+  //intercambio: '/exchange',
+  analisis: '/analyze',
   ajustes: '/settings',
 };
 
@@ -26,7 +27,8 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'perfil', label: 'Mi perfil', Icon: ProfileIcon, enabled: true },
   { id: 'pumaia', label: 'PumaIA', Icon: PumaIAIcon, enabled: true },
   { id: 'actualizar', label: 'Actualizar información', Icon: UpdateIcon, enabled: true },
-  { id: 'intercambio', label: 'Intercambio', Icon: ExchangeIcon, enabled: true },
+  //{ id: 'intercambio', label: 'Intercambio', Icon: ExchangeIcon, enabled: true },
+  { id: 'analisis', label: 'Análisis de Perfil', Icon: AnalyzeIcon, enabled: true },
   { id: 'ajustes', label: 'Ajustes', Icon: SettingsIcon, enabled: true },
 ];
 
@@ -109,6 +111,9 @@ function UpdateIcon() {
 }
 function ExchangeIcon() {
   return <img src={EXCHANGE_ICON} alt="Intercambio" />;
+}
+function AnalyzeIcon() {
+  return <img src={AI_ANALYZE} alt="Analizar con PumaIA" />;
 }
 function SettingsIcon() {
   return (

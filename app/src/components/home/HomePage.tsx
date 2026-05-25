@@ -10,7 +10,8 @@ import { StudentProfile } from '../../types';
 import styles from './HomePage.module.css';
 import PageLoader from '../loaders/PageLoader';
 import AppFooter from '../AppFooter';
-import { LOGO_ORACLE, LOGO_BBVA, LOGO_CHUTAZO, LOGO_IBM, LOGO_SANTANDER, LOGO_SLIM } from '../../utils/img/assets';
+import { LOGO_ORACLE, LOGO_BBVA, LOGO_CHUTAZO, LOGO_IBM, LOGO_SANTANDER, LOGO_SLIM, AI_LOGO } from '../../utils/img/assets';
+import { updateInfoService } from '../../services/updateInfo.service';
 const COMPANIES_DATA = [
   { id: 'oracle', name: 'ORACLE', logo: LOGO_ORACLE },
   { id: 'bbva', name: 'BBVA', logo: LOGO_BBVA },
@@ -26,31 +27,55 @@ export default function HomePage({
   user: any,
   initialProfile?: StudentProfile | null
 }) {
+  const [isReady, setIsReady] = useState(false);
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profile, setProfile] = useState<StudentProfile | null>(initialProfile || null);
-
-  useEffect(() => {
-    const savedProfile = localStorage.getItem('student_profile');
-
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
-    } else if (initialUser?.cuenta) {
-      studentService.getProfileByAccount(initialUser.cuenta)
-        .then(data => setProfile(data));
-    }
-  }, [initialUser]);
-  const goToChat = () => router.push('/chat');
-  const goToSettings = () => router.push('/settings');
-  const goToProfile = () => router.push('/profile');
-  const goToUpdateInfo = () => router.push('/update-info');
-  const goToExchange = () => router.push('/exchange');
-  const goToHome = () => router.push('/home');
-
-  // Si no hay perfil aún, mostramos la inicial del login o una por defecto
+  const [user, setUser] = useState<any>(null);
   const userInitial = profile?.fullName?.charAt(0) || initialUser?.initial || "U";
   const displayName = profile?.fullName || initialUser?.nombre || "Usuario";
   if (!initialUser) return <PageLoader message="Iniciando PumaIA..." />;
+
+
+  useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // Ejecutamos todo en paralelo 
+        await Promise.all([
+          // Ping a GenAI
+          fetch('https://server-genai.onrender.com', { method: 'GET' }).catch(() => { }),
+          (async () => {
+            const summary = await updateInfoService.getProfileSummary();
+            const local = JSON.parse(localStorage.getItem('userData') || '{}');
+            const updated = { ...local, ...summary };
+            localStorage.setItem('userData', JSON.stringify(updated));
+            setUser(updated);
+            window.dispatchEvent(new Event('avatarUpdated'));
+          })(),
+          initialUser?.cuenta ? studentService.getProfileByAccount(initialUser.cuenta).then(setProfile) : Promise.resolve()
+        ]);
+      } catch (err) {
+        console.error("Error al inicializar la app:", err);
+      } finally {
+        setIsReady(true);
+      }
+    };
+
+    if (initialUser) {
+      initializeApp();
+    } else {
+      router.push('/');
+    }
+  }, [initialUser, router]);
+  if (!isReady) {
+    return <PageLoader message="Cargando contenido y recopilando datos..." />;
+  }
+
+  const goToChat = () => router.push('/chat');
+  const goToUpdateInfo = () => router.push('/update-info');
+  const goToExchange = () => router.push('/exchange');
+  const goToAnalyze = () => router.push('/analyze');
+  const goToAbout= () => router.push('/about-page');
 
   return (
     <div className={styles.root}>
@@ -88,12 +113,64 @@ export default function HomePage({
       )}
 
       <main className={styles.main}>
+        {/* ── Sección hero / descripción ── */}
+        <section className={styles.heroSection}>
+          <div className={styles.heroContent}>
+
+            {/* Columna izquierda — texto */}
+            <div className={styles.heroLeft}>
+              <h1 className={styles.heroTitle}>
+                Tu asistente inteligente<br />en la FES Acatlán
+              </h1>
+              <p className={styles.heroSubtitle}>
+                PumaIA analiza tu perfil académico, te orienta en tu trayectoria
+                profesional y responde tus dudas en tiempo real. Todo en un solo lugar,
+                diseñado para estudiantes de la UNAM.
+              </p>
+              <div className={styles.heroStats}>
+                <div className={styles.stat}>
+                  <span className={styles.statNumber}>5</span>
+                  <span className={styles.statLabel}>Rutas profesionales personalizadas</span>
+                </div>
+                <div className={styles.statDivider} />
+                <div className={styles.stat}>
+                  <span className={styles.statNumber}>IA</span>
+                  <span className={styles.statLabel}>Respuestas en tiempo real</span>
+                </div>
+                <div className={styles.statDivider} />
+                <div className={styles.stat}>
+                  <span className={styles.statNumber}>100%</span>
+                  <span className={styles.statLabel}>Orientado a tu perfil</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Columna derecha — logo PumaIA */}
+            <div className={styles.heroRight}>
+              <div className={styles.heroPoweredLogoWrap}>
+                <img
+                  src={AI_LOGO}
+                  alt="PumaIA"
+                  className={styles.heroPoweredLogo}
+                  onClick={goToAbout}
+                />
+              </div>
+              <div className={styles.heroPoweredText}>
+                <span className={styles.heroPoweredLabel}>Potenciado con nuestro modelo de</span>
+                <span className={styles.heroPoweredBrand}>PUMA IA</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className={styles.section}>
           <FeatureCards
             onPumaIA={goToChat}
             onExchange={goToExchange}
             onUpdate={goToUpdateInfo}
-          />        </section>
+            onAnalyze={goToAnalyze}
+          />
+        </section>
 
         <section className={styles.section}>
           <Carousel />

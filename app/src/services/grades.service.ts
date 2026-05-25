@@ -14,30 +14,28 @@ export type AcademicResponse = {
 
 
 export const gradeService = {
-  /**
-   * Envía el PDF al endpoint de análisis (subjects/analyze-pdf)
-   */
-  analyzePDF: async (file: File): Promise<AcademicResponse> => {
+  analyzePDF: async (file: File, token: string): Promise<any> => {
     const formData = new FormData();
-    formData.append('file', file); // 'file' coincide con @UploadedFile() en Nest
+    formData.append('file', file);
 
     const response = await fetch(`${API_URL}/subjects/analyze-pdf`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}` 
+      },
       body: formData,
     });
 
     if (!response.ok) {
-      throw new Error('Error al analizar el historial académico.');
+      throw new Error('Error al analizar y guardar el historial académico.');
     }
 
+    
     return await response.json();
   },
 
-  /**
-   * Envía las materias confirmadas al endpoint de importación (grade/confirm-import)
-   */
   confirmGrades: async (subjects: Subject[], token: string): Promise<any> => {
-    // Filtramos solo las materias que existen en el catálogo (tienen ID)
+
     const payload = {
       subjects: subjects
         .filter((s) => s.exists && s.subjectID)
@@ -51,7 +49,7 @@ export const gradeService = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // Enviamos el token del alumno
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
     });
@@ -79,7 +77,7 @@ export const gradeService = {
       return await response.json();
     } catch (error) {
       console.error("GradesService Error:", error);
-      return []; // Devolvemos arreglo vacío si algo falla
+      return []; 
     }
   }
 };

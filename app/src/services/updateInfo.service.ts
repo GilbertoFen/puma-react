@@ -13,66 +13,87 @@ const getHeaders = () => {
 };
 
 export const updateInfoService = {
-
-    // ─────────────────────────────────────────────────────────
-    // 1. MÉTODOS DE LECTURA (GET) - CATÁLOGOS Y SUMARIOS
-    // ─────────────────────────────────────────────────────────
-
-    // MÉTODO MAESTRO: Obtiene el árbol relacional completo del estudiante
+    // Metodo para obtener todo del usuario 
     getProfileSummary: async () => {
         const res = await fetch(`${API_URL}/students/profile-summary`, { headers: getHeaders() });
         if (!res.ok) throw new Error('Error al cargar el resumen del perfil profesional');
         return res.json();
     },
-
-    // CATÁLOGO DE CURSOS (Asociado a @Controller('courses'))
+    // Cursos
     getGlobalCourses: async () => {
         const res = await fetch(`${API_URL}/courses`, { headers: getHeaders() });
         if (!res.ok) throw new Error('Error al obtener el catálogo de cursos');
         return res.json();
     },
 
-    // CATÁLOGO DE BECAS (Asociado a @Controller('schoolarships'))
+    // Becas
     getGlobalScholarships: async () => {
         const res = await fetch(`${API_URL}/schoolarships`, { headers: getHeaders() });
         if (!res.ok) throw new Error('Error al obtener el catálogo de becas');
         return res.json();
     },
 
-    // CATÁLOGO DE CONCURSOS (Asociado a @Controller('contests'))
+    // CONCURSOS
     getGlobalContests: async () => {
         const res = await fetch(`${API_URL}/contests`, { headers: getHeaders() });
         if (!res.ok) throw new Error('Error al obtener el catálogo de concursos');
         return res.json();
     },
 
-    // CATÁLOGO DE IDIOMAS (Asociado a @Controller('languages'))
+    // IDIOMAS
     getGlobalLanguages: async () => {
         const res = await fetch(`${API_URL}/languages`, { headers: getHeaders() });
         if (!res.ok) throw new Error('Error al obtener el catálogo de idiomas');
         return res.json();
     },
 
-    // CATÁLOGO DE ÁREAS DE EXPERTISE (Asociado a @Controller('areas-expertise'))
+    // AREAS DE EXPERTISE 
     getGlobalAreasExpertise: async () => {
         const res = await fetch(`${API_URL}/areas-expertise`, { headers: getHeaders() });
         if (!res.ok) throw new Error('Error al obtener las áreas de expertise');
         return res.json();
     },
 
-    // CATÁLOGO DE CATEGORÍAS MACRO (Asociado a @Controller('category'))
+    // CATEGORÍAS 
     getGlobalCategories: async () => {
         const res = await fetch(`${API_URL}/category`, { headers: getHeaders() });
         if (!res.ok) throw new Error('Error al obtener las categorías');
         return res.json();
     },
+    // Subir foto a cloudinary 
+    uploadAvatar: async (file: File, token: string): Promise<string> => {
+        const formData = new FormData();
+        formData.append('file', file);
 
+        const response = await fetch(`${API_URL}/students/avatar`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData,
+        });
 
-    // ─────────────────────────────────────────────────────────
-    // 2. MÉTODOS DE ESCRITURA Y ASOCIACIÓN (POST / PATCH / DELETE)
-    // ─────────────────────────────────────────────────────────
+        if (!response.ok) {
+            throw new Error('Error al subir la foto de perfil');
+        }
 
-    // INTERESES (Mapeado a PATCH /students/interests)
+        const data = await response.json();
+        return data.avatarUrl; 
+    },
+    
+    analyzeExperience: async (text: string) => {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/professional-experience/analyze`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ text })
+        });
+        if (!response.ok) throw new Error('Error al analizar experiencia');
+        return await response.json();
+    },
     updateInterests: async (interestText: string) => {
         const res = await fetch(`${API_URL}/students/interests`, {
             method: 'PATCH',
@@ -88,7 +109,6 @@ export const updateInfoService = {
         return res.json();
     },
 
-    // VINCULAR CURSO (Mapeado a POST /courses/courseUser)
     addCourse: async (courseId: string, studentId: string) => {
         const res = await fetch(`${API_URL}/courses/courseUser`, {
             method: 'POST',
@@ -98,8 +118,6 @@ export const updateInfoService = {
         if (!res.ok) throw new Error('Error al vincular el curso al alumno');
         return res.json();
     },
-
-    // VINCULAR BECA (Mapeado a POST /schoolarships/assign)
     addScholarship: async (schoolarshipId: string, studentId: string) => {
         const res = await fetch(`${API_URL}/schoolarships/assign`, {
             method: 'POST',
@@ -110,7 +128,6 @@ export const updateInfoService = {
         return res.json();
     },
 
-    // VINCULAR CONCURSO (Mapeado a POST /contests/enroll)
     enrollInContest: async (contestId: string, studentId: string) => {
         const res = await fetch(`${API_URL}/contests/enroll`, {
             method: 'POST',
@@ -121,7 +138,6 @@ export const updateInfoService = {
         return res.json();
     },
 
-    // VINCULAR IDIOMA Y NIVEL (Mapeado a POST /languages/languageUsers)
     addLanguage: async (dto: { studentId: string; languageId: string; skillId: string }) => {
         const res = await fetch(`${API_URL}/languages/languageUsers`, {
             method: 'POST',
@@ -132,7 +148,6 @@ export const updateInfoService = {
         return res.json();
     },
 
-    // VINCULAR EXPERIENCIA PROFESIONAL (Mapeado a POST /professional-experience)
     addProfessionalExperience: async (dto: { studentId: string; areaExpertiseId: string; categoryId: string }) => {
         const res = await fetch(`${API_URL}/professional-experience`, {
             method: 'POST',
@@ -142,8 +157,6 @@ export const updateInfoService = {
         if (!res.ok) throw new Error('Error al dar de alta la experiencia profesional');
         return res.json();
     },
-
-    // 1. Obtener el análisis de IA guardado en la base de datos (si existe)
     getSavedAiAnalysis: async () => {
         const token = localStorage.getItem('token');
         const res = await fetch(`${API_URL}/ai-analysis/current`, {
@@ -155,8 +168,6 @@ export const updateInfoService = {
         if (!res.ok) throw new Error('Error al consultar el análisis de IA actual');
         return res.json();
     },
-
-    // 2. Disparar la generación/actualización masiva contra FastAPI y Gemini
     generateNewAiAnalysis: async () => {
         const token = localStorage.getItem('token');
         const res = await fetch(`${API_URL}/ai-analysis/generate`, {

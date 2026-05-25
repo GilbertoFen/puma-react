@@ -2,15 +2,15 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 32px;
-  padding: 28px 40px;
+  gap: 40px;
+  padding: 40px 60px;
   flex-wrap: wrap;
   position: relative;
   z-index: 2;
-  position: relative;      
-  bottom: 0;             
+          
   width: 100%;           
   box-sizing: border-box;
+  margin-top: auto; 
 }
 
 .dark {
@@ -57,7 +57,8 @@
 .brand {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  flex:1px;
   min-width: 140px;
 }
 
@@ -91,7 +92,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex: 1;
+  flex: 2;
   max-width: 280px;
 }
 
@@ -191,28 +192,20 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .footer {
     flex-direction: column;
-    gap: 20px;
-    padding: 24px 20px;
+    align-items: center; /* Centramos todo en móvil */
+    text-align: center;
+    gap: 32px;
+    padding: 32px 20px;
+  }
+
+  .brand, .links, .help {
+    align-items: center; /* Centramos elementos internos */
   }
 
   .help {
-    align-items: flex-start;
-  }
-
-  .links {
-    max-width: 100%;
-  }
-
-  .minimal {
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .minimal .links {
-    flex-wrap: wrap;
-    gap: 12px;
+    align-items: center;
   }
 }

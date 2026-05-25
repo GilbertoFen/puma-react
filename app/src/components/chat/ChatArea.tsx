@@ -9,6 +9,7 @@ import { HamburgerIcon } from '../home/HomePage';
 import { AI_LOGO, EDIT_ICON, COPY_ICON, SEND_ICON } from '../../utils/img/assets';
 import ChatSidebar from './ChatSidebar';
 import TypingIndicator from '../loaders/TypingIndicator';
+import { useRouter } from 'next/navigation';
 type Props = {
   conversation: Conversation | null;
   suggestions: string[];
@@ -35,7 +36,9 @@ export default function ChatArea({ conversation, suggestions, onSend, sidebarOpe
   const isEmpty = !conversation || !conversation.messages || conversation.messages.length === 0;
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversation?.messages?.length, isTyping]); // Añadimos el "?" antes de length
+  }, [conversation?.messages?.length, isTyping]);
+  const router = useRouter();
+
   return (
 
     <div className={styles.main}>
@@ -48,6 +51,16 @@ export default function ChatArea({ conversation, suggestions, onSend, sidebarOpe
               <h2 className={styles.emptyQuestion}>¿Qué necesitas el día de hoy?</h2>
             </div>
             <div className={styles.suggestions}>
+              {/* Sugerencia destacada — análisis profesional */}
+              <button
+                className={styles.suggestionHighlight}
+                onClick={() => router.push('/analyze')}
+              >
+                <span className={styles.suggestionHighlightGlow} />
+                ✨ Realiza un análisis profesional de mi perfil
+              </button>
+
+              {/* Sugerencias normales */}
               {suggestions.map((s) => (
                 <button key={s} className={styles.suggestion} onClick={() => onSend(s)}>
                   {s}

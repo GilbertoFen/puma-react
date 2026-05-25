@@ -198,21 +198,28 @@
 
 /* Ajustes para móviles (Pantallas menores a 768px) */
 @media (max-width: 768px) {
-  .login-main, .welcome-main, .q-main {
+
+  .login-main,
+  .welcome-main,
+  .q-main {
     flex-direction: column;
     padding: 20px;
     text-align: center;
   }
 
-  .login-hero, .welcome-content {
+  .login-hero,
+  .welcome-content {
     margin-bottom: 2rem;
   }
 
-  .login-title, .welcome-title {
-    font-size: 2rem; /* Títulos más pequeños en móvil */
+  .login-title,
+  .welcome-title {
+    font-size: 2rem;
+    /* Títulos más pequeños en móvil */
   }
 
-  .login-card, .q-content {
+  .login-card,
+  .q-content {
     width: 100%;
     max-width: 100%;
   }
@@ -223,6 +230,66 @@
   }
 
   .q-btn {
-    width: 100%; /* Botones de ancho completo */
+    width: 100%;
+    /* Botones de ancho completo */
   }
+}
+
+/* ── Registro ── */
+.register-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.login-select {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.88);
+  cursor: pointer;
+}
+
+.login-select option {
+  background: #0b1733;
+  color: #fff;
+}
+
+.register-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.login-btn-secondary {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.login-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.11);
+  color: #fff;
+}
+
+.register-toggle-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px;
+  background: rgba(201, 168, 76, 0.07);
+  border: 1px dashed rgba(201, 168, 76, 0.3);
+  border-radius: 10px;
+  color: rgba(201, 168, 76, 0.8);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.register-toggle-btn:hover {
+  background: rgba(201, 168, 76, 0.12);
+  border-color: rgba(201, 168, 76, 0.55);
+  color: rgba(201, 168, 76, 1);
+}
+
+.card-mode-header {
+  margin-bottom: 4px;
 }

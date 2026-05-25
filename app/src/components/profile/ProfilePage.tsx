@@ -11,6 +11,7 @@ import ExperienceCard from '../profile/ExperienceCard';
 import PageLoader from '../loaders/PageLoader';
 import InlineLoader from '../loaders/InlineLoader';
 import AppFooter from '../AppFooter';
+import AvatarUpload from './AvatarUpload';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -59,7 +60,18 @@ export default function ProfilePage() {
         if (gradesData.status === 'fulfilled') setSubjects(gradesData.value);
         setLoadingHistory(false);
 
-        if (summaryData.status === 'fulfilled') setProfileSummary(summaryData.value);
+        if (summaryData.status === 'fulfilled') {
+          setProfileSummary(summaryData.value);
+
+          // 🔥 NUEVO: Si el backend nos trae una foto, actualizamos el localStorage y el estado
+          if (summaryData.value?.avatarUrl) {
+            setUser((prev: any) => {
+              const updatedUser = { ...prev, avatarUrl: summaryData.value.avatarUrl };
+              localStorage.setItem('userData', JSON.stringify(updatedUser));
+              return updatedUser;
+            });
+          }
+        }
         setLoadingProfile(false);
 
         if (aiData.status === 'fulfilled' && aiData.value.hasAnalysis) {
@@ -77,6 +89,22 @@ export default function ProfilePage() {
 
     fetchProfileAndHistory();
   }, []);
+  const handleAvatarUpload = async (file: File): Promise<string> => {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error("No hay sesión activa");
+
+    // Llamamos al backend real
+    const finalUrl = await updateInfoService.uploadAvatar(file, token);
+
+    // Actualizamos el usuario global en localStorage para que el Navbar se entere inmediatamente
+    setUser((prev: any) => {
+      const updatedUser = { ...prev, avatarUrl: finalUrl };
+      localStorage.setItem('userData', JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+
+    return finalUrl;
+  };
 
   if (loadingUser) return <PageLoader message="Cargando tu perfil..." />;
   if (!user) return <PageLoader message="Verificando sesión..." />;
@@ -123,16 +151,11 @@ export default function ProfilePage() {
 
         {/* Hero de perfil */}
         <section className={styles.heroCard}>
-          <div className={styles.avatarWrap}>
-            {user.fotoPerfil ? (
-              <img src={user.fotoPerfil} alt="Foto" className={styles.avatarImg} />
-            ) : (
-              <div className={styles.avatarInitial}>{user.initial}</div>
-            )}
-            <button className={styles.avatarEditBtn} title="Cambiar foto">
-              <CameraIcon />
-            </button>
-          </div>
+          <AvatarUpload
+            currentPhotoUrl={user.avatarUrl} 
+            initial={user.initial || 'U'}
+            onUpload={handleAvatarUpload}
+          />
           <div className={styles.heroInfo}>
             <h1 className={styles.heroName}>{user.nombre}</h1>
             <p className={styles.heroCareer}>{user.carrera}</p>
@@ -241,7 +264,7 @@ export default function ProfilePage() {
                   <button
                     className={styles.cardLinkBtn}
                     style={{ background: 'rgba(201,168,76,0.1)', padding: '6px 14px', borderRadius: '6px', color: '#c9a84c' }}
-                    onClick={() => router.push('/update-info')}
+                    onClick={() => router.push('/analyze')}
                   >
                     Generar análisis ahora
                   </button>
@@ -326,9 +349,7 @@ function HamburgerIcon() {
 function EditIcon() {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>;
 }
-function CameraIcon() {
-  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg>;
-}
+
 function PersonIcon() {
   return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>;
 }

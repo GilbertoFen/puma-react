@@ -3,36 +3,56 @@ import React, { useState } from 'react';
 import type { QuestionnaireAnswer } from '../../types/shared.types';
 import styles from './Sections.module.css';
 import ExtraDataForm from './ExtraDataForm';
+import { questionnaireService } from '../../services/questionnarie.service'; 
 
 type Props = {
   answers: QuestionnaireAnswer[];
+  onUpdateAnswer: (id: string, newAnswer: string) => void; 
 };
 const getDraftString = (answer: any): string => {
   if (!answer) return '';
   if (typeof answer === 'string') return answer;
   if (Array.isArray(answer)) return answer.join(', ');
   if (typeof answer === 'object') {
-    // Si es tipo branch condicional, mostramos la opción elegida y la experiencia guardada
-    return `${answer.answer} ${answer.exp ? ` - Experiencia: ${answer.exp}` : ''}`;
+    return `${answer.answer} ${answer.exp ? `- Experiencia: ${answer.exp}` : ''}`;
   }
   return '';
 };
 
-export default function QuestionnaireSection({ answers }: Props) {
+export default function QuestionnaireSection({ answers, onUpdateAnswer }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false); // Estado para evitar doble click
 
   const startEdit = (id: string, current: any) => {
-    setDrafts((prev) => ({ ...prev, [id]: current }));
+    // 🔥 CORRECCIÓN: Usamos getDraftString para que la textarea no explote con objetos/arrays
+    setDrafts((prev) => ({ ...prev, [id]: getDraftString(current) }));
     setEditing(id);
   };
 
   const cancelEdit = () => setEditing(null);
 
-  const saveEdit = (id: string) => {
-    // TODO: llamada a API posterior para guardar modificaciones individuales si se requiere
-    console.log('Guardar respuesta', id, drafts[id]);
-    setEditing(null);
+  const saveEdit = async (id: string) => {
+    const newAnswer = drafts[id];
+    if (!newAnswer || newAnswer.trim() === '') return cancelEdit();
+
+    setSaving(true);
+    try {
+      // 1. Mandamos SOLO la pregunta modificada al backend
+      // El servicio la convertirá en { id, category, value } y el backend hará un upsert perfecto
+      await questionnaireService.saveAnswers({ [id]: newAnswer });
+
+      // 2. Avisamos al padre (UpdateInfoPage) para que actualice la UI al instante
+      onUpdateAnswer(id, newAnswer);
+
+      // 3. Cerramos el modo edición
+      setEditing(null);
+    } catch (error) {
+      console.error('Error al guardar la respuesta:', error);
+      alert('No se pudo guardar la modificación.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -110,10 +130,6 @@ export default function QuestionnaireSection({ answers }: Props) {
           </div>
         ))}
       </div>
-
-      <button className={styles.redoBtn}>
-        <RefreshIcon /> Responder el cuestionario completo de nuevo
-      </button>
       <ExtraDataForm />
     </div>
   );
@@ -133,15 +149,6 @@ function CheckIcon() {
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
       stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />
-    </svg>
-  );
-}
-function RefreshIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 4 23 10 17 10" />
-      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
     </svg>
   );
 }

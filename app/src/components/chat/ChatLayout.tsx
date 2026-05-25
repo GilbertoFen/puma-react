@@ -24,10 +24,9 @@ export type Conversation = {
 };
 
 const INITIAL_SUGGESTIONS = [
-  'Ayúdame a armar un plan de estudios para MAC',
-  'Ayúdame a validar materias de un intercambio',
-  'Recomiéndame algo',
-  '...',
+  'Recomiendame libros para las materias de la carrera.',
+  'Ayudame a resolver un problema de programación en Python.',
+  '¿Qué es lo que puedes hacer como asistente?',
 ];
 
 export default function ChatLayout() {
@@ -44,8 +43,7 @@ export default function ChatLayout() {
   const [userInitial, setUserInitial] = useState('U');
 
 
-  const displayName = user?.fullName;
-
+const displayName = user?.nombre || user?.fullName || "Usuario";
   const activeConversation = Array.isArray(conversations)
     ? conversations.find((c) => c.id === activeId) ?? null
     : null;
@@ -54,7 +52,6 @@ export default function ChatLayout() {
     // para que FastAPI encienda.
     fetch('https://server-genai.onrender.com', { method: 'GET' }).catch(() => { });
   }, []);
-  // 1. Efecto de Carga Inicial (Usuario y Lista de Conversaciones)
   useEffect(() => {
     const init = async () => {
       const rawData = localStorage.getItem('userData');
@@ -91,6 +88,19 @@ export default function ChatLayout() {
 
     init();
   }, [router]); // Solo se ejecuta una vez al montar
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setSidebarOpen(false); // Forzar cerrado en móvil al cambiar tamaño
+      } else {
+        setSidebarOpen(true); // Abrir en escritorio
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Ejecutar al montar
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // 2. Efecto para cargar Mensajes cuando cambias de chat
   useEffect(() => {
@@ -111,12 +121,18 @@ export default function ChatLayout() {
     loadMessages();
   }, [activeId]); // Se ejecuta cada vez que haces clic en un chat diferente
   if (loading || !user) return <PageLoader message="Iniciando PumaIA..." />;
-
+  
   const sendMessage = async (text: string) => {
     if (!text.trim() || isTyping) return;
 
     setIsTyping(true);
-
+    const studentProfile = `
+      Nombre: ${user.nombre}.
+      Carrera: ${user.carrera}.
+      Promedio: ${user.average}.
+      Intereses: ${user.intereses || 'No especificados'}.
+    `;
+    const currentHistory = activeConversation?.messages || [];
     // 1. Crear el mensaje del usuario inmediatamente para la UI (Optimistic UI)
     const userMsg: Message = {
       id: `temp-${Date.now()}`,
@@ -148,11 +164,16 @@ export default function ChatLayout() {
 
     try {
       // 2. Enviar al backend real (pasando el ID real o undefined si es nuevo)
-      const response = await chatService.sendMessage(text, currentActiveId || undefined);
-
+      const response = await chatService.sendMessage(
+        text,
+        currentActiveId || undefined,
+        studentProfile,
+        currentHistory
+      );
       if (response.error || response.statusCode >= 400) {
         throw new Error(response.message || 'Error en el servidor');
       }
+      
 
       // 3. ACTUALIZACIÓN CRÍTICA DEL ESTADO
       if (!currentActiveId && response.conversationId) {
@@ -171,8 +192,6 @@ export default function ChatLayout() {
           )
         );
       } else if (currentActiveId) {
-        // Si el chat ya existía, NO volvemos a traer toda la lista del sidebar (evita parpadeos)
-        // Solo traemos los mensajes nuevos de esta conversación específica
         const realMessages = await chatService.getMessages(currentActiveId);
 
         setConversations((prev) =>
@@ -205,6 +224,10 @@ export default function ChatLayout() {
   const handleNavigate = () => {
     router.push('/home');
   };
+  const handleSelect = (id: string) => {
+  setActiveId(id);
+  if (window.innerWidth <= 768) setSidebarOpen(false);
+};
 
 
   return (
@@ -220,6 +243,12 @@ export default function ChatLayout() {
         >
           <HamburgerIcon />
         </button>
+        <button
+    className={styles.sidebarToggleBtn}
+    onClick={() => setSidebarOpen((o) => !o)}
+  >
+    <SidebarIcon />
+  </button>
 
         <span className={styles.toolbarGreeting}>
           Chat con PUMAIA
@@ -243,7 +272,7 @@ export default function ChatLayout() {
           onNavigate={handleNavigate}
           conversations={conversations}
           activeId={activeId}
-          onSelect={setActiveId}
+          onSelect={handleSelect}
           onNewChat={handleNewChat}
         />
 
@@ -260,5 +289,14 @@ export default function ChatLayout() {
 
     </div>
 
+  );
+}
+function SidebarIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="9" y1="3" x2="9" y2="21" />
+    </svg>
   );
 }

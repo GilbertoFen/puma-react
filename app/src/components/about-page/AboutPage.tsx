@@ -3,10 +3,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../Navbar';
 import styles from './AboutPage.module.css';
-
-// ─────────────────────────────────────────────────────
-// CONTENIDO — edita aquí sin tocar el layout
-// ─────────────────────────────────────────────────────
+import { DONNY, AI_LOGO, DONNY_2 } from '../../utils/img/assets';
 
 const PILLARS = [
   {
@@ -31,47 +28,37 @@ const PILLARS = [
   },
 ];
 
-const TIMELINE = [
-  { year: '2024', event: 'Inicio del proyecto como tesis de licenciatura en MAC, FES Acatlán.' },
-  { year: 'Feb 25', event: 'Primera versión funcional del chat con IA integrado al historial académico.' },
-  { year: 'Abr 25', event: 'Integración del módulo de intercambios y validación de materias.' },
-  { year: 'May 25', event: 'Lanzamiento de la plataforma completa en FES Acatlán.' },
-];
-
-// ─────────────────────────────────────────────────────
-// EQUIPO — reemplaza photoUrl con tu URL de Cloudinary
-// ─────────────────────────────────────────────────────
 const TEAM = [
   {
     id: 't1',
-    name: 'Nombre Apellido',
-    role: 'Desarrollo Frontend',
-    photoUrl: '', // TODO: URL de Cloudinary
-    github: '#',
+    name: 'Avalos Villalobos Luis Gilberto',
+    role: 'Desarrollo',
+    photoUrl: '',
+    github: 'https://github.com/GilbertoFen',
     linkedin: '#',
   },
   {
     id: 't2',
-    name: 'Nombre Apellido',
-    role: 'Desarrollo Backend & IA',
+    name: 'Casas Lorenzo Saul',
+    role: 'Desarrollo',
     photoUrl: '',
-    github: '#',
+    github: 'https://github.com/ChinchyPear821',
     linkedin: '#',
   },
   {
     id: 't3',
-    name: 'Nombre Apellido',
-    role: 'Diseño UX/UI',
+    name: 'Islas Romero Jose Emmanuel',
+    role: 'Desarrollo',
     photoUrl: '',
-    github: '#',
+    github: 'https://github.com/Emmrom',
     linkedin: '#',
   },
   {
     id: 't4',
-    name: 'Nombre Apellido',
-    role: 'Investigación y datos',
-    photoUrl: '',
-    github: '#',
+    name: 'Resendiz rodriguez Joaquin Raciel',
+    role: 'Desarrollo',
+    photoUrl: DONNY_2,
+    github: 'https://github.com/Raciel55',
     linkedin: '#',
   },
 ];
@@ -96,7 +83,6 @@ export default function AboutPage() {
         {/* ── Hero ── */}
         <section className={styles.hero}>
           <div className={styles.heroLeft}>
-            <span className={styles.heroBadge}><SparkleIcon /> Sobre PumaIA</span>
             <h1 className={styles.heroTitle}>
               La IA que entiende<br />
               <span className={styles.heroAccent}>tu carrera en la UNAM</span>
@@ -125,7 +111,6 @@ export default function AboutPage() {
                 <p className={styles.heroCardTitle}>Análisis personalizado</p>
                 <p className={styles.heroCardSub}>Basado en tu historial real</p>
               </div>
-              <div className={styles.heroCardBadge}>IA</div>
             </div>
             <div className={styles.heroCardStats}>
               <HeroStat num="100%" label="Enfocado en MAC" />
@@ -137,7 +122,7 @@ export default function AboutPage() {
 
         {/* ── Motivación / misión ── */}
         <section className={styles.missionSection}>
-          <SectionLabel icon="💡" text="Nuestra motivación" />
+          <SectionLabel icon="" text="Motivación" />
           <div className={styles.missionGrid}>
             <div className={styles.missionText}>
               <h2 className={styles.sectionTitle}>
@@ -174,30 +159,12 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* ── Línea de tiempo ── */}
-        <section className={styles.timelineSection}>
-          <SectionLabel icon="🗓" text="Historia del proyecto" />
-          <h2 className={styles.sectionTitle}>De tesis a plataforma real</h2>
-          <div className={styles.timeline}>
-            {TIMELINE.map((item, i) => (
-              <div key={i} className={styles.timelineItem}>
-                <div className={styles.timelineDot} />
-                <div className={styles.timelineContent}>
-                  <span className={styles.timelineYear}>{item.year}</span>
-                  <p className={styles.timelineEvent}>{item.event}</p>
-                </div>
-              </div>
-            ))}
-            <div className={styles.timelineLine} />
-          </div>
-        </section>
-
         {/* ── Tecnología ── */}
         <section className={styles.techSection}>
-          <SectionLabel icon="⚙️" text="Tecnología" />
+          <SectionLabel icon="" text="Tecnología" />
           <h2 className={styles.sectionTitle}>Construido con lo mejor</h2>
           <div className={styles.techGrid}>
-            {['Next.js', 'TypeScript', 'Gemini AI', 'Supabase', 'NestJS', 'Cloudinary'].map((t) => (
+            {['Next.js', 'TypeScript', 'Modelo de AI', 'Supabase', 'NestJS', 'Cloudinary'].map((t) => (
               <div key={t} className={styles.techChip}>{t}</div>
             ))}
           </div>
@@ -205,11 +172,10 @@ export default function AboutPage() {
 
         {/* ── Equipo ── */}
         <section className={styles.teamSection}>
-          <SectionLabel icon="👥" text="El equipo" />
+          <SectionLabel icon="" text="Colaboradores" />
           <h2 className={styles.sectionTitle}>Hecho por estudiantes de la FES</h2>
           <p className={styles.teamDesc}>
-            PumaIA fue desarrollado como proyecto de titulación en la Licenciatura en
-            Matemáticas Aplicadas y Computación de la FES Acatlán, UNAM.
+           
           </p>
           <div className={styles.teamGrid}>
             {TEAM.map((member) => (
@@ -302,11 +268,7 @@ function SparkleIcon() {
 }
 function BrainIcon() {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-      stroke="rgba(201,168,76,0.9)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.44-4.14z"/>
-      <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.44-4.14z"/>
-    </svg>
+    <img src={AI_LOGO} alt="PumaIA" style={{ width: 40, height: 40 }} />
   );
 }
 function PersonIcon() {

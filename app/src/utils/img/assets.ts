@@ -9,7 +9,7 @@ export const MORE_ICON = "https://res.cloudinary.com/dheg6jjxx/image/upload/q_au
 export const EXCHANGE_ICON = "https://res.cloudinary.com/dheg6jjxx/image/upload/v1774940149/sharing_aghw6s.png";
 export const UPDATE_INFO_ICON = "https://res.cloudinary.com/dheg6jjxx/image/upload/v1774940148/resume_ervupv.png";
 export const FES_IMAGE_1 = "https://res.cloudinary.com/dheg6jjxx/image/upload/v1774939522/entrada-acatlan_jhcwhk.jpg";
-
+export const AI_ANALYZE = "https://res.cloudinary.com/dheg6jjxx/image/upload/v1779730446/image-removebg-preview_r87z4p.png";
 // LOGOS DE MARCAS QUE APRUEBAN PUMAIA
 export const LOGO_BBVA = "https://res.cloudinary.com/dheg6jjxx/image/upload/v1779042416/bbva_khl0vo.jpg"
 export const LOGO_SLIM = "https://res.cloudinary.com/dheg6jjxx/image/upload/v1779042424/fundacion-slim_ou6537.jpg"
@@ -17,3 +17,5 @@ export const LOGO_CHUTAZO = "https://res.cloudinary.com/dheg6jjxx/image/upload/v
 export const LOGO_ORACLE = "https://res.cloudinary.com/dheg6jjxx/image/upload/v1779042431/oracle_o3xybl.png"
 export const LOGO_IBM= "https://res.cloudinary.com/dheg6jjxx/image/upload/v1779042431/ibm_b75ask.svg"
 export const LOGO_SANTANDER="https://res.cloudinary.com/dheg6jjxx/image/upload/v1779042431/santander_r8jogl.jpg"
+export const DONNY = "https://res.cloudinary.com/dheg6jjxx/image/upload/v1779686635/pumaia_avatars/gvmo9pwtemjzr0bvg2tp.png";
+export const DONNY_2="https://res.cloudinary.com/dheg6jjxx/image/upload/v1779740464/Captura_de_pantalla_2026-05-25_a_la_s_2.20.58_p.m._growxd.png";

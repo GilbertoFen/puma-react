@@ -1,0 +1,541 @@
+.root {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: var(--font-body, 'DM Sans', sans-serif);
+}
+
+.bgMesh {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background:
+        radial-gradient(ellipse 80% 60% at 20% 30%, rgba(26, 79, 168, 0.35) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 70%, rgba(11, 23, 51, 0.8) 0%, transparent 60%),
+        linear-gradient(160deg, #0b1733 0%, #060d1f 50%, #0a1628 100%);
+}
+
+.goldLine {
+    position: relative;
+    z-index: 2;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(201, 168, 76, 0.8), rgba(201, 168, 76, 0.2));
+    flex-shrink: 0;
+}
+
+.toolbar {
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 24px;
+    background: rgba(201, 168, 76, 0.18);
+    border-bottom: 1px solid rgba(201, 168, 76, 0.15);
+}
+
+.hamburgerBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.toolbarTitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 19;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.main {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 40px 24px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+}
+
+/* Hero */
+/* Hero — layout dos columnas */
+.hero {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 40px;
+}
+
+.heroLeft {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+/* heroTitle, heroBadge y heroDesc ya los tienes — no cambian */
+
+/* Columna derecha */
+.heroRight {
+    flex-shrink: 0;
+    width: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+}
+
+/* Anillo giratorio */
+.heroPoweredRing {
+    position: absolute;
+    inset: 0;
+    /* ← en vez de top/left/transform */
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background:
+        linear-gradient(#0b1733, #0b1733) padding-box,
+        conic-gradient(from var(--ring-angle, 0deg),
+            rgba(201, 168, 76, 0) 0%,
+            rgba(201, 168, 76, 0.9) 30%,
+            rgba(255, 220, 100, 1) 50%,
+            rgba(201, 168, 76, 0.9) 70%,
+            rgba(201, 168, 76, 0) 100%) border-box;
+    animation: spinRing 4s linear infinite;
+    pointer-events: none;
+}
+
+@property --ring-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+@keyframes spinRing {
+    to {
+        --ring-angle: 360deg;
+    }
+}
+
+.heroPoweredLogoWrap {
+    position: relative;
+    width: 110px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* El logo cabe dentro del anillo con margen */
+.heroPoweredLogo {
+    position: relative;
+    z-index: 1;
+    width: 80px;
+    /* ← más pequeño que el wrapper de 110px */
+    height: 80px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(201, 168, 76, 0.3));
+    animation: floatLogo 3.5s ease-in-out infinite;
+}
+
+@keyframes floatLogo {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .heroPoweredLogoWrap {
+        width: 96px;
+        height: 96px;
+    }
+
+    .heroPoweredLogo {
+        width: 68px;
+        height: 68px;
+    }
+}
+
+@keyframes floatLogo {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* Texto debajo */
+.heroPoweredText {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-align: center;
+    padding-top: 4px;
+    /* respira un poco del logo */
+}
+
+.heroPoweredLabel {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.4);
+    line-height: 1.4;
+}
+
+.heroPoweredBrand {
+    font-family: var(--font-display, 'Sora', sans-serif);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    background: linear-gradient(90deg, #c9a84c, #ffe082, #c9a84c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Responsive — se apila en móvil */
+@media (max-width: 640px) {
+    .hero {
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    .heroRight {
+        width: 100%;
+        align-items: center;
+    }
+}
+
+.heroBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: rgba(201, 168, 76, 0.1);
+    border: 1px solid rgba(201, 168, 76, 0.2);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(201, 168, 76, 0.85);
+    align-self: flex-start;
+}
+
+.heroTitle {
+    font-family: var(--font-display, 'Sora', sans-serif);
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.15;
+}
+
+.heroTitle span {
+    color: rgba(201, 168, 76, 0.9);
+}
+
+.heroDesc {
+    font-size: 15px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.5);
+    max-width: 560px;
+}
+
+/* Botón de análisis */
+.actionSection {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.analyzeBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, rgba(201, 168, 76, 0.2), rgba(26, 79, 168, 0.4));
+    border: 1.5px solid rgba(201, 168, 76, 0.4);
+    border-radius: 14px;
+    color: rgba(201, 168, 76, 0.95);
+    font-family: var(--font-display, 'Sora', sans-serif);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 0 24px rgba(201, 168, 76, 0.1);
+}
+
+.analyzeBtn:hover {
+    background: linear-gradient(135deg, rgba(201, 168, 76, 0.3), rgba(26, 79, 168, 0.55));
+    border-color: rgba(201, 168, 76, 0.7);
+    box-shadow: 0 0 36px rgba(201, 168, 76, 0.22);
+    transform: translateY(-2px);
+}
+
+/* Loader de IA */
+.aiLoader {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 20px 24px;
+    background: rgba(201, 168, 76, 0.06);
+    border: 1px solid rgba(201, 168, 76, 0.2);
+    border-radius: 14px;
+}
+
+.aiLoaderIcon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+}
+
+.aiLoaderText {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+}
+
+.aiLoaderTitle {
+    font-family: var(--font-display, 'Sora', sans-serif);
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+}
+
+.aiLoaderStep {
+    font-size: 12px;
+    color: rgba(201, 168, 76, 0.75);
+    margin: 0;
+    min-height: 16px;
+}
+
+.aiLoaderSteps {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.aiLoaderDot {
+    height: 3px;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+    transition: background 0.4s;
+}
+
+.aiLoaderDotActive {
+    background: rgba(201, 168, 76, 0.7);
+}
+
+.loadingWrap {
+    padding: 8px 0;
+}
+
+/* Resultados */
+.resultsSection {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.resultsTitle {
+    font-family: var(--font-display, 'Sora', sans-serif);
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.careersGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.careerCard {
+    position: relative;
+    padding: 20px 22px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.2s;
+}
+
+.careerCard:hover {
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.careerCardTop {
+    background: rgba(201, 168, 76, 0.06);
+    border-color: rgba(201, 168, 76, 0.25);
+}
+
+.topBadge {
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    padding: 3px 10px;
+    background: rgba(201, 168, 76, 0.9);
+    border-radius: 100px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #060d1f;
+    letter-spacing: 0.04em;
+}
+
+.careerHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.careerTitle {
+    font-family: var(--font-display, 'Sora', sans-serif);
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.careerPct {
+    font-family: var(--font-display, 'Sora', sans-serif);
+    font-size: 22px;
+    font-weight: 800;
+    color: rgba(201, 168, 76, 0.9);
+}
+
+.matchBar {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 100px;
+    overflow: hidden;
+}
+
+.matchFill {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(26, 79, 168, 0.8), rgba(201, 168, 76, 0.7));
+    border-radius: 100px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.careerDesc {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.55;
+}
+
+/* Fortalezas / Oportunidades */
+.strengthsCard,
+.growCard {
+    padding: 18px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
+}
+
+.strengthsTitle,
+.growTitle {
+    font-family: var(--font-display, 'Sora', sans-serif);
+    font-size: 15px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0 0 12px;
+}
+
+.strengthsList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.strengthItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.strengthDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(74, 222, 128, 0.7);
+    flex-shrink: 0;
+}
+
+.arrowDot {
+    color: rgba(201, 168, 76, 0.7);
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Empty */
+.emptySection {
+    display: flex;
+    justify-content: center;
+}
+
+.emptyCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    text-align: center;
+    padding: 48px 32px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    max-width: 440px;
+}
+
+.emptyTitle {
+    font-family: var(--font-display, 'Sora', sans-serif);
+    font-size: 18px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+}
+
+.emptyDesc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.4);
+    line-height: 1.6;
+    margin: 0;
+}

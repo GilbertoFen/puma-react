@@ -79,14 +79,28 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  height: calc(100vh - 82px);
 }
-
+.sidebarToggleBtn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+}
 /* ── Responsive móvil ── */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .content {
     flex-direction: row;
+    width: 100vw;
   }
-
+  .sidebarToggleBtn {
+    display: flex;
+  }
   .toolbar {
     padding: 8px 14px;
     gap: 10px;

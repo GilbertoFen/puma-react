@@ -7,10 +7,8 @@ import UpdateHero from './UpdateHero';
 import QuestionnaireSection from './QuestionnaireSection';
 import ReportSection from './ReportSection';
 import DocumentsSection from './DocumentsSection';
-import { MOCK_ANSWERS, MOCK_REPORT, MOCK_DOCUMENTS, MOCK_USER } from '../../mock/mockData';
+import { MOCK_ANSWERS, MOCK_REPORT, MOCK_DOCUMENTS } from '../../mock/mockData';
 import styles from './UpdateInfoPage.module.css';
-import AcademicHistoryManager from '../update-info/AcademicHistoryManager';
-import { MOCK_RESPONSE } from '../academic-upload/AcademicUploadPage';
 import { questionnaireService } from '../../services/questionnarie.service';
 import { QUESTIONS } from '../../utils/questions';
 import { updateInfoService } from '../../services/updateInfo.service';
@@ -20,7 +18,6 @@ type Tab = 'questionnaire' | 'report' | 'documents';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'questionnaire', label: 'Mis respuestas' },
-  { id: 'report', label: 'Análisis profesional' },
   { id: 'documents', label: 'Documentos' },
 ];
 
@@ -77,8 +74,17 @@ export default function UpdateInfoPage() {
 
     fetchUserAnswers();
   }, []);
+  const handleUpdateAnswer = (questionId: string, newAnswer: any) => {
+    setRealAnswers((prev) => 
+      prev.map((ans) => 
+        ans.questionId === questionId ? { ...ans, answer: newAnswer } : ans
+      )
+    );
+  };
+
   // Al hacer click en el hero se colapsa y se muestra el contenido
   const handleHeroDismiss = () => setHeroVisible(false);
+
 
   return (
     <div className={styles.root}>
@@ -110,10 +116,10 @@ export default function UpdateInfoPage() {
 
       <main className={styles.main}>
         {/* Hero — visible al entrar, se colapsa al hacer click */}
-        {heroVisible && <UpdateHero onDismiss={handleHeroDismiss} />}
+        {/*heroVisible && <UpdateHero onDismiss={handleHeroDismiss} />*/}
 
         {/* Tabs de navegación */}
-        {!heroVisible && (
+        {heroVisible && (
           <div className={styles.content}>
             <nav className={styles.tabs}>
               {TABS.map((tab) => (
@@ -129,21 +135,13 @@ export default function UpdateInfoPage() {
 
             <div className={styles.tabContent}>
               {activeTab === 'questionnaire' && (
-                // 4. PASAMOS LAS NUEVAS VARIABLES AL HIJO
                 loadingAnswers ? (
-                  <InlineLoader message="Obteniendo respuests y datos del alumno..." />
+                  <InlineLoader message="Obteniendo respuestas y datos del alumno..." />
                 ) : (
-                  <QuestionnaireSection answers={realAnswers} />
-                )
-              )}
-
-              {activeTab === 'report' && (
-                loadingAI ? (
-                  <div style={{ padding: '40px 0', position: 'relative' }}>
-                    <InlineLoader message="Sincronizando análisis con PumaIA..." />
-                  </div>
-                ) : (
-                  <ReportSection initialReport={aiReport} />
+                  <QuestionnaireSection 
+                    answers={realAnswers} 
+                    onUpdateAnswer={handleUpdateAnswer} 
+                  />
                 )
               )}
               {activeTab === 'documents' && (
