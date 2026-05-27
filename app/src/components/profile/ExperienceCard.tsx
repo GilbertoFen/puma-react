@@ -28,7 +28,7 @@ export default function ExperienceCard({ data }: ExperienceCardProps) {
       </div>
 
       {/* 📚 SECCIÓN: Cursos */}
-      <ExperienceSection label="Cursos" icon="📚">
+      <ExperienceSection label="Cursos" icon="">
         {cursos.length > 0 ? (
           cursos.map((c: any) => (
             <ItemRow 
@@ -44,8 +44,8 @@ export default function ExperienceCard({ data }: ExperienceCardProps) {
         )}
       </ExperienceSection>
 
-      {/* 🏆 SECCIÓN: Concursos */}
-      <ExperienceSection label="Concursos" icon="🏆">
+      {/* SECCIÓN: Concursos */}
+      <ExperienceSection label="Concursos" icon="">
         {concursos.length > 0 ? (
           concursos.map((cn: any) => (
             <ItemRow 
@@ -62,7 +62,7 @@ export default function ExperienceCard({ data }: ExperienceCardProps) {
       </ExperienceSection>
 
       {/* 🎓 SECCIÓN: Becas */}
-      <ExperienceSection label="Becas" icon="🎓">
+      <ExperienceSection label="Becas" icon="">
         {becas.length > 0 ? (
           becas.map((b: any) => (
             <ItemRow 
@@ -80,7 +80,7 @@ export default function ExperienceCard({ data }: ExperienceCardProps) {
       </ExperienceSection>
 
       {/* 💼 SECCIÓN: Experiencia Profesional */}
-      <ExperienceSection label="Experiencia profesional" icon="💼">
+      <ExperienceSection label="Experiencia profesional" icon="">
         {experiencias.length > 0 ? (
           experiencias.map((e: any) => (
             <ItemRow 

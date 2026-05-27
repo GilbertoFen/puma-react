@@ -144,7 +144,7 @@ export default function AnalyzePage() {
                             />
                         </div>
                         <div className={styles.heroPoweredText}>
-                            <span className={styles.heroPoweredLabel}>Potenciado con nuestro modelo de</span>
+                            <span className={styles.heroPoweredLabel}>Potenciado con</span>
                             <span className={styles.heroPoweredBrand}>PUMA IA</span>
                         </div>
                     </div>
@@ -208,7 +208,7 @@ export default function AnalyzePage() {
                                 return (
                                     <div key={idx} className={`${styles.careerCard} ${idx === 0 ? styles.careerCardTop : ''}`}>
                                         {/* Como ya está ordenado, el index 0 SIEMPRE será el mejor match */}
-                                        {idx === 0 && <div className={styles.topBadge}>⭐ Mejor match</div>}
+                                        {idx === 0 && <div className={styles.topBadge}>Mejor match</div>}
                                         <div className={styles.careerHeader}>
                                             <h3 className={styles.careerTitle}>{career.title}</h3>
                                             <span className={styles.careerPct}>{pct}%</span>
@@ -225,7 +225,7 @@ export default function AnalyzePage() {
                         {/* Listado de Fortalezas parseadas */}
                         {strengthsList.length > 0 && (
                             <div className={styles.strengthsCard}>
-                                <h3 className={styles.strengthsTitle}>💪 Fortalezas identificadas</h3>
+                                <h3 className={styles.strengthsTitle}>Fortalezas</h3>
                                 <ul className={styles.strengthsList}>
                                     {strengthsList.map((s, i) => (
                                         <li key={i} className={styles.strengthItem}>
@@ -239,7 +239,7 @@ export default function AnalyzePage() {
                         {/* Listado de Áreas de Oportunidad parseadas */}
                         {opportunitiesList.length > 0 && (
                             <div className={styles.growCard}>
-                                <h3 className={styles.growTitle}>🎯 Áreas de oportunidad</h3>
+                                <h3 className={styles.growTitle}>Áreas de oportunidad</h3>
                                 <ul className={styles.strengthsList}>
                                     {opportunitiesList.map((a, i) => (
                                         <li key={i} className={styles.strengthItem}>

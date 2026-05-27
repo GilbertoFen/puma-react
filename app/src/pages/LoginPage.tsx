@@ -74,7 +74,7 @@ function LoginForm({ onLogin }: LoginProps) {
       <div className="field-group">
         <label className="field-label">
           Contraseña
-          <button type="button" className="info-btn" title="Tu contraseña es la misma que usas en el SIIAU">ⓘ</button>
+          <button type="button" className="info-btn" title="Tu contraseña es la misma que usas para tu cuenta de PCPuma">ⓘ</button>
         </label>
         <div className="input-wrap">
           <input
@@ -86,12 +86,10 @@ function LoginForm({ onLogin }: LoginProps) {
             autoComplete="current-password"
           />
           <button type="button" className="toggle-pass" onClick={() => setShowPass(!showPass)} tabIndex={-1}>
-            {showPass ? '!' : '👁'}
+            {showPass ? 'ⓘ' : 'ⓘ'}
           </button>
         </div>
       </div>
-
-      <a href="#" className="forgot-link">Si aún no tienes u olvidaste tu contraseña da click aquí.</a>
 
       <button type="submit" className={`login-btn ${loading ? 'loading' : ''}`} disabled={loading}>
         {loading ? 'Verificando...' : 'Continuar'}

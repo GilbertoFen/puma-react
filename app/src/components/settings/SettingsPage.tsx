@@ -60,63 +60,12 @@ function buildSections(router: ReturnType<typeof useRouter>, handleLogout: () =>
         },
         {
           kind: 'action',
-          id: 'change-password',
-          label: 'Cambiar contraseña',
-          description: 'Redirige al portal de servicios escolares UNAM para cambiar tu contraseña',
-          actionLabel: 'Ir al portal',
-          onClick: () => window.open('https://www.dgae-siae.unam.mx', '_blank'),
-        },
-        {
-          kind: 'action',
           id: 'logout',
           label: 'Cerrar sesión',
           description: 'Salir de tu cuenta en este dispositivo',
           actionLabel: 'Cerrar sesión',
           variant: 'danger',
-          onClick: handleLogout, // <-- Vinculado a la función destructora de tokens
-        },
-      ],
-    },
-    {
-      id: 'notificaciones',
-      title: 'Notificaciones',
-      icon: BellIcon,
-      settings: [
-        {
-          kind: 'toggle',
-          id: 'notif-email',
-          label: 'Notificaciones por correo',
-          description: 'Recibe actualizaciones importantes en tu correo institucional',
-          defaultValue: true,
-        },
-        {
-          kind: 'toggle',
-          id: 'notif-tips',
-          label: 'Consejos de orientación',
-          description: 'PumaIA te enviará sugerencias semanales basadas en tu perfil',
-          defaultValue: false,
-        },
-      ],
-    },
-    {
-      id: 'privacidad',
-      title: 'Privacidad y datos',
-      icon: ShieldIcon,
-      settings: [
-        {
-          kind: 'toggle',
-          id: 'analytics',
-          label: 'Mejorar PumaIA con mis datos',
-          description: 'Permite que tus interacciones anónimas ayuden a entrenar y mejorar el sistema',
-          defaultValue: true,
-        },
-        {
-          kind: 'action',
-          id: 'export-data',
-          label: 'Exportar mis datos',
-          description: 'Descarga un archivo con toda la información que tenemos sobre ti',
-          actionLabel: 'Exportar',
-          onClick: () => alert('Función próximamente disponible'),
+          onClick: handleLogout, 
         },
       ],
     },
@@ -162,7 +111,7 @@ function buildSections(router: ReturnType<typeof useRouter>, handleLogout: () =>
           id: 'link-legal',
           label: 'Aviso de privacidad',
           description: 'Información legal sobre el manejo de tus datos personales',
-          href: '#',
+          href: 'https://www.dgae.unam.mx/aviso_privacidad.html',
           external: false,
         },
       ],
@@ -202,7 +151,7 @@ export default function SettingsPage() {
       for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i];
         const eqPos = cookie.indexOf("=");
-        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+        const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim(); 
 
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`;
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=${window.location.hostname};`;
@@ -212,6 +161,7 @@ export default function SettingsPage() {
 
     window.location.href = '/';
   };
+
 
   // Construimos las secciones pasándole la inyección del Logout
   const SECTIONS = buildSections(router, handleLogout);

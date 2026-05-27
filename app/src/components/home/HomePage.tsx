@@ -42,7 +42,6 @@ export default function HomePage({
       try {
         // Ejecutamos todo en paralelo 
         await Promise.all([
-          // Ping a GenAI
           fetch('https://server-genai.onrender.com', { method: 'GET' }).catch(() => { }),
           (async () => {
             const summary = await updateInfoService.getProfileSummary();
@@ -120,26 +119,23 @@ export default function HomePage({
             {/* Columna izquierda — texto */}
             <div className={styles.heroLeft}>
               <h1 className={styles.heroTitle}>
-                Tu asistente inteligente<br />en la FES Acatlán
+                Tu Orientador Profesional<br />de la FES Acatlán
               </h1>
               <p className={styles.heroSubtitle}>
                 PumaIA analiza tu perfil académico, te orienta en tu trayectoria
                 profesional y responde tus dudas en tiempo real. Todo en un solo lugar,
-                diseñado para estudiantes de la UNAM.
+                diseñado por y para estudiantes de la UNAM.
               </p>
               <div className={styles.heroStats}>
                 <div className={styles.stat}>
-                  <span className={styles.statNumber}>5</span>
                   <span className={styles.statLabel}>Rutas profesionales personalizadas</span>
                 </div>
                 <div className={styles.statDivider} />
                 <div className={styles.stat}>
-                  <span className={styles.statNumber}>IA</span>
                   <span className={styles.statLabel}>Respuestas en tiempo real</span>
                 </div>
                 <div className={styles.statDivider} />
                 <div className={styles.stat}>
-                  <span className={styles.statNumber}>100%</span>
                   <span className={styles.statLabel}>Orientado a tu perfil</span>
                 </div>
               </div>
@@ -156,8 +152,7 @@ export default function HomePage({
                 />
               </div>
               <div className={styles.heroPoweredText}>
-                <span className={styles.heroPoweredLabel}>Potenciado con nuestro modelo de</span>
-                <span className={styles.heroPoweredBrand}>PUMA IA</span>
+                <span className={styles.heroPoweredBrand}>    PUMA IA</span>
               </div>
             </div>
           </div>

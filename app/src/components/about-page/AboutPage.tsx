@@ -57,7 +57,7 @@ const TEAM = [
     id: 't4',
     name: 'Resendiz rodriguez Joaquin Raciel',
     role: 'Desarrollo',
-    photoUrl: DONNY_2,
+    photoUrl: '',
     github: 'https://github.com/Raciel55',
     linkedin: '#',
   },
@@ -114,7 +114,7 @@ export default function AboutPage() {
             </div>
             <div className={styles.heroCardStats}>
               <HeroStat num="100%" label="Enfocado en MAC" />
-              <HeroStat num="24/7" label="Disponible" />
+              <HeroStat num="Siempre" label="Disponible" />
               <HeroStat num="FES" label="Acatlán" />
             </div>
           </div>
@@ -140,10 +140,6 @@ export default function AboutPage() {
                 esa información en orientación concreta: rutas profesionales, revalidaciones,
                 becas y más.
               </p>
-              <blockquote className={styles.quote}>
-                "No somos un chatbot genérico. Somos una herramienta construida desde adentro,
-                por estudiantes que conocen los pasillos de Acatlán."
-              </blockquote>
             </div>
             <div className={styles.missionPillars}>
               {PILLARS.map((p) => (
@@ -162,9 +158,9 @@ export default function AboutPage() {
         {/* ── Tecnología ── */}
         <section className={styles.techSection}>
           <SectionLabel icon="" text="Tecnología" />
-          <h2 className={styles.sectionTitle}>Construido con lo mejor</h2>
+          <h2 className={styles.sectionTitle}>Desarrollado con</h2>
           <div className={styles.techGrid}>
-            {['Next.js', 'TypeScript', 'Modelo de AI', 'Supabase', 'NestJS', 'Cloudinary'].map((t) => (
+            {['Next.js', 'TypeScript', 'JavaScript','HTML', 'CSS', 'Modelo de AI', 'Supabase', 'NestJS', 'Cloudinary', 'Python', 'Render', 'Vercel', 'FastApi'].map((t) => (
               <div key={t} className={styles.techChip}>{t}</div>
             ))}
           </div>

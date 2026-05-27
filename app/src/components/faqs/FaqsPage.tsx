@@ -14,17 +14,12 @@ const FAQ_GROUPS: FaqGroup[] = [
   {
     id: 'general',
     label: 'Preguntas generales',
-    icon: '💬',
+    icon: '',
     items: [
       {
         id: 'q1',
         question: '¿Cómo inicio sesión en el portal?',
-        answer: 'Ingresa tu número de cuenta UNAM y la contraseña que utilizas para los servicios escolares. Si no tienes contraseña aún, sigue el enlace "¿Olvidaste tu contraseña?" en la pantalla de inicio.',
-      },
-      {
-        id: 'q2',
-        question: '¿Mis datos están seguros?',
-        answer: 'Sí. La plataforma utiliza encriptación de extremo a extremo y no comparte tu información con terceros. Solo se usa para generar recomendaciones personalizadas dentro del sistema.',
+        answer: 'Ingresa tu número de cuenta UNAM y la contraseña que utilizas para los servicios escolares.',
       },
       {
         id: 'q3',
@@ -36,7 +31,7 @@ const FAQ_GROUPS: FaqGroup[] = [
   {
     id: 'pumaia',
     label: 'Sobre PumaIA',
-    icon: '🤖',
+    icon: '',
     items: [
       {
         id: 'q4',
@@ -51,21 +46,9 @@ const FAQ_GROUPS: FaqGroup[] = [
     ],
   },
   {
-    id: 'intercambio',
-    label: 'Intercambios',
-    icon: '🌍',
-    items: [
-      {
-        id: 'q6',
-        question: '¿Cómo funciona la sección de intercambios?',
-        answer: 'La sección de intercambios te guía paso a paso en el proceso de postulación a programas de movilidad estudiantil nacionales e internacionales disponibles para tu carrera.',
-      },
-    ],
-  },
-  {
     id: 'academico',
     label: 'Historial académico',
-    icon: '📄',
+    icon: '',
     items: [
       {
         id: 'q7',
@@ -75,7 +58,7 @@ const FAQ_GROUPS: FaqGroup[] = [
       {
         id: 'q8',
         question: '¿Qué pasa si una calificación aparece incorrecta?',
-        answer: 'Puedes editar cualquier calificación manualmente desde la sección de Historial académico en tu perfil o en "Actualizar información". Los cambios se guardan en tu perfil de inmediato.',
+        answer: 'Puedes editar tus calificaciones manualmente desde la sección de Actualizar Información en tu perfil. Los cambios se guardan en tu perfil de inmediato.',
       },
     ],
   },
@@ -125,7 +108,7 @@ export default function FaqsPage(_: Props) {
         {/* Hero */}
         <section className={styles.hero}>
           <span className={styles.heroBadge}>
-            <SparkleIcon /> Centro de ayuda
+             Centro de ayuda
           </span>
           <h1 className={styles.heroTitle}>
             ¿En qué podemos<br />
@@ -136,20 +119,7 @@ export default function FaqsPage(_: Props) {
             y más. Si no encuentras lo que buscas, puedes contactarnos desde la
             sección de ajustes.
           </p>
-          <div className={styles.heroStats}>
-            <div className={styles.heroStat}>
-              <span className={styles.heroStatNum}>{totalQuestions}</span>
-              <span className={styles.heroStatLabel}>Preguntas respondidas</span>
-            </div>
-            <div className={styles.heroStat}>
-              <span className={styles.heroStatNum}>{FAQ_GROUPS.length}</span>
-              <span className={styles.heroStatLabel}>Categorías</span>
-            </div>
-            <div className={styles.heroStat}>
-              <span className={styles.heroStatNum}>FES</span>
-              <span className={styles.heroStatLabel}>Acatlán · UNAM</span>
-            </div>
-          </div>
+         
         </section>
 
         {/* Acordeón */}
