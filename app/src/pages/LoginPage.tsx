@@ -233,9 +233,6 @@ export default function LoginPage({ onLogin }: LoginProps) {
       <main className="login-main">
         <div className="login-hero">
           <h1 className="login-title">Portal de<br />Orientación</h1>
-          <p className="login-subtitle">
-            Orientación para encontrar empleos<br />basado en tu Historial Profesional
-          </p>
           <div className="login-badge">
             <img src={FESA_LOGO} alt="FES Acatlán" />
           </div>
