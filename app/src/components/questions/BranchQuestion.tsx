@@ -3,7 +3,7 @@ import './Question.css';
 
 interface BranchQuestionProps {
   question: string;
-  value?: { answer?: string; [key: string]: any };
+  value?: { answer?: string;[key: string]: any };
   onChange: (val: any) => void;
   yesContent?: React.ReactNode;
   yesLabel?: string;
@@ -21,7 +21,7 @@ export default function BranchQuestion({
   const answer = value.answer;
 
   const setAnswer = (ans: string) => {
-    onChange({ ...value, answer: ans });
+    onChange(ans === noLabel ? { answer: ans } : { ...value, answer: ans });
   };
 
   return (

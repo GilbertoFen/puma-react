@@ -13,6 +13,8 @@ interface InputListQuestionProps {
   value?: Record<string, any>;
   onChange: (val: Record<string, any>) => void;
   listLabel?: string;
+  itemPlaceholder?: string;
+  addLabel?: string;
 }
 
 export default function InputListQuestion({
@@ -21,6 +23,8 @@ export default function InputListQuestion({
   value = {},
   onChange,
   listLabel = 'Proyectos realizados',
+  itemPlaceholder,
+  addLabel,
 }: InputListQuestionProps) {
   
   const list = value._list || ['']; // Iniciamos con un campo vacío
@@ -58,7 +62,7 @@ export default function InputListQuestion({
               type="text"
               value={item}
               onChange={(e) => updateList(i, e.target.value)}
-              placeholder={`${listLabel} ${i + 1}`}
+              placeholder={itemPlaceholder ?? `${listLabel} ${i + 1}`}
               style={{ flex: 1 }}
             />
             {list.length > 1 && (
@@ -75,7 +79,7 @@ export default function InputListQuestion({
           type="button" 
           onClick={addField}
           className="q-btn-add"
-        > + Agregar otro proyecto </button>
+        > {addLabel ?? '+ Agregar otro proyecto'} </button>
       </div>
 
       {fields.map(({ label, key, placeholder }) => (

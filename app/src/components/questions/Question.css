@@ -158,3 +158,8 @@
   flex-direction: column;
   gap: 12px;
 }
+
+.q-choice-btn { max-width: 100%; white-space: normal; text-align: center; line-height: 1.4; }
+.q-choice-stack { flex-direction: column; flex-wrap: nowrap; align-items: stretch; }
+.q-choice-stack .q-choice-btn { padding: 14px 24px; text-align: left; border-radius: var(--radius-md); }
+.q-chip { max-width: 100%; white-space: normal; text-align: left; line-height: 1.4; border-radius: 16px; }

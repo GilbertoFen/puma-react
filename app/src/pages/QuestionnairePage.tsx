@@ -70,6 +70,18 @@ export default function QuestionnairePage({ user, profile, onFinish }: Questionn
         errorMessage = "Por favor, escribe una respuesta para continuar.";
       }
     }
+    else if (q.type === 'choice') {
+      if (!answer || typeof answer !== 'string') {
+        isValid = false;
+        errorMessage = 'Selecciona una opción para continuar.';
+      }
+    }
+    else if (q.type === 'multi') {
+      if (!Array.isArray(answer) || answer.length === 0) {
+        isValid = false;
+        errorMessage = 'Selecciona al menos una opción.';
+      }
+    }
     else if (q.type === 'branch') {
       const branchAnswer = answer?.answer;
 
@@ -159,11 +171,20 @@ export default function QuestionnairePage({ user, profile, onFinish }: Questionn
       case 'text':
         return <TextQuestion {...commonProps} placeholder={props.placeholder} />;
       case 'choice':
-        return <ChoiceQuestion {...commonProps} options={props.options || []} />;
+        return <ChoiceQuestion {...commonProps} options={props.options || []} layout={props.layout} />;
       case 'multi':
-        return <MultiQuestion {...commonProps} options={props.options || []} maxSelect={props.maxSelect} />;
+        return <MultiQuestion {...commonProps} options={props.options || []}
+          maxSelect={props.maxSelect} exclusiveOption={props.exclusiveOption} />;
       case 'input_list':
-        return <InputListQuestion {...commonProps} fields={props.fields} listLabel={props.listLabel} />;
+        return (
+          <InputListQuestion
+            {...commonProps}
+            fields={props.fields}
+            listLabel={props.listLabel}
+            itemPlaceholder={props.itemPlaceholder}
+            addLabel={props.addLabel}
+          />
+        );
       case 'branch':
         return (
           <BranchQuestion

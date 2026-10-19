@@ -293,3 +293,27 @@
 .card-mode-header {
   margin-bottom: 4px;
 }
+.privacy-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.privacy-check input {
+  margin-top: 3px;
+  accent-color: var(--border-gold);
+  flex-shrink: 0;
+}
+.privacy-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: rgba(201, 168, 76, 0.9);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.privacy-link:hover { color: rgba(201, 168, 76, 1); }

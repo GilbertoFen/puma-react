@@ -7,16 +7,18 @@ interface MultiQuestionProps {
   value?: string[];
   onChange: (selected: string[]) => void;
   maxSelect?: number;
+  exclusiveOption?: string;
 }
 
-export default function MultiQuestion({ question, options, value = [], onChange, maxSelect }: MultiQuestionProps) {
+export default function MultiQuestion({ question, options, value: raw, onChange, maxSelect, exclusiveOption }: MultiQuestionProps) {
+  const value = Array.isArray(raw) ? raw : [];   // evita el '' que llega por defecto
+
   const toggle = (opt: string) => {
-    if (value.includes(opt)) {
-      onChange(value.filter((v) => v !== opt));
-    } else {
-      if (maxSelect && value.length >= maxSelect) return;
-      onChange([...value, opt]);
-    }
+    if (value.includes(opt)) { onChange(value.filter((v) => v !== opt)); return; }
+    if (exclusiveOption && opt === exclusiveOption) { onChange([opt]); return; }
+    const base = exclusiveOption ? value.filter((v) => v !== exclusiveOption) : value;
+    if (maxSelect && base.length >= maxSelect) return;
+    onChange([...base, opt]);
   };
 
   return (

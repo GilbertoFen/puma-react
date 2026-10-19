@@ -1,5 +1,7 @@
 import { API_URL } from '../utils/api';
 
+const CONTEXT_CATEGORY = 'EXPECTATIVAS';
+
 const getHeaders = () => {
     const token = localStorage.getItem('token') || JSON.parse(localStorage.getItem('userData') || '{}').token;
     return {
@@ -9,13 +11,27 @@ const getHeaders = () => {
 };
 
 const CATEGORY_MAP: Record<string, string> = {
+    tiempo_traslado: CONTEXT_CATEGORY,
+    situacion_laboral: CONTEXT_CATEGORY,
+    equipo_computo: CONTEXT_CATEGORY,
+    materias_fuertes: 'HABILIDADES',
     reaccion_problema: 'INTERESES',
     experiencia_laboral: 'EXPERIENCIA',
-    materias_fuertes: 'HABILIDADES',
     ambiente_trabajo: 'EXPECTATIVAS',
-    motivacion: 'EXPECTATIVAS',
 };
 
+const normalizeValue = (v: any) => {
+    if (typeof v === 'string') return v.trim();
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+        const out = { ...v };
+        if (Array.isArray(out._list)) {
+            out._list = out._list.map((s: any) => String(s).trim()).filter(Boolean);
+        }
+        if (typeof out.exp === 'string') out.exp = out.exp.trim();
+        return out;
+    }
+    return v;
+};
 export const questionnaireService = {
     /**
      * @param frontendAnswers 
@@ -27,7 +43,7 @@ export const questionnaireService = {
             return {
                 id: questionId, // Volvemos a usar "id" porque tu backend lo mapea desde aquí
                 category: CATEGORY_MAP[questionId] || 'INTERESES', // Usamos el mapa corregido de Enums
-                value: value, // Volvemos a usar "value"
+                value: normalizeValue(value), // Volvemos a usar "value"
             };
         });
 

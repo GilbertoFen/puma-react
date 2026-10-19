@@ -6,6 +6,7 @@ import { FESA_LOGO } from '../utils/img/assets';
 import { UserData } from '../types';
 import { authService } from '../services/auth.service';
 import AppFooter from '../components/AppFooter';
+import PrivacyModal from './PrivacyModal';
 
 interface LoginProps {
   onLogin: (user: UserData) => void;
@@ -107,13 +108,30 @@ function RegisterForm({ onLogin, onBack }: { onLogin: (u: UserData) => void; onB
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // ── Aviso de privacidad ──
+  // Se abre automáticamente al entrar al modo registro (cambia a false si prefieres que solo se abra desde el link)
+  const [showPrivacy, setShowPrivacy] = useState(true);
+  const [accepted, setAccepted] = useState(false);
+
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(prev => ({ ...prev, [k]: e.target.value }));
+
+  const handleAcceptPrivacy = () => {
+    setAccepted(true);
+    setShowPrivacy(false);
+    setError('');
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!form.cuenta || !form.nombres || !form.apellidoP || !form.password || !form.email) {
       setError('Todos los campos son obligatorios');
+      return;
+    }
+    // Sin consentimiento no se registra: reabrimos el aviso
+    if (!accepted) {
+      setError('Debes leer y aceptar el Aviso de Privacidad para registrarte');
+      setShowPrivacy(true);
       return;
     }
     setLoading(true);
@@ -160,63 +178,91 @@ function RegisterForm({ onLogin, onBack }: { onLogin: (u: UserData) => void; onB
     }
   };
   return (
-    <form onSubmit={handleSubmit} className="login-form">
-      {error && <div className="login-error">{error}</div>}
+    <>
+      <form onSubmit={handleSubmit} className="login-form">
+        {error && <div className="login-error">{error}</div>}
 
-      <div className="field-group ">
-        <p className="field-label">Número de cuenta</p>
+        <div className="field-group ">
+          <p className="field-label">Número de cuenta</p>
 
-        <input className="login-input" type="number" value={form.cuenta}
-          onChange={set('cuenta')} placeholder="Ej: 321190239" />
-      </div>
-      <div className="field-group">
-        <p className="field-label">Nombre</p>
-
-        <input className="login-input" type="text" value={form.nombres}
-          onChange={set('nombres')} placeholder="Nombres" />
-      </div>
-      <div className="register-row">
-        <div className="field-group">
-          <p className="field-label">Apellido Paterno</p>
-          <input className="login-input" type="text" value={form.apellidoP}
-            onChange={set('apellidoP')} placeholder="Apellido Paterno" />
+          <input className="login-input" type="number" value={form.cuenta}
+            onChange={set('cuenta')} placeholder="Ej: 321190239" />
         </div>
         <div className="field-group">
-          <p className="field-label">Apellido Materno</p>
+          <p className="field-label">Nombre</p>
 
-          <input className="login-input" type="text" value={form.apellidoM}
-            onChange={set('apellidoM')} placeholder="Apellido Materno" />
+          <input className="login-input" type="text" value={form.nombres}
+            onChange={set('nombres')} placeholder="Nombres" />
         </div>
-      </div>
-      <div className="field-group">
-        <p className="field-label">Correo</p>
-        <input className="login-input" type="email" value={form.email}
-          onChange={set('email')} placeholder="Ej: 321190239@pcpuma.acatlan.unam.mx" />
-      </div>
-      <div className="field-group">
-        <p className="field-label">Contraseña</p>
-        <input className="login-input" type="password" value={form.password}
-          onChange={set('password')} placeholder="Contraseña" />
-      </div>
+        <div className="register-row">
+          <div className="field-group">
+            <p className="field-label">Apellido Paterno</p>
+            <input className="login-input" type="text" value={form.apellidoP}
+              onChange={set('apellidoP')} placeholder="Apellido Paterno" />
+          </div>
+          <div className="field-group">
+            <p className="field-label">Apellido Materno</p>
 
-      <div className="field-group">
-        <label className="field-label">Semestre actual</label>
-        <select className="login-input login-select" value={form.semestre} onChange={set('semestre')}>
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
-            <option key={n} value={String(n)}>{n}° semestre</option>
-          ))}
-        </select>
-      </div>
+            <input className="login-input" type="text" value={form.apellidoM}
+              onChange={set('apellidoM')} placeholder="Apellido Materno" />
+          </div>
+        </div>
+        <div className="field-group">
+          <p className="field-label">Correo</p>
+          <input className="login-input" type="email" value={form.email}
+            onChange={set('email')} placeholder="Ej: 321190239@pcpuma.acatlan.unam.mx" />
+        </div>
+        <div className="field-group">
+          <p className="field-label">Contraseña</p>
+          <input className="login-input" type="password" value={form.password}
+            onChange={set('password')} placeholder="Contraseña" />
+        </div>
 
-      <div className="register-actions">
-        <button type="button" className="login-btn login-btn-secondary" onClick={onBack}>
-          ← Volver
-        </button>
-        <button type="submit" className={`login-btn ${loading ? 'loading' : ''}`} disabled={loading}>
-          {loading ? 'Registrando...' : 'Crear cuenta'}
-        </button>
-      </div>
-    </form>
+        <div className="field-group">
+          <label className="field-label">Semestre actual</label>
+          <select className="login-input login-select" value={form.semestre} onChange={set('semestre')}>
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+              <option key={n} value={String(n)}>{n}° semestre</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Consentimiento */}
+        <label className="privacy-check">
+          <input
+            type="checkbox"
+            checked={accepted}
+            onChange={(e) => {
+              // Para marcarlo hay que leer el aviso; desmarcar sí es directo
+              if (e.target.checked) setShowPrivacy(true);
+              else setAccepted(false);
+            }}
+          />
+          <span>
+            He leído y acepto el{' '}
+            <button type="button" className="privacy-link" onClick={() => setShowPrivacy(true)}>
+              Aviso de Privacidad
+            </button>{' '}
+            de PumaIA.
+          </span>
+        </label>
+
+        <div className="register-actions">
+          <button type="button" className="login-btn login-btn-secondary" onClick={onBack}>
+            ← Volver
+          </button>
+          <button type="submit" className={`login-btn ${loading ? 'loading' : ''}`} disabled={loading}>
+            {loading ? 'Registrando...' : 'Crear cuenta'}
+          </button>
+        </div>
+      </form>
+
+      <PrivacyModal
+        open={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+        onAccept={handleAcceptPrivacy}
+      />
+    </>
   );
 }
 
