@@ -40,7 +40,7 @@ export const chatService = {
     },
 
     sendMessage: async (content: string, conversationId: string | undefined, profile: string, history: any[]) => {
-        const res = await fetch(`${API_URL}/chat/message`, {
+        const res = await fetch(`${API_URL}/chat/message/n8n`, {
             method: 'POST',
             headers: getHeaders(),
             body: JSON.stringify({ 
