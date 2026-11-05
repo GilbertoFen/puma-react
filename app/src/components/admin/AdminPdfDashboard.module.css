@@ -1,0 +1,620 @@
+/* ==========================================================================
+   ADMIN PDF DASHBOARD STYLES (FES Acatlán · MAC - PUMAIA)
+   Diseño institucional alineado con el documento "Dashboard administración.pdf"
+   ========================================================================== */
+
+.dashboardContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+/* 4.1. Encabezado y periodo */
+.periodHeaderCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 16px;
+  padding: 20px 24px;
+  backdrop-filter: blur(12px);
+}
+
+.periodTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mainDashboardTitle {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.mainDashboardSubtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.periodSelectorWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.periodLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ecd083;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.periodPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  border-radius: 20px;
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  color: #ecd083;
+}
+
+/* 4.2. Tarjetas de Indicadores Generales */
+.indicatorsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.indicatorCard {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.indicatorCard:hover {
+  border-color: rgba(201, 168, 76, 0.35);
+  transform: translateY(-2px);
+}
+
+.indicatorLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.indicatorLabel {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.indicatorPrimaryValue {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 32px;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.indicatorPrimaryValueGold {
+  color: #ecd083;
+}
+
+.indicatorSubtext {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Filas de dos columnas */
+.twoColumnsRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.cardBox {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cardTitle {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.cardSubtitle {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 3px 0 0 0;
+}
+
+.badgeSampleN {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ecd083;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  padding: 3px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+/* 4.3. De qué se preocupan los alumnos (Barras Horizontales) */
+.horizontalBarsList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.barItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.barMetaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.barCategoryName {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.barStatsRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.barStudentsCount {
+  font-weight: 700;
+  color: #ecd083;
+}
+
+.trendTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.trendUp {
+  background: rgba(220, 53, 69, 0.15);
+  color: #ff6b7d;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.trendDown {
+  background: rgba(40, 167, 69, 0.15);
+  color: #51cf66;
+  border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.trendSame {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.barTrack {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, #c9a84c 0%, #ecd083 100%);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+/* 4.4. Trámites que más preguntan */
+.proceduresList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.procedureRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  transition: background 0.15s ease;
+}
+
+.procedureRow:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.procedureName {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+.procedureCountWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.procedureCount {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  color: #ecd083;
+}
+
+.privacyRestrictedBadge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffc107;
+  background: rgba(255, 193, 7, 0.12);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+/* 4.5. Dónde se atoran (Tabla de Reprobación) */
+.simpleTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.simpleTable th {
+  text-align: left;
+  padding: 9px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.simpleTable td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+.simpleTable tr:last-child td {
+  border-bottom: none;
+}
+
+.subjectTextBold {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.rateNumberWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rateNumber {
+  font-weight: 700;
+  color: #ecd083;
+}
+
+/* 4.6. Cómo van por semestre (Stacked bars) */
+.stackedSemestersWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stackedLegend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.legendDotOnTrack {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: #51cf66;
+}
+
+.legendDotOneTwo {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: #fcc419;
+}
+
+.legendDotMoreBehind {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: #ff6b6b;
+}
+
+.semesterStackedRow {
+  display: grid;
+  grid-template-columns: 85px 1fr 45px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.semesterLabel {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.stackedTrack {
+  display: flex;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.stackedOnTrack {
+  background: #51cf66;
+  height: 100%;
+}
+
+.stackedOneTwo {
+  background: #fcc419;
+  height: 100%;
+}
+
+.stackedMoreBehind {
+  background: #ff6b6b;
+  height: 100%;
+}
+
+.semesterTotal {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: right;
+}
+
+/* 4.7. Uso y Satisfacción */
+.usageSatisfactionContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.usageRow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.miniTrendChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 70px;
+  padding: 6px 0;
+}
+
+.miniChartColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.miniBarFill {
+  width: 100%;
+  max-width: 24px;
+  background: linear-gradient(180deg, #ecd083 0%, #c9a84c 100%);
+  border-radius: 3px 3px 0 0;
+  transition: height 0.4s ease;
+}
+
+.miniMonthLabel {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.satisfactionBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(201, 168, 76, 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  border-radius: 12px;
+}
+
+.satisfactionLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.satisfactionRating {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 26px;
+  font-weight: 800;
+  color: #ecd083;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.starsRow {
+  color: #ecd083;
+  font-size: 16px;
+}
+
+.satisfactionResponses {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* 4.8. Bienestar */
+.wellbeingBox {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.wellbeingStatRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+}
+
+.wellbeingNumber {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.wellbeingLinkBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  background: rgba(201, 168, 76, 0.14);
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  border-radius: 10px;
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  color: #ecd083;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.wellbeingLinkBtn:hover {
+  background: rgba(201, 168, 76, 0.25);
+  border-color: #ecd083;
+  transform: translateY(-1px);
+}
+
+/* 4.9. Reglas de Privacidad y Filtros al Pie */
+.privacyFooterNotice {
+  background: rgba(6, 13, 31, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.privacyFooterIcon {
+  color: #ecd083;
+  flex-shrink: 0;
+}
+
+.privacyFooterList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.privacyFooterList li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bulletDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ecd083;
+}
+
+/* Responsividad */
+@media (max-width: 1024px) {
+  .indicatorsGrid {
+    grid-template-columns: 1fr;
+  }
+  .twoColumnsRow {
+    grid-template-columns: 1fr;
+  }
+}
+

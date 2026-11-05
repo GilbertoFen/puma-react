@@ -47,10 +47,28 @@ export default function App() {
         const parsedUser = JSON.parse(rawData);
         setUser(parsedUser);
 
+        const roles: string[] = Array.isArray(parsedUser?.roles)
+          ? parsedUser.roles
+          : [];
+        if (roles.includes('INSTITUTION_ADMIN') || roles.includes('ANALYST')) {
+          router.push('/admin');
+          return;
+        }
+        if (roles.includes('PROFESSOR') && !roles.includes('STUDENT')) {
+          router.push('/profesor');
+          return;
+        }
+
         // ────────────────────────────────────────────────────────────────
         // EL FILTRO MAESTRO: Validamos el token en tiempo real contra el Back.
         // Si el token expiró, el servicio arrojará un error e irá directo al CATCH.
         const profile = await updateInfoService.getProfileSummary();
+
+        if (profile?.currentSemester) {
+          parsedUser.semestre = `${profile.currentSemester}° semestre`;
+          parsedUser.currentSemester = profile.currentSemester;
+          localStorage.setItem('userData', JSON.stringify(parsedUser));
+        }
 
         // Si el backend responde bien, usamos el dato fresco del perfil
         const hasCompleted = profile?.hasCompletedQuiz || parsedUser?.hasCompletedQuiz;
@@ -107,7 +125,19 @@ export default function App() {
 
       console.log("¿El alumno ya completó el cuestionario según el Back?:", hasCompleted);
 
-      // 5. Redirección inteligente
+      // 5. Redirección inteligente por rol y estado de onboarding
+      const roles: string[] = Array.isArray(userData?.roles)
+        ? userData.roles
+        : [];
+      if (roles.includes('INSTITUTION_ADMIN') || roles.includes('ANALYST')) {
+        router.push('/admin');
+        return;
+      }
+      if (roles.includes('PROFESSOR') && !roles.includes('STUDENT')) {
+        router.push('/profesor');
+        return;
+      }
+
       if (hasCompleted === true) {
         router.push('/home');
       } else {

@@ -16,3 +16,5 @@ export interface StudentProfile {
   };
   interest: string | null;
 }
+
+export * from './admin.types';

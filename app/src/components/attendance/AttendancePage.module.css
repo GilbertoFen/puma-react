@@ -1,0 +1,618 @@
+.root {
+  min-height: 100vh;
+  background: #060d1f;
+  color: #fff;
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.bgMesh {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(201, 168, 76, 0.15), transparent 70%),
+              radial-gradient(ellipse 60% 40% at 90% 80%, rgba(26, 79, 168, 0.2), transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.goldLine {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #c9a84c, #ffd54f, #c9a84c, transparent);
+  z-index: 10;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 28px;
+  background: rgba(6, 13, 31, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  z-index: 10;
+}
+
+.hamburgerBtn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px;
+  color: #c9a84c;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.hamburgerBtn:hover {
+  background: rgba(201, 168, 76, 0.12);
+  border-color: #c9a84c;
+}
+
+.toolbarGreeting {
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 40;
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Hero / Encabezado de Sección ── */
+.heroHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sectionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px 12px;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #ffd54f;
+}
+
+.pageTitle {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: clamp(22px, 3.2vw, 32px);
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.pageSubtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 680px;
+  line-height: 1.5;
+}
+
+/* ── Pestañas (Tabs) ── */
+.tabsBar {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 2px;
+}
+
+.tabBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  margin-bottom: -2px;
+}
+
+.tabBtn:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tabBtnActive {
+  color: #ffd54f;
+  border-bottom-color: #c9a84c;
+}
+
+.tabBadge {
+  padding: 2px 7px;
+  background: rgba(201, 168, 76, 0.2);
+  border-radius: 12px;
+  font-size: 11px;
+  color: #ffd54f;
+}
+
+/* ── Panel de Escaneo (Pasar Asistencia) ── */
+.scannerCard {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  border-radius: 20px;
+  padding: 28px 24px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+}
+
+.scannerIconWrap {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffd54f;
+}
+
+.scannerCardTitle {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.scannerCardDesc {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.65);
+  max-width: 500px;
+  line-height: 1.5;
+}
+
+/* Viewport de Cámara y Escaneo */
+.viewportContainer {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 1 / 1;
+  background: #000;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(201, 168, 76, 0.4);
+}
+
+.cameraVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Máscara y Retícula de enfoque */
+.scanOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scanFrame {
+  width: 72%;
+  height: 72%;
+  position: relative;
+  box-shadow: 0 0 0 9999px rgba(6, 13, 31, 0.65);
+  border-radius: 14px;
+}
+
+/* Esquinas de enfoque */
+.cornerTopLeft {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  border-top: 3.5px solid #ffd54f;
+  border-left: 3.5px solid #ffd54f;
+  border-top-left-radius: 10px;
+}
+
+.cornerTopRight {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-top: 3.5px solid #ffd54f;
+  border-right: 3.5px solid #ffd54f;
+  border-top-right-radius: 10px;
+}
+
+.cornerBottomLeft {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  border-bottom: 3.5px solid #ffd54f;
+  border-left: 3.5px solid #ffd54f;
+  border-bottom-left-radius: 10px;
+}
+
+.cornerBottomRight {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-bottom: 3.5px solid #ffd54f;
+  border-right: 3.5px solid #ffd54f;
+  border-bottom-right-radius: 10px;
+}
+
+/* Láser animado de escaneo */
+.scanLaser {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  height: 2.5px;
+  background: linear-gradient(90deg, transparent, #4ade80, #ffffff, #4ade80, transparent);
+  box-shadow: 0 0 14px #4ade80, 0 0 24px rgba(74, 222, 128, 0.8);
+  animation: laserScan 2.4s ease-in-out infinite;
+}
+
+@keyframes laserScan {
+  0% {
+    top: 6px;
+    opacity: 0.8;
+  }
+  50% {
+    top: calc(100% - 8px);
+    opacity: 1;
+  }
+  100% {
+    top: 6px;
+    opacity: 0.8;
+  }
+}
+
+.scanInstructionBadge {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* Botones y Acciones */
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 26px;
+  background: linear-gradient(135deg, #c9a84c 0%, #a6842e 100%);
+  border: 1px solid #ffd54f;
+  border-radius: 10px;
+  color: #060d1f;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 18px rgba(201, 168, 76, 0.35);
+}
+
+.btnPrimary:hover {
+  background: linear-gradient(135deg, #ffd54f 0%, #c9a84c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(201, 168, 76, 0.5);
+}
+
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnSecondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+/* Mensaje de permisos rechazados o error */
+.permissionAlert {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 14px;
+  max-width: 480px;
+}
+
+.permissionAlertTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f87171;
+}
+
+.permissionAlertDesc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+}
+
+/* Modal / Tarjeta de éxito de asistencia */
+.successCard {
+  background: rgba(6, 13, 31, 0.95);
+  border: 2px solid #4ade80;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 28px rgba(74, 222, 128, 0.35);
+  border-radius: 20px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  max-width: 460px;
+  width: 100%;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.successIconWrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(74, 222, 128, 0.15);
+  border: 2px solid #4ade80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4ade80;
+}
+
+.successTitle {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.successDetailsBox {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.detailLabel {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.detailValue {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ── BANNER DE CONFIRMACIÓN AUTOMÁTICA DE ASISTENCIA ── */
+.autoAttendanceAlert {
+  background: rgba(6, 13, 31, 0.95);
+  border: 2px solid #4ade80;
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(74, 222, 128, 0.25);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeInDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.autoAlertHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.autoAlertIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(74, 222, 128, 0.15);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  color: #4ade80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.autoAlertTitles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.autoAlertTitle {
+  font-family: var(--font-display, 'Sora', sans-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.autoAlertSubtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.autoActionRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btnViewCalendarDirect {
+  padding: 9px 18px;
+  background: linear-gradient(135deg, #c9a84c, #ffd54f);
+  border: none;
+  border-radius: 10px;
+  color: #060d1f;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnViewCalendarDirect:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.btnDismissAlert {
+  padding: 9px 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnDismissAlert:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* ── TARJETA DE AUTENTICACIÓN PENDIENTE PARA ASISTENCIA ── */
+.authNeededCard {
+  background: rgba(6, 13, 31, 0.95);
+  border: 1px solid rgba(201, 168, 76, 0.4);
+  border-radius: 18px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 20px rgba(201, 168, 76, 0.15);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.authNeededHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.authNeededIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  color: #ffd54f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.btnQuickAuthAction {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #c9a84c, #ffd54f);
+  border: none;
+  border-radius: 10px;
+  color: #060d1f;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.btnQuickAuthAction:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+

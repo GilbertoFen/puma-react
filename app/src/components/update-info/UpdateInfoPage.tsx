@@ -51,8 +51,7 @@ export default function UpdateInfoPage() {
 
         // Trae el objeto estructurado clave-valor { id_pregunta: valor_respuesta }
         const userAnswersObj = await questionnaireService.getAnswers();
-        const aiData = await updateInfoService.getSavedAiAnalysis().catch(() => ({ hasAnalysis: false, data: null }))
-        await fetch('https://server-genai.onrender.com', { method: 'GET' }).catch(() => { });
+        const aiData = await updateInfoService.getSavedAiAnalysis().catch(() => ({ hasAnalysis: false, data: null }));
         // Mapeamos el arreglo QUESTIONS para armar la lista final combinando pregunta + respuesta
         const formatted = QUESTIONS.map((q) => ({
           questionId: q.id,

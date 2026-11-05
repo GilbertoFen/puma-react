@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import type { UploadedDocument } from '../../types/shared.types';
 import { gradeService, Subject } from '../../services/grades.service';
+import { scheduleService, EnrolledScheduleSubject } from '../../services/schedule.service';
 import styles from './Sections.module.css';
 import AcademicHistoryDropdown from './AcademicHistoryDropdown';
 
@@ -10,16 +11,25 @@ type Props = {
 };
 
 type UploadState = 'idle' | 'loading_pdf' | 'review_grades' | 'saving_supabase';
+type ScheduleUploadState = 'idle' | 'loading_pdf' | 'review_schedule' | 'saving';
 
 export default function DocumentsSection({ documents: initial }: Props) {
   const [docs, setDocs] = useState<UploadedDocument[]>(initial);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scheduleInputRef = useRef<HTMLInputElement>(null);
 
+  // Estados de Tira de Materias (DGAE)
   const [uploadState, setUploadState] = useState<UploadState>('idle');
   const [detectedSubjects, setDetectedSubjects] = useState<Subject[]>([]);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Método único: Al subir, asume que es Tira de Materias (historial_academico)
+  // Estados de Horario Actual (Comprobante de Inscripción)
+  const [scheduleState, setScheduleState] = useState<ScheduleUploadState>('idle');
+  const [detectedScheduleSubjects, setDetectedScheduleSubjects] = useState<EnrolledScheduleSubject[]>([]);
+  const [schedulePeriod, setSchedulePeriod] = useState<string | null>(null);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
+
+  // Flujo 1: Carga y lectura de Tira de Materias (DGAE)
   const handleUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const targetFile = files[0];
@@ -56,7 +66,6 @@ export default function DocumentsSection({ documents: initial }: Props) {
 
       setUploadState('idle');
       alert("¡Historial académico actualizado con éxito!");
-      // En lugar de reload(), refrescamos el dropdown si tiene un método o recargamos suavemente
       window.location.reload();
     } catch (err: any) {
       console.error(err);
@@ -65,22 +74,75 @@ export default function DocumentsSection({ documents: initial }: Props) {
     }
   };
 
+  // Flujo 2: Carga y lectura del Horario Actual (Comprobante de Inscripción)
+  const handleScheduleUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const targetFile = files[0];
+
+    if (targetFile.type !== 'application/pdf') {
+      setScheduleError('El comprobante de horario debe ser un archivo PDF.');
+      return;
+    }
+
+    setScheduleError(null);
+    setScheduleState('loading_pdf');
+
+    try {
+      const token = localStorage.getItem('token') || undefined;
+      const result = await scheduleService.analyzeSchedulePDF(targetFile, token);
+
+      setDetectedScheduleSubjects(result.subjects);
+      setSchedulePeriod(result.period);
+      setScheduleState('review_schedule');
+    } catch (err: any) {
+      console.error(err);
+      setScheduleError(err.message || 'No se pudo leer el documento de horario.');
+      setScheduleState('idle');
+    }
+  };
+
+  const handleConfirmSchedule = async () => {
+    try {
+      setScheduleState('saving');
+      const token = localStorage.getItem('token') || undefined;
+      const activeSchedule = scheduleService.getStudentSchedule();
+
+      if (activeSchedule) {
+        scheduleService.saveStudentSchedule(activeSchedule, token);
+      }
+
+      setScheduleState('idle');
+      alert("¡Horario actual registrado y vinculado exitosamente al alumno!");
+      window.location.reload();
+    } catch (err: any) {
+      console.error(err);
+      setScheduleError(err.message || 'Error al guardar el horario.');
+      setScheduleState('review_schedule');
+    }
+  };
+
   return (
     <div className={styles.section}>
       <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>Tira de Materias</h2>
+        <h2 className={styles.sectionTitle}>Documentos Académicos</h2>
         <p className={styles.sectionDesc}>
-          Sube tu historial académico oficial en PDF para actualizar tus materias y promedio automáticamente.
+          Carga tu historial oficial de la DGAE y tu horario actual para sincronizar tus materias, créditos y grupos.
         </p>
       </div>
 
       {errorMsg && <div className={styles.errorBanner}>⚠️ {errorMsg}</div>}
+      {scheduleError && <div className={styles.errorBanner}>⚠️ {scheduleError}</div>}
 
-      {/* ══ MÁQUINA DE ESTADOS ══ */}
+      {/* ══ 1. BOTÓN TIRA DE MATERIAS (DGAE) ══ */}
       {uploadState === 'idle' && (
         <div className={styles.uploadArea} onClick={() => fileInputRef.current?.click()}>
-          <input ref={fileInputRef} type="file" accept=".pdf" style={{ display: 'none' }}
-            onChange={(e) => handleUpload(e.target.files)} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf"
+            style={{ display: 'none' }}
+            onChange={(e) => handleUpload(e.target.files)}
+          />
           <UploadIcon />
           <p className={styles.uploadTitle}>Seleccionar Historial Académico (PDF)</p>
         </div>
@@ -92,7 +154,7 @@ export default function DocumentsSection({ documents: initial }: Props) {
 
       {uploadState === 'review_grades' && (
         <div className={styles.reviewArea}>
-          <h4>✓ Materias detectadas</h4>
+          <h4>✓ Materias detectadas en Historial</h4>
           <div className={styles.subjectList}>
             {detectedSubjects.map((s) => (
               <div key={s.subjectID} className={styles.subjectRow}>
@@ -108,7 +170,64 @@ export default function DocumentsSection({ documents: initial }: Props) {
         </div>
       )}
 
-      {/* dropdown de materias actuales */}
+      {/* ══ 2. SEGUNDO BOTÓN: HORARIO ACTUAL (COMPROBANTE DE INSCRIPCIÓN) ══ */}
+      {scheduleState === 'idle' && (
+        <div
+          className={styles.uploadArea}
+          onClick={() => scheduleInputRef.current?.click()}
+          style={{ marginTop: '12px' }}
+        >
+          <input
+            ref={scheduleInputRef}
+            type="file"
+            accept=".pdf"
+            style={{ display: 'none' }}
+            onChange={(e) => handleScheduleUpload(e.target.files)}
+          />
+          <UploadIcon />
+          <p className={styles.uploadTitle}>Horario actual (PDF)</p>
+        </div>
+      )}
+
+      {scheduleState === 'loading_pdf' && (
+        <div className={styles.loadingArea} style={{ marginTop: '12px' }}>
+          🌀 Procesando horario actual con PumaIA...
+        </div>
+      )}
+
+      {scheduleState === 'review_schedule' && (
+        <div className={styles.reviewArea} style={{ marginTop: '12px' }}>
+          <h4>✓ Asignaturas inscritas detectadas ({schedulePeriod || 'Horario Actual'})</h4>
+          <div className={styles.subjectList}>
+            {detectedScheduleSubjects.map((s, idx) => (
+              <div key={`${s.code}-${idx}`} className={styles.subjectRow}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', textAlign: 'left' }}>
+                  <span style={{ fontWeight: 600 }}>{s.officialName || s.name}</span>
+                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.65)', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    <span>Clave: {s.code}</span>
+                    <span>·</span>
+                    <span>{s.credits !== null ? `${s.credits} créditos` : 'Créditos pendientes'}</span>
+                    <span>·</span>
+                    <span>Gpo: {s.group}</span>
+                    {s.days && <span>· {s.days}</span>}
+                    {s.time && <span>· {s.time}</span>}
+                    {s.professor && <span>· Prof. {s.professor}</span>}
+                  </div>
+                </div>
+                <strong style={{ fontSize: '12px', color: s.matchStatus === 'matched' ? '#4ade80' : '#fbbf24', whiteSpace: 'nowrap' }}>
+                  {s.matchStatus === 'matched' ? '✓ Vinculada' : '⚠️ Pendiente'}
+                </strong>
+              </div>
+            ))}
+          </div>
+          <div className={styles.actions}>
+            <button onClick={() => setScheduleState('idle')}>Cancelar</button>
+            <button onClick={handleConfirmSchedule}>Confirmar y Guardar Horario</button>
+          </div>
+        </div>
+      )}
+
+      {/* dropdown de materias del estudiante con datos enriquecidos */}
       <AcademicHistoryDropdown />
     </div>
   );

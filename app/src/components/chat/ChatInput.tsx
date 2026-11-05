@@ -13,9 +13,10 @@ type AttachedFile = {
 
 type Props = {
   onSend: (text: string, files: AttachedFile[]) => void;
+  disabled?: boolean;
 };
 
-export default function ChatInput({ onSend }: Props) {
+export default function ChatInput({ onSend, disabled = false }: Props) {
   const [text, setText] = useState('');
   const [files, setFiles] = useState<AttachedFile[]>([]);
   const [dragging, setDragging] = useState(false);
@@ -23,6 +24,7 @@ export default function ChatInput({ onSend }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = () => {
+    if (disabled) return;
     const trimmed = text.trim();
     if (!trimmed && files.length === 0) return;
     onSend(trimmed, files);
@@ -140,8 +142,9 @@ export default function ChatInput({ onSend }: Props) {
         />
 
         <button
-          className={`${styles.sendBtn} ${canSend ? styles.active : ''}`}
+          className={`${styles.sendBtn} ${canSend && !disabled ? styles.active : ''}`}
           onClick={handleSend}
+          disabled={disabled || !canSend}
           type="button"
           title="Enviar"
         >

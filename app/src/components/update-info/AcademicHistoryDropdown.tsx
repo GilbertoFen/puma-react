@@ -1,60 +1,110 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { gradeService } from '../../services/grades.service'; // Asegúrate de que la ruta coincida con la de tu Perfil
+import { gradeService } from '../../services/grades.service';
+import { scheduleService } from '../../services/schedule.service';
+import { lookupSubjectInCatalog } from '../../utils/academic-catalog';
+import { API_URL, getAuthToken } from '../../utils/api';
 import styles from './AcademicHistoryDropdown.module.css';
 import InlineLoader from '../loaders/InlineLoader';
 
-// Mantenemos tu shape exacto para que tus estilos y renderizado no se enteren del cambio relacional
 type AcademicSubject = {
   subjectID: string;
+  realSubjectId?: string;
   subjectName: string;
-  grade: number;
+  grade?: number;
   exists: boolean;
+  code?: string;
+  credits?: number | null;
+  group?: string;
+  days?: string;
+  schedule?: string;
+  professor?: string;
+  matchStatus?: 'matched' | 'pending';
+  isCurrentSchedule?: boolean;
 };
 
 export default function AcademicHistoryDropdown() {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<AcademicSubject[]>([]);
-  const [loading, setLoading] = useState(true); // Loader interno para las materias
+  const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftGrade, setDraftGrade] = useState('');
 
-  // ── 1. Descarga e inyección real de historial ──────────────────
-  // En tu AcademicHistoryDropdown.tsx
-
-  // ── 1. CORRECCIÓN DEL FETCH Y EL MAPEO RELACIONAL ──────────────────
   useEffect(() => {
     const fetchRealGrades = async () => {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       if (!token) {
         setLoading(false);
         return;
       }
       try {
         const rawGrades = await gradeService.getMyGrades(token);
-        console.log("Datos crudos del historial recibidos:", rawGrades); // Para depuración
+        const schedule = scheduleService.getStudentSchedule();
 
         const formatted: AcademicSubject[] = rawGrades.map((item: any) => {
-          // Blindaje de llaves: revisamos todas las posibles formas en que venga el nombre de la materia
           const subjectNameReal =
+            item.subject?.subject ||
             item.subject?.name ||
             item.course?.name ||
             item.materia?.name ||
             item.subjectName ||
             'MATERIA EN PROCESO';
 
+          const rawCode = item.code || item.subject?.code || null;
+          const catalogMatch = lookupSubjectInCatalog(rawCode, subjectNameReal);
+          const finalCode = rawCode ? String(rawCode) : (catalogMatch?.code || undefined);
+          const finalCredits = item.credits ?? item.subject?.credits ?? catalogMatch?.credits ?? null;
+
+          // Buscar si esta materia está en el horario actual inscrito
+          const scheduleMatch = schedule?.subjects.find(
+            (s) => (finalCode && s.code === finalCode) || s.name.toUpperCase() === subjectNameReal.toUpperCase()
+          );
+
           return {
-            // Usamos el ID del renglón (la inscripción real) para asegurar que sea único
             subjectID: item.id || item.subjectID || crypto.randomUUID(),
-            subjectName: subjectNameReal.toUpperCase(), // Forzamos mayúsculas estéticas para MAC
-            grade: item.grade ?? 0,
-            exists: true
+            realSubjectId: item.subjectID || item.subjectId || item.subject?.id,
+            subjectName: catalogMatch?.name || subjectNameReal.toUpperCase(),
+            grade: item.grade ?? undefined,
+            exists: true,
+            code: finalCode,
+            credits: finalCredits,
+            group: scheduleMatch?.group,
+            days: scheduleMatch?.days,
+            schedule: scheduleMatch?.time || scheduleMatch?.rawSchedule,
+            professor: scheduleMatch?.professor,
+            matchStatus: catalogMatch ? 'matched' : (finalCode ? 'matched' : 'pending'),
+            isCurrentSchedule: !!scheduleMatch,
           };
         });
 
+        // Si hay materias en el horario actual que aún no están en el historial calificado
+        if (schedule?.subjects && Array.isArray(schedule.subjects)) {
+          for (const schedSub of schedule.subjects) {
+            const alreadyExists = formatted.some(
+              (f) => (f.code && f.code === schedSub.code) || f.subjectName === schedSub.name.toUpperCase()
+            );
+
+            if (!alreadyExists) {
+              formatted.unshift({
+                subjectID: `sched-${schedSub.code}-${schedSub.group}`,
+                subjectName: schedSub.officialName || schedSub.name.toUpperCase(),
+                exists: schedSub.matchStatus === 'matched',
+                code: schedSub.code,
+                credits: schedSub.credits,
+                group: schedSub.group,
+                days: schedSub.days,
+                schedule: schedSub.time || schedSub.rawSchedule,
+                professor: schedSub.professor,
+                matchStatus: schedSub.matchStatus,
+                isCurrentSchedule: true,
+              });
+            }
+          }
+        }
+
         setRows(formatted);
       } catch (error) {
-        console.error("Error al sincronizar historial en el dropdown:", error);
+        console.error('Error al sincronizar historial en el dropdown:', error);
       } finally {
         setLoading(false);
       }
@@ -63,45 +113,66 @@ export default function AcademicHistoryDropdown() {
     fetchRealGrades();
   }, []);
 
-  // ── Edición de calificación ───────────────────────
   const startEdit = (s: AcademicSubject) => {
+    if (s.grade === undefined) return;
     setEditingId(s.subjectID);
     setDraftGrade(String(s.grade));
   };
 
   const saveEdit = async (id: string) => {
     const parsed = parseInt(draftGrade, 10);
-    if (isNaN(parsed) || parsed < 0 || parsed > 10) return;
+    if (isNaN(parsed) || parsed < 5 || parsed > 10) return;
 
-    // Optimistic Update: Modificamos la UI de inmediato para dar sensación de velocidad instantánea
+    const targetRow = rows.find((s) => s.subjectID === id);
+
     setRows((prev) =>
-      prev.map((s) => (s.subjectID === id ? { ...s, grade: parsed } : s))
+      prev.map((s) => (s.subjectID === id ? { ...s, grade: parsed } : s)),
     );
     setEditingId(null);
 
-    // ── 2. PATCH Real al Backend de NestJS ────────────────────────
     try {
-      const token = localStorage.getItem('token');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'; // Ajusta según tus constantes
+      const token = getAuthToken();
 
-      // Enviamos la actualización directamente a la tabla pivote de tu Supabase
-      const res = await fetch(`${API_URL}/student-courses/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ grade: parsed })
-      });
+      if (targetRow?.realSubjectId) {
+        // Endpoint autorizado para el estudiante titular (actualiza Enrollment y recalcula promedio atómicamente)
+        const res = await fetch(`${API_URL}/grade/confirm-import`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            subjects: [
+              {
+                subjectID: targetRow.realSubjectId,
+                grade: parsed,
+              },
+            ],
+          }),
+        });
 
-      if (!res.ok) {
-        throw new Error('El servidor rechazó la actualización de la calificación.');
+        if (!res.ok) {
+          throw new Error('El servidor rechazó la actualización de la calificación.');
+        }
+      } else {
+        // Respaldo administrativo alineado con PUT /api/grade/:id en GradeController
+        const res = await fetch(`${API_URL}/grade/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          credentials: 'include',
+          body: JSON.stringify({ grade: parsed }),
+        });
+
+        if (!res.ok) {
+          throw new Error('El servidor rechazó la actualización de la calificación.');
+        }
       }
-
-      console.log(`✅ Calificación de la materia [${id}] actualizada con éxito en Supabase.`);
     } catch (error) {
-      console.error("Error al guardar la calificación en el servidor:", error);
-      alert("Hubo un problema al guardar en la base de datos. Recarga la página.");
+      console.error('Error al guardar la calificación en el servidor:', error);
     }
   };
 
@@ -109,7 +180,6 @@ export default function AcademicHistoryDropdown() {
 
   return (
     <div className={styles.wrap}>
-      {/* Toggle */}
       <button
         className={`${styles.toggle} ${open ? styles.toggleOpen : ''}`}
         onClick={() => setOpen((v) => !v)}
@@ -119,16 +189,24 @@ export default function AcademicHistoryDropdown() {
         <ChevronIcon open={open} />
       </button>
 
-      {/* Lista desplegable */}
       {open && (
-        <div className={styles.panel} style={{ position: 'relative', minHeight: loading ? '120px' : 'auto' }}>
-
+        <div
+          className={styles.panel}
+          style={{ position: 'relative', minHeight: loading ? '120px' : 'auto' }}
+        >
           {loading && (
             <InlineLoader variant="overlay" message="Sincronizando materias..." />
           )}
 
           {!loading && rows.length === 0 && (
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '13px', padding: '16px 0', textAlign: 'center' }}>
+            <p
+              style={{
+                color: 'rgba(255,255,255,0.4)',
+                fontSize: '13px',
+                padding: '16px 0',
+                textAlign: 'center',
+              }}
+            >
               Aún no has cargado materias en tu historial.
             </p>
           )}
@@ -141,18 +219,34 @@ export default function AcademicHistoryDropdown() {
                 <span className={styles.colAction} />
               </div>
 
-              {/* ── 2. CORRECCIÓN DE LA KEY ÚNICA EN EL JSX (Alrededor de la línea 132) ── */}
               {rows.map((s, index) => (
-                // Combinamos el subjectID con el índice del mapa para garantizar una firma 100% única en el Virtual DOM
                 <div key={`${s.subjectID}-${index}`} className={styles.row}>
-                  <span className={styles.subjectName}>{s.subjectName}</span>
+                  <div className={styles.subjectCol}>
+                    <span className={styles.subjectName}>{s.subjectName}</span>
+                    <div className={styles.subjectMeta}>
+                      {s.code && <span className={`${styles.metaChip} ${styles.metaChipGold}`}>Clave: {s.code}</span>}
+                      {s.credits !== null && s.credits !== undefined && (
+                        <span className={styles.metaChip}>{s.credits} créditos</span>
+                      )}
+                      {s.group && <span className={styles.metaChip}>Gpo: {s.group}</span>}
+                      {s.days && s.schedule && (
+                        <span className={styles.metaChip}>{s.days} · {s.schedule}</span>
+                      )}
+                      {s.professor && (
+                        <span className={styles.metaChip}>Prof. {s.professor}</span>
+                      )}
+                      {s.matchStatus === 'pending' && (
+                        <span className={styles.pendingChip}>⚠️ Pendiente de correspondencia</span>
+                      )}
+                    </div>
+                  </div>
 
                   {editingId === s.subjectID ? (
                     <div className={styles.gradeEditRow}>
                       <input
                         className={styles.gradeInput}
                         type="number"
-                        min={0}
+                        min={5}
                         max={10}
                         value={draftGrade}
                         onChange={(e) => setDraftGrade(e.target.value)}
@@ -162,16 +256,25 @@ export default function AcademicHistoryDropdown() {
                         }}
                         autoFocus
                       />
-                      <button className={styles.saveBtn} onClick={() => saveEdit(s.subjectID)}>
+                      <button
+                        className={styles.saveBtn}
+                        onClick={() => saveEdit(s.subjectID)}
+                      >
                         <CheckIcon />
                       </button>
-                      <button className={styles.cancelBtn} onClick={cancelEdit}>✕</button>
+                      <button className={styles.cancelBtn} onClick={cancelEdit}>
+                        ✕
+                      </button>
                     </div>
+                  ) : s.grade !== undefined && s.grade !== null ? (
+                    <span className={`${styles.grade} ${gradeColor(s.grade)}`}>
+                      {s.grade}
+                    </span>
                   ) : (
-                    <span className={`${styles.grade} ${gradeColor(s.grade)}`}>{s.grade}</span>
+                    <span className={styles.inProgressGrade}>En curso</span>
                   )}
 
-                  {/* {editingId !== s.subjectID && (
+                  {editingId !== s.subjectID && s.grade !== undefined && (
                     <button
                       className={styles.editBtn}
                       onClick={() => startEdit(s)}
@@ -179,7 +282,7 @@ export default function AcademicHistoryDropdown() {
                     >
                       <EditIcon />
                     </button>
-                  )} */}
+                  )}
                 </div>
               ))}
 
@@ -200,11 +303,18 @@ function gradeColor(grade: number): string {
   return styles.gradeLow;
 }
 
-// ── Íconos Auxiliares (Permanecen intactos para cuidar tus clases CSS) ───────────────────────────
 function GraduationIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-      stroke="rgba(201,168,76,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="rgba(201,168,76,0.8)"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
       <path d="M6 12v5c3 3 9 3 12 0v-5" />
     </svg>
@@ -212,17 +322,37 @@ function GraduationIcon() {
 }
 function ChevronIcon({ open }: { open: boolean }) {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-      style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s', flexShrink: 0 }}>
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{
+        transform: open ? 'rotate(180deg)' : 'none',
+        transition: 'transform 0.25s',
+        flexShrink: 0,
+      }}
+    >
       <polyline points="6 9 12 15 18 9" />
     </svg>
   );
 }
 function EditIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
     </svg>
@@ -230,8 +360,16 @@ function EditIcon() {
 }
 function CheckIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-      stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#4ade80"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <polyline points="20 6 9 17 4 12" />
     </svg>
   );
