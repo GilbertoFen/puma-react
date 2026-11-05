@@ -49,10 +49,6 @@ const displayName = user?.nombre || user?.fullName || "Usuario";
     : null;
 
   useEffect(() => {
-    // para que FastAPI encienda.
-    fetch('https://server-genai.onrender.com', { method: 'GET' }).catch(() => { });
-  }, []);
-  useEffect(() => {
     const init = async () => {
       const rawData = localStorage.getItem('userData');
 
@@ -171,6 +167,9 @@ const displayName = user?.nombre || user?.fullName || "Usuario";
         currentHistory
       );
       if (response.error || response.statusCode >= 400) {
+        if (response.conversationId) {
+          setActiveId(response.conversationId);
+        }
         throw new Error(response.message || 'Error en el servidor');
       }
       
@@ -207,7 +206,7 @@ const displayName = user?.nombre || user?.fullName || "Usuario";
         content: '__error__',          // señal especial que ChatMessage detecta
         createdAt: new Date().toISOString(),
       };
-      const targetId = activeId;
+      const targetId = currentActiveId || 'temp-conv';
       setConversations((prev) =>
         prev.map((c) =>
           c.id === targetId ? { ...c, messages: [...(c.messages || []), errorMsg] } : c

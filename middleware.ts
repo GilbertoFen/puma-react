@@ -3,12 +3,25 @@ import { NextResponse, NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value;
   const { pathname } = request.nextUrl;
-  const isLoginRoute = pathname === '/';
-  const isPublicRoute = isLoginRoute || pathname === '/faqs' || pathname === '/about-page';
+
+  const isStudentLoginRoute = pathname === '/';
+  const isTeacherLoginRoute = pathname === '/profesor' || pathname === '/profesores';
+  const isAdminLoginRoute = pathname === '/admin';
+  const isInfoRoute = pathname === '/faqs' || pathname === '/about-page';
+
+  const isPublicRoute =
+    isStudentLoginRoute ||
+    isTeacherLoginRoute ||
+    isAdminLoginRoute ||
+    isInfoRoute;
+
+  // Si no está en ruta pública y no tiene sesión, redirigir al inicio de sesión
   if (!isPublicRoute && !token) {
     return NextResponse.redirect(new URL('/', request.url));
   }
-  if (isLoginRoute && token) {
+
+  // Redirigir a /home únicamente si el usuario accede a la raíz '/' con sesión previa de alumno
+  if (isStudentLoginRoute && token) {
     return NextResponse.redirect(new URL('/home', request.url));
   }
 }

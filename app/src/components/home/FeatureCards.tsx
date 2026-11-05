@@ -21,12 +21,23 @@ type Props = {
   onExchange: () => void;
   onUpdate: () => void;
   onAnalyze: () => void;
+  onAttendance?: () => void;
 };
 
-export default function FeatureCards({ onPumaIA, onExchange, onUpdate, onAnalyze }: Props) {
+export default function FeatureCards({ onPumaIA, onExchange, onUpdate, onAnalyze, onAttendance }: Props) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const CARDS: FeatureCard[] = [
+    {
+      id: 'asistencia',
+      icon: AttendanceCardIcon,
+      title: 'ASISTENCIA con PUMAIA',
+      shortDesc: 'Registra tu asistencia a clase escaneando el código QR y consulta tu calendario',
+      hoverTitle: '¿Cómo funciona la asistencia?',
+      hoverBody: 'Escanea con la cámara de tu dispositivo el código QR dinámico que proyecte tu profesor en el aula para validar tu asistencia al instante y revisar tu horario semanal de clases.',
+      actionLabel: 'Pasar asistencia / Calendario →',
+      onAction: onAttendance,
+    },
     {
       id: 'pumaia',
       icon: PumaIACardIcon,
@@ -155,6 +166,22 @@ function AnalyzeCardIcon() {
       alt="Analizar con PumaIA"
       style={{ width: '90%', height: '90%', objectFit: 'contain' }}
     />
+  );
+}
+
+function AttendanceCardIcon() {
+  return (
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+      stroke="#c9a84c" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <circle cx="6.5" cy="6.5" r="1.2" fill="#c9a84c" />
+      <circle cx="17.5" cy="6.5" r="1.2" fill="#c9a84c" />
+      <circle cx="6.5" cy="17.5" r="1.2" fill="#c9a84c" />
+      <path d="M17.5 14v3m0 3h.01" />
+    </svg>
   );
 }
 

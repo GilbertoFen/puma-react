@@ -5,6 +5,7 @@ import Navbar from '../Navbar';
 import styles from './SettingsPage.module.css';
 import HomeDrawer from '../home/HomeDrawer';
 import AppFooter from '../AppFooter';
+import { authService } from '../../services/auth.service';
 
 type ToggleSetting = {
   kind: 'toggle';
@@ -140,7 +141,12 @@ export default function SettingsPage() {
   const [userInitial, setUserInitial] = useState<string>('U');
 
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+    } catch {
+      // continuar con limpieza local aunque falle la red
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('userData');
     localStorage.clear();

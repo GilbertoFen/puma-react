@@ -62,11 +62,16 @@ export default function ProfilePage() {
 
         if (summaryData.status === 'fulfilled') {
           setProfileSummary(summaryData.value);
+          const p = summaryData.value;
 
-          // 🔥 NUEVO: Si el backend nos trae una foto, actualizamos el localStorage y el estado
-          if (summaryData.value?.avatarUrl) {
+          // Sincronizar semestre detectado y foto desde el perfil fresco del backend
+          if (p?.currentSemester || p?.avatarUrl) {
             setUser((prev: any) => {
-              const updatedUser = { ...prev, avatarUrl: summaryData.value.avatarUrl };
+              const updatedUser = {
+                ...prev,
+                ...(p.currentSemester ? { semestre: `${p.currentSemester}° semestre`, currentSemester: p.currentSemester } : {}),
+                ...(p.avatarUrl ? { avatarUrl: p.avatarUrl } : {}),
+              };
               localStorage.setItem('userData', JSON.stringify(updatedUser));
               return updatedUser;
             });

@@ -80,7 +80,7 @@ export default function ChatArea({ conversation, suggestions, onSend, sidebarOpe
         )}
 
         <div className={styles.inputWrapper}>
-          <ChatInput onSend={onSend} />
+          <ChatInput onSend={onSend} disabled={isTyping} />
         </div>
       </div>
     </div>

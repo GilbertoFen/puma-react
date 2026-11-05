@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import './WelcomePage.css';
 import { studentService } from '../services/student.service';
+import { consentsService } from '../services/consents.service';
 import { StudentProfile, UserData } from '../types';
 import AppFooter from '../components/AppFooter';
 
@@ -12,19 +13,22 @@ interface WelcomePageProps {
 }
 
 export default function WelcomePage({ user, onBegin }: WelcomePageProps) {
-  console.log('Datos del usuario recibidos en WelcomePage:', user);
   const [profile, setProfile] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    consentsService.ensureConsentsSynced().catch(() => {});
+
     if (user?.cuenta) {
-      studentService.getProfileByAccount(user.cuenta)
+      studentService
+        .getProfileByAccount(user.cuenta)
         .then((data) => setProfile(data))
         .catch((err) => console.error(err))
         .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
   }, [user?.cuenta]);
-
 
   if (loading) return <div className="loading-state">Cargando perfil...</div>;
   if (!profile) return <div>No se pudo cargar la información.</div>;
@@ -48,14 +52,18 @@ export default function WelcomePage({ user, onBegin }: WelcomePageProps) {
 
           <button
             className="welcome-btn"
-            onClick={() => profile && onBegin(profile)}>
+            onClick={async () => {
+              await consentsService.ensureConsentsSynced();
+              if (profile) onBegin(profile);
+            }}
+          >
             Comenzar
           </button>
         </div>
       </main>
 
       <div className="gold-line" />
-      <AppFooter variant='dark' />
+      <AppFooter variant="dark" />
     </div>
   );
 }

@@ -1,42 +1,104 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-// Importamos los mismos estilos del perfil para heredar el look & feel
 import styles from '../../components/profile/ProfilePage.module.css';
+import { lookupSubjectInCatalog } from '../../utils/academic-catalog';
+import { scheduleService } from '../../services/schedule.service';
 
 type Subject = {
   subjectID: string;
   subjectName: string;
-  grade: number;
+  grade?: number;
+  code?: string;
+  credits?: number | null;
+  group?: string;
+  days?: string;
+  schedule?: string;
+  professor?: string;
+  matchStatus?: 'matched' | 'pending';
 };
 
 interface Props {
-  initialSubjects: Subject[];
+  initialSubjects: any[];
   isCollapsible?: boolean;
 }
 
 export default function AcademicHistoryManager({ initialSubjects, isCollapsible = false }: Props) {
-  const [subjects, setSubjects] = useState(initialSubjects);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isOpen, setIsOpen] = useState(!isCollapsible);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftGrade, setDraftGrade] = useState('');
 
+  useEffect(() => {
+    const schedule = scheduleService.getStudentSchedule();
+
+    const formatted: Subject[] = (initialSubjects || []).map((s: any) => {
+      const name = (s.subjectName || s.subject?.subject || s.name || '').toUpperCase();
+      const rawCode = s.code || s.subject?.code || null;
+      const catMatch = lookupSubjectInCatalog(rawCode, name);
+      const finalCode = rawCode ? String(rawCode) : catMatch?.code;
+      const finalCredits = s.credits ?? s.subject?.credits ?? catMatch?.credits ?? null;
+
+      const schedMatch = schedule?.subjects.find(
+        (sched) => (finalCode && sched.code === finalCode) || sched.name.toUpperCase() === name
+      );
+
+      return {
+        subjectID: s.subjectID || s.id || crypto.randomUUID(),
+        subjectName: catMatch?.name || name,
+        grade: s.grade,
+        code: finalCode,
+        credits: finalCredits,
+        group: schedMatch?.group,
+        days: schedMatch?.days,
+        schedule: schedMatch?.time || schedMatch?.rawSchedule,
+        professor: schedMatch?.professor,
+        matchStatus: catMatch ? 'matched' : (finalCode ? 'matched' : 'pending'),
+      };
+    });
+
+    // Añadir materias del horario actual si no están en initialSubjects
+    if (schedule?.subjects && Array.isArray(schedule.subjects)) {
+      schedule.subjects.forEach((schedSub) => {
+        const exists = formatted.some(
+          (f) => (f.code && f.code === schedSub.code) || f.subjectName === schedSub.name.toUpperCase()
+        );
+
+        if (!exists) {
+          formatted.unshift({
+            subjectID: `sched-${schedSub.code}-${schedSub.group}`,
+            subjectName: schedSub.officialName || schedSub.name.toUpperCase(),
+            code: schedSub.code,
+            credits: schedSub.credits,
+            group: schedSub.group,
+            days: schedSub.days,
+            schedule: schedSub.time || schedSub.rawSchedule,
+            professor: schedSub.professor,
+            matchStatus: schedSub.matchStatus,
+            grade: undefined,
+          });
+        }
+      });
+    }
+
+    setSubjects(formatted);
+  }, [initialSubjects]);
+
   const handleEdit = (s: Subject) => {
+    if (s.grade === undefined) return;
     setEditingId(s.subjectID);
     setDraftGrade(String(s.grade));
   };
 
   const saveEdit = (id: string) => {
-    const val = parseInt(draftGrade);
+    const val = parseInt(draftGrade, 10);
     if (isNaN(val) || val < 0 || val > 10) return;
     setSubjects(prev => prev.map(s => s.subjectID === id ? { ...s, grade: val } : s));
     setEditingId(null);
   };
+
   const uniqueSubjects = subjects.filter((subject, index, self) =>
     index === self.findIndex((t) => t.subjectID === subject.subjectID)
   );
-  useEffect(() => {
-    setSubjects(initialSubjects);
-  }, [initialSubjects]);
 
   return (
     <div className={styles.historyManagerRoot}>
@@ -53,28 +115,40 @@ export default function AcademicHistoryManager({ initialSubjects, isCollapsible 
           <div className={styles.subjectsGrid}>
             {uniqueSubjects.map(s => (
               <div key={s.subjectID} className={styles.historyItem}>
-                <div className={styles.badge}>
-                  <span className={styles.subjectNameText}>{s.subjectName}</span>
+                <div className={styles.badge} style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '8px' }}>
+                    <span className={styles.subjectNameText} style={{ fontWeight: 600 }}>{s.subjectName}</span>
+                    <div className={styles.gradeContainer}>
+                      {editingId === s.subjectID ? (
+                        <div className={styles.editGradeWrapper}>
+                          <input
+                            type="number"
+                            value={draftGrade}
+                            onChange={(e) => setDraftGrade(e.target.value)}
+                            className={styles.fieldInput}
+                            style={{ width: '45px', padding: '2px 5px', fontSize: '12px' }}
+                            autoFocus
+                          />
+                          <button className={styles.cardEditBtn} onClick={() => saveEdit(s.subjectID)}>✓</button>
+                        </div>
+                      ) : (
+                        <div className={styles.gradeDisplay}>
+                          <span className={styles.gradeValueText}>
+                            {s.grade !== undefined && s.grade !== null ? s.grade : 'En curso'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                  <div className={styles.gradeContainer}>
-                    {editingId === s.subjectID ? (
-                      <div className={styles.editGradeWrapper}>
-                        <input
-                          type="number"
-                          value={draftGrade}
-                          onChange={(e) => setDraftGrade(e.target.value)}
-                          className={styles.fieldInput}
-                          style={{ width: '45px', padding: '2px 5px', fontSize: '12px' }}
-                          autoFocus
-                        />
-                        <button className={styles.cardEditBtn} onClick={() => saveEdit(s.subjectID)}>✓</button>
-                      </div>
-                    ) : (
-                      <div className={styles.gradeDisplay}>
-                        <span className={styles.gradeValueText}>{s.grade}</span>
-
-                      </div>
-                    )}
+                  {/* Metadatos: Clave, Créditos, Grupo, Horario, Profesor */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>
+                    {s.code && <span style={{ color: 'rgba(201,168,76,0.9)' }}>Clave: {s.code}</span>}
+                    {s.credits !== null && s.credits !== undefined && <span>· {s.credits} cr</span>}
+                    {s.group && <span>· Gpo {s.group}</span>}
+                    {s.days && s.schedule && <span>· {s.days} ({s.schedule})</span>}
+                    {s.professor && <span>· Prof. {s.professor}</span>}
+                    {s.matchStatus === 'pending' && <span style={{ color: '#fbbf24' }}>· Pendiente</span>}
                   </div>
                 </div>
               </div>
@@ -83,15 +157,5 @@ export default function AcademicHistoryManager({ initialSubjects, isCollapsible 
         </div>
       )}
     </div>
-  );
-}
-
-// Icono pequeño de edición para mantener consistencia
-function EditIcon() {
-  return (
-    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-    </svg>
   );
 }
