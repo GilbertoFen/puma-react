@@ -1,6 +1,6 @@
 import { ENV } from '../config/env.config';
 
-export const API_URL = ENV.API_URL;
+export const API_URL = (ENV.API_URL || 'http://localhost:3001/api').replace(/\/+$/, '');
 
 /**
  * Obtiene el access token de autenticación desde el almacenamiento local.
