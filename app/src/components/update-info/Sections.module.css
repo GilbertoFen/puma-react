@@ -180,6 +180,119 @@
   background: rgba(37, 99, 235, 0.7);
 }
 
+/* Opciones interactivas de cuestionario según tipo de pregunta */
+.optionsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.optionBtn {
+  text-align: left;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13.5px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.optionBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(201, 168, 76, 0.4);
+}
+
+.optionBtnSelected {
+  background: rgba(201, 168, 76, 0.15) !important;
+  border-color: #c9a84c !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.optionRadio {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.optionRadioSelected {
+  border-color: #c9a84c;
+  background: #c9a84c;
+}
+
+.multiChipsWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.multiChipBtn {
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.multiChipBtn:hover {
+  border-color: rgba(201, 168, 76, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.multiChipBtnActive {
+  background: rgba(26, 79, 168, 0.4) !important;
+  border-color: #3b82f6 !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.branchRow {
+  display: flex;
+  gap: 10px;
+  margin: 8px 0;
+}
+
+.branchBtn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s;
+}
+
+.branchBtnActive {
+  background: rgba(201, 168, 76, 0.2) !important;
+  border-color: #c9a84c !important;
+  color: #fff !important;
+}
+
+.branchExtraArea {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 /* Botón de rehacer */
 .redoBtn {
   display: inline-flex;

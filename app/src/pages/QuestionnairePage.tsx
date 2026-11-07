@@ -26,6 +26,7 @@ export default function QuestionnairePage({ user, profile, onFinish }: Questionn
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [animDir, setAnimDir] = useState<string>('idle');
   const [error, setError] = useState('');
+  const [infoMsg, setInfoMsg] = useState('');
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -119,7 +120,8 @@ export default function QuestionnairePage({ user, profile, onFinish }: Questionn
       const handleFinalize = async () => {
         if (isSaving) return;
         setIsSaving(true);
-        setError("Guardando tus respuestas de PumaIA...");
+        setError('');
+        setInfoMsg("Guardando tus respuestas en PumaIA...");
 
         try {
           await questionnaireService.saveAnswers(answers);
@@ -138,6 +140,7 @@ export default function QuestionnairePage({ user, profile, onFinish }: Questionn
 
         } catch (err: any) {
           console.error("Error crítico al finalizar cuestionario:", err);
+          setInfoMsg('');
           setError("Hubo un problema al guardar tus respuestas en Supabase. Por favor, reintenta.");
           setTimeout(() => setError(''), 5000);
         } finally {
@@ -219,6 +222,40 @@ export default function QuestionnairePage({ user, profile, onFinish }: Questionn
       <div className="q-user-header">
         {/* Notificación de error unificada */}
         {error && <div className="login-error">{error}</div>}
+
+        {/* Notificación informativa durante el guardado de respuestas */}
+        {infoMsg && (
+          <div
+            style={{
+              padding: '10px 18px',
+              borderRadius: '10px',
+              background: 'rgba(201, 168, 76, 0.12)',
+              border: '1px solid rgba(201, 168, 76, 0.45)',
+              color: '#ffd54f',
+              fontSize: '13.5px',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              marginBottom: '12px',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
+              animation: 'fadeIn 0.25s ease',
+            }}
+          >
+            <div
+              style={{
+                width: '15px',
+                height: '15px',
+                borderRadius: '50%',
+                border: '2px solid rgba(201, 168, 76, 0.3)',
+                borderTopColor: '#ffd54f',
+                animation: 'spin 0.8s linear infinite',
+              }}
+            />
+            <span>{infoMsg}</span>
+          </div>
+        )}
 
         <h2 className="q-user-name">Bienvenido {profile.fullName}</h2>
         <p className="q-user-sub">{profile.academicInfo.career} · {profile.academicInfo.semester}</p>

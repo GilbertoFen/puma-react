@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./src/styles/globals.css";
 import { UserProvider } from "./src/context/UserContext";
 export default function RootLayout({
   children,

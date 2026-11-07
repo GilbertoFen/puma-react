@@ -242,9 +242,15 @@
 }
 
 /* ── CustomSelect ── */
-.customSelect {
+.customSelect,
+.selectWrap {
   position: relative;
   width: 100%;
+  z-index: 10;
+}
+
+.selectWrapOpen {
+  z-index: 100;
 }
 
 .selectTrigger {
@@ -286,12 +292,12 @@
   top: calc(100% + 5px);
   left: 0;
   right: 0;
-  z-index: 50;
+  z-index: 9999;
   background: #0d1e3a;
-  border: 1.5px solid rgba(201, 168, 76, 0.25);
+  border: 1.5px solid rgba(201, 168, 76, 0.4);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75);
   animation: dropIn 0.17s ease both;
   max-height: 220px;
   overflow-y: auto;
@@ -347,4 +353,154 @@
 .selectOptionActive {
   background: rgba(201, 168, 76, 0.08);
   color: rgba(201, 168, 76, 0.95);
+}
+
+/* ── Estilos para chips de intereses interactivos ── */
+.tagsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.tagChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: #fff;
+  transition: all 0.2s;
+}
+
+.tagRemoveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.18s;
+}
+
+.tagRemoveBtn:hover {
+  background: rgba(239, 68, 68, 0.7);
+}
+
+.addInputRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.addInputBtn {
+  padding: 8px 14px;
+  background: rgba(201, 168, 76, 0.25);
+  border: 1px solid rgba(201, 168, 76, 0.5);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.addInputBtn:hover {
+  background: rgba(201, 168, 76, 0.45);
+}
+
+/* ── Lista de elementos registrados (Cursos, Concursos, Idiomas, etc.) ── */
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+
+.itemRow:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.itemTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.itemSubtitle {
+  font-size: 11px;
+  color: rgba(201, 168, 76, 0.8);
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.itemBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.itemBtn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+.itemBtnDelete:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.inlineEditBox {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }

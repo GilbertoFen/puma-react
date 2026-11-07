@@ -42,7 +42,6 @@ export default function HomePage({
       try {
         // Ejecutamos todo en paralelo 
         await Promise.all([
-          fetch('https://server-genai.onrender.com', { method: 'GET' }).catch(() => { }),
           (async () => {
             const summary = await updateInfoService.getProfileSummary();
             const local = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -74,7 +73,8 @@ export default function HomePage({
   const goToUpdateInfo = () => router.push('/update-info');
   const goToExchange = () => router.push('/exchange');
   const goToAnalyze = () => router.push('/analyze');
-  const goToAbout= () => router.push('/about-page');
+  const goToAttendance = () => router.push('/attendance');
+  const goToAbout = () => router.push('/about-page');
 
   return (
     <div className={styles.root}>
@@ -164,6 +164,7 @@ export default function HomePage({
             onExchange={goToExchange}
             onUpdate={goToUpdateInfo}
             onAnalyze={goToAnalyze}
+            onAttendance={goToAttendance}
           />
         </section>
 
