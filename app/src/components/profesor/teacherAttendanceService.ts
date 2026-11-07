@@ -46,18 +46,82 @@ export class TeacherAttendanceService {
   /**
    * Abre o recupera la sesión activa de clase en /api/attendance/sessions
    */
-  public static async openSession(sectionId: string): Promise<any | null> {
+  public static async openSession(sectionId: string, date?: string): Promise<any | null> {
     try {
       const res = await fetch(`${API_URL}/attendance/sessions`, {
         method: 'POST',
         headers: this.getAuthHeaders(),
         credentials: 'include',
-        body: JSON.stringify({ sectionId }),
+        body: JSON.stringify({ sectionId, ...(date ? { date } : {}) }),
       });
       if (!res.ok) return null;
       return res.json();
     } catch {
       return null;
+    }
+  }
+
+  /**
+   * Consulta las sesiones de clase registradas para un grupo docente en /api/attendance/sections/:id/sessions
+   */
+  public static async fetchSectionSessions(sectionId: string): Promise<any[]> {
+    try {
+      const res = await fetch(
+        `${API_URL}/attendance/sections/${encodeURIComponent(sectionId)}/sessions`,
+        {
+          method: 'GET',
+          headers: this.getAuthHeaders(),
+          credentials: 'include',
+        },
+      );
+      if (!res.ok) return [];
+      return res.json();
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Consulta el historial de asistencia por fecha o completo para un grupo en /api/attendance/sections/:id/history
+   */
+  public static async fetchSectionHistory(sectionId: string, date?: string): Promise<any[]> {
+    try {
+      const query = date ? `?date=${encodeURIComponent(date)}` : '';
+      const res = await fetch(
+        `${API_URL}/attendance/sections/${encodeURIComponent(sectionId)}/history${query}`,
+        {
+          method: 'GET',
+          headers: this.getAuthHeaders(),
+          credentials: 'include',
+        },
+      );
+      if (!res.ok) return [];
+      return res.json();
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Consulta el historial individual de asistencia de un alumno específico en una asignatura
+   */
+  public static async fetchSectionStudentHistory(
+    sectionId: string,
+    studentId: string,
+  ): Promise<any[]> {
+    try {
+      const res = await fetch(
+        `${API_URL}/attendance/sections/${encodeURIComponent(sectionId)}/students/${encodeURIComponent(studentId)}/history`,
+        {
+          method: 'GET',
+          headers: this.getAuthHeaders(),
+          credentials: 'include',
+        },
+      );
+      if (!res.ok) return [];
+      return res.json();
+    } catch {
+      return [];
     }
   }
 

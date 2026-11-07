@@ -27,6 +27,27 @@ export default function AttendanceScanner({ onSuccess, onGoToCalendar }: Attenda
   const streamRef = useRef<MediaStream | null>(null);
   const animationFrameId = useRef<number | null>(null);
   const hasCapturedRef = useRef(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const lastScanTimeRef = useRef<number>(0);
+  const barcodeDetectorRef = useRef<any>(null);
+
+  // Detección nativa de códigos QR por hardware si el navegador lo soporta (Android Chrome, iOS Safari 17+)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'BarcodeDetector' in window) {
+      try {
+        const BD = (window as any).BarcodeDetector;
+        if (typeof BD.getSupportedFormats === 'function') {
+          BD.getSupportedFormats()
+            .then((formats: string[]) => {
+              if (formats.includes('qr_code')) {
+                barcodeDetectorRef.current = new BD({ formats: ['qr_code'] });
+              }
+            })
+            .catch(() => {});
+        }
+      } catch (_) {}
+    }
+  }, []);
 
   // Detener la cámara de manera segura
   const stopCamera = useCallback(() => {
@@ -48,7 +69,7 @@ export default function AttendanceScanner({ onSuccess, onGoToCalendar }: Attenda
   }, [stopCamera]);
 
   // Procesamiento del payload QR y llamada al backend
-  const handleDecodedText = async (rawText: string) => {
+  const handleDecodedText = useCallback(async (rawText: string) => {
     if (hasCapturedRef.current || isProcessing) return;
     hasCapturedRef.current = true;
     setIsProcessing(true);
@@ -65,17 +86,17 @@ export default function AttendanceScanner({ onSuccess, onGoToCalendar }: Attenda
       let sessionId = '';
       let secret = '';
 
-      // 1. Intentar decodificar como JSON (formato estándar de PumaIA DynamicQrCode)
+      // 1. Intentar decodificar como URL completa con parámetros (estándar oficial PumaIA)
       try {
-        const parsed = JSON.parse(rawText);
-        sessionId = parsed.sessionId || parsed.session_id || parsed.id || '';
-        secret = parsed.secret || parsed.qrToken || parsed.token || parsed.dynamicSalt || '';
+        const url = new URL(rawText);
+        sessionId = url.searchParams.get('sessionId') || url.searchParams.get('session_id') || '';
+        secret = url.searchParams.get('secret') || url.searchParams.get('token') || '';
       } catch (_) {
-        // 2. Intentar decodificar como URL con parámetros
+        // 2. Intentar decodificar como JSON (formato alternativo/legado)
         try {
-          const url = new URL(rawText);
-          sessionId = url.searchParams.get('sessionId') || url.searchParams.get('session_id') || '';
-          secret = url.searchParams.get('secret') || url.searchParams.get('token') || '';
+          const parsed = JSON.parse(rawText);
+          sessionId = parsed.sessionId || parsed.session_id || parsed.id || '';
+          secret = parsed.secret || parsed.qrToken || parsed.token || parsed.dynamicSalt || '';
         } catch (_) {
           // 3. Fallback: formato delimitado 'sessionId|secret' o 'sessionId:secret'
           if (rawText.includes('|')) {
@@ -133,38 +154,75 @@ export default function AttendanceScanner({ onSuccess, onGoToCalendar }: Attenda
     } finally {
       setIsProcessing(false);
     }
-  };
+  }, [isProcessing, onSuccess, stopCamera]);
 
-  // Ciclo continuo de lectura de fotogramas de video con jsQR
-  const scanLoop = useCallback(() => {
+  // Ciclo continuo y optimizado de lectura de fotogramas de video
+  const scanLoop = useCallback(async () => {
     const video = videoRef.current;
-    if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) {
-      animationFrameId.current = requestAnimationFrame(scanLoop);
+    if (!video || video.readyState < 2 || video.videoWidth === 0) {
+      if (!hasCapturedRef.current) {
+        animationFrameId.current = requestAnimationFrame(scanLoop);
+      }
       return;
     }
 
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const now = performance.now();
+    // Throttle a ~15 lecturas por segundo para mantener 60fps fluidos sin sobrecargar CPU de móviles
+    if (now - lastScanTimeRef.current >= 65) {
+      lastScanTimeRef.current = now;
 
-    if (ctx) {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: 'dontInvert',
-      });
+      // 1. Prioridad: BarcodeDetector nativo acelerado por hardware
+      if (barcodeDetectorRef.current) {
+        try {
+          const barcodes = await barcodeDetectorRef.current.detect(video);
+          if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+            handleDecodedText(barcodes[0].rawValue);
+            return;
+          }
+        } catch (_) {
+          // Si falla BarcodeDetector continúa al fallback de jsQR
+        }
+      }
 
-      if (code && code.data && code.data.trim() !== '') {
-        handleDecodedText(code.data);
-        return;
+      // 2. Fallback de alta velocidad: jsQR con canvas reutilizable y resolución adaptada
+      if (!canvasRef.current) {
+        canvasRef.current = document.createElement('canvas');
+      }
+      const canvas = canvasRef.current;
+
+      // Escalado a resolución óptima (máx 640px) para decodificación en <10ms en cualquier móvil
+      const MAX_DIM = 640;
+      let scale = 1;
+      if (video.videoWidth > MAX_DIM || video.videoHeight > MAX_DIM) {
+        scale = Math.min(MAX_DIM / video.videoWidth, MAX_DIM / video.videoHeight);
+      }
+      const scanWidth = Math.max(320, Math.floor(video.videoWidth * scale));
+      const scanHeight = Math.max(240, Math.floor(video.videoHeight * scale));
+
+      if (canvas.width !== scanWidth || canvas.height !== scanHeight) {
+        canvas.width = scanWidth;
+        canvas.height = scanHeight;
+      }
+
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, scanWidth, scanHeight);
+        const imageData = ctx.getImageData(0, 0, scanWidth, scanHeight);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'attemptBoth',
+        });
+
+        if (code && code.data && code.data.trim() !== '') {
+          handleDecodedText(code.data);
+          return;
+        }
       }
     }
 
     if (!hasCapturedRef.current) {
       animationFrameId.current = requestAnimationFrame(scanLoop);
     }
-  }, []);
+  }, [handleDecodedText]);
 
   // Iniciar cámara web / cámara del móvil
   const startCamera = async () => {
@@ -181,7 +239,7 @@ export default function AttendanceScanner({ onSuccess, onGoToCalendar }: Attenda
     }
 
     try {
-      // Priorizar cámara trasera en móviles (facingMode environment)
+      // Priorizar cámara trasera en móviles (facingMode environment) con resolución HD estándar
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: 'environment' },
@@ -194,16 +252,26 @@ export default function AttendanceScanner({ onSuccess, onGoToCalendar }: Attenda
       streamRef.current = stream;
       setIsScanning(true);
 
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play().then(() => {
-            animationFrameId.current = requestAnimationFrame(scanLoop);
-          }).catch((e) => {
-            console.error('Error reproduciendo video:', e);
-          });
+      // Conexión del stream al elemento de video
+      requestAnimationFrame(() => {
+        const video = videoRef.current;
+        if (video) {
+          video.srcObject = stream;
+          video.setAttribute('playsinline', 'true');
+          video.setAttribute('webkit-playsinline', 'true');
+          video.muted = true;
+          video
+            .play()
+            .then(() => {
+              if (!animationFrameId.current) {
+                animationFrameId.current = requestAnimationFrame(scanLoop);
+              }
+            })
+            .catch((e) => {
+              console.error('Error reproduciendo video:', e);
+            });
         }
-      }, 100);
+      });
     } catch (err: any) {
       console.warn('Permiso de cámara rechazado o error:', err);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
@@ -273,7 +341,7 @@ export default function AttendanceScanner({ onSuccess, onGoToCalendar }: Attenda
                 style={{ flex: 1 }}
                 onClick={onGoToCalendar}
               >
-                Ver en mi calendario →
+                Ver en mi calendario
               </button>
             )}
           </div>
@@ -283,7 +351,34 @@ export default function AttendanceScanner({ onSuccess, onGoToCalendar }: Attenda
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', width: '100%' }}>
           <div className={styles.viewportContainer}>
             <video
-              ref={videoRef}
+              ref={(el) => {
+                videoRef.current = el;
+                if (el && streamRef.current && el.srcObject !== streamRef.current) {
+                  el.srcObject = streamRef.current;
+                  el.setAttribute('playsinline', 'true');
+                  el.setAttribute('webkit-playsinline', 'true');
+                  el.muted = true;
+                  el.play()
+                    .then(() => {
+                      if (!animationFrameId.current) {
+                        animationFrameId.current = requestAnimationFrame(scanLoop);
+                      }
+                    })
+                    .catch(() => {});
+                }
+              }}
+              onLoadedMetadata={() => {
+                if (videoRef.current) {
+                  videoRef.current
+                    .play()
+                    .then(() => {
+                      if (!animationFrameId.current) {
+                        animationFrameId.current = requestAnimationFrame(scanLoop);
+                      }
+                    })
+                    .catch(() => {});
+                }
+              }}
               className={styles.cameraVideo}
               playsInline
               muted

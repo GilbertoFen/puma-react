@@ -80,37 +80,82 @@
   flex: 1;
   overflow: hidden;
   height: calc(100vh - 82px);
+  height: calc(100dvh - 82px);
 }
+
 .sidebarToggleBtn {
-  display: none;
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.8);
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(201, 168, 76, 0.12);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  border-radius: 8px;
+  color: #ffd54f;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
 }
+
+.sidebarToggleBtn:hover {
+  background: rgba(201, 168, 76, 0.22);
+  border-color: #ffd54f;
+  color: #fff;
+}
+
+.sidebarToggleText {
+  display: inline-block;
+}
+
+.sidebarBadge {
+  background: #c9a84c;
+  color: #060d1f;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 10px;
+  line-height: 1.2;
+}
+
+.sidebarBackdrop {
+  display: none;
+}
+
 /* ── Responsive móvil ── */
 @media (max-width: 768px) {
   .content {
     flex-direction: row;
     width: 100vw;
+    height: calc(100dvh - 72px);
   }
+
   .sidebarToggleBtn {
     display: flex;
+    padding: 5px 9px;
   }
+
+  .sidebarBackdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(3px);
+    animation: fadeIn 0.2s ease;
+  }
+
   .toolbar {
-    padding: 8px 14px;
-    gap: 10px;
+    padding: 8px 12px;
+    gap: 8px;
   }
 
   .toolbarGreeting {
-    font-size: 11px;
+    font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: calc(100vw - 80px);
+    margin-left: auto;
   }
 }

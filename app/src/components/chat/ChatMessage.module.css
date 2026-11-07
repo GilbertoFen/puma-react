@@ -151,6 +151,19 @@
   opacity: 1;
 }
 
+@media (max-width: 768px) {
+  .row {
+    padding: 10px 14px;
+    gap: 8px;
+  }
+  .bubble {
+    max-width: 88%;
+  }
+  .actions {
+    opacity: 1;
+  }
+}
+
 .actionsUser {
   justify-content: flex-end;
 }
@@ -170,12 +183,175 @@
   border-radius: 6px;
   color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .actionBtn:hover {
   background: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.9);
+}
+
+.actionBtnActiveUp {
+  color: #4ade80 !important;
+  background: rgba(74, 222, 128, 0.15) !important;
+  border-color: rgba(74, 222, 128, 0.45) !important;
+  opacity: 1 !important;
+}
+
+.actionBtnActiveDown {
+  color: #f87171 !important;
+  background: rgba(248, 113, 113, 0.15) !important;
+  border-color: rgba(248, 113, 113, 0.45) !important;
+  opacity: 1 !important;
+}
+
+/* Modal de retroalimentación / Dislike */
+.feedbackModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  animation: fadeInModal 0.2s ease;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.feedbackModalCard {
+  background: #0b1733;
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  border-radius: 14px;
+  padding: 24px;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  color: #fff;
+  animation: modalScale 0.2s ease both;
+}
+
+@keyframes modalScale {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.feedbackModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.feedbackModalTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffd54f;
+  margin: 0;
+  font-family: var(--font-display, inherit);
+}
+
+.feedbackModalCloseBtn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.feedbackModalCloseBtn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.feedbackModalDesc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.feedbackTextarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 13.5px;
+  resize: vertical;
+  min-height: 90px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.feedbackTextarea:focus {
+  border-color: #c9a84c;
+}
+
+.feedbackModalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.feedbackCancelBtn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.feedbackCancelBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.feedbackSubmitBtn {
+  padding: 8px 18px;
+  background: linear-gradient(135deg, #c9a84c, #ffd54f);
+  border: none;
+  border-radius: 8px;
+  color: #060d1f;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.feedbackSubmitBtn:hover {
+  opacity: 0.92;
+}
+
+.feedbackSubmitBtn:active {
+  transform: scale(0.98);
 }
 
 /* ── Burbuja de error ── */

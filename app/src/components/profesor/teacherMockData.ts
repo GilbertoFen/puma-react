@@ -1,5 +1,18 @@
 import { TeacherProfile } from './teacherTypes';
 
+export const FALLBACK_TEACHER_STUDENTS = [
+  { id: 'std-101', name: 'Aguilar Mendoza Rodrigo', accountNumber: '318029341', currentStatus: 'pendiente' },
+  { id: 'std-102', name: 'Benítez Cruz Ximena Sofía', accountNumber: '319204918', currentStatus: 'pendiente' },
+  { id: 'std-103', name: 'Cabrera Romero Diego Emiliano', accountNumber: '318392015', currentStatus: 'pendiente' },
+  { id: 'std-104', name: 'Domínguez Morales Valeria', accountNumber: '320194827', currentStatus: 'pendiente' },
+  { id: 'std-105', name: 'Espinoza Galindo Carlos Andrés', accountNumber: '319402914', currentStatus: 'pendiente' },
+  { id: 'std-106', name: 'Flores Navarrete Mariana', accountNumber: '318957204', currentStatus: 'pendiente' },
+  { id: 'std-107', name: 'García Villanueva Héctor', accountNumber: '320491823', currentStatus: 'pendiente' },
+  { id: 'std-108', name: 'Hernández Beltrán Fernanda', accountNumber: '318284910', currentStatus: 'pendiente' },
+  { id: 'std-109', name: 'Juárez Santillán Camila', accountNumber: '319028471', currentStatus: 'pendiente' },
+  { id: 'std-110', name: 'López Calderón Sebastián', accountNumber: '320394819', currentStatus: 'pendiente' },
+];
+
 export const DEFAULT_TEACHER_PROFILE: TeacherProfile = {
   id: 'dabfd7c2-c718-4017-bc27-86db61021506',
   accountNumber: 'DOCENTE',
@@ -10,99 +23,7 @@ export const DEFAULT_TEACHER_PROFILE: TeacherProfile = {
   institution: 'FES Acatlán · UNAM',
   semester: 'Semestre 2027-1',
   avatarInitial: 'J',
-  courses: [
-    {
-      id: 'course-1302',
-      name: 'Programación I',
-      code: 'MAC-1302',
-      group: 'Grupo 1302',
-      schedule: 'Lun, Mié, Vie · 07:00 - 09:00 hrs',
-      classroom: 'Edificio A-4, Salón 402',
-      colorTag: 'gold',
-      scheduleSlots: [
-        { day: 'Lunes', dayIndex: 1, startHour: 7, endHour: 9, displayTime: '07:00 - 09:00 hrs' },
-        { day: 'Miércoles', dayIndex: 3, startHour: 7, endHour: 9, displayTime: '07:00 - 09:00 hrs' },
-        { day: 'Viernes', dayIndex: 5, startHour: 7, endHour: 9, displayTime: '07:00 - 09:00 hrs' },
-      ],
-      students: [
-        { id: 'std-101', name: 'Aguilar Mendoza Rodrigo', accountNumber: '318029341', currentStatus: 'pendiente' },
-        { id: 'std-102', name: 'Benítez Cruz Ximena Sofía', accountNumber: '319204918', currentStatus: 'pendiente' },
-        { id: 'std-103', name: 'Cabrera Romero Diego Emiliano', accountNumber: '318392015', currentStatus: 'pendiente' },
-        { id: 'std-104', name: 'Domínguez Morales Valeria', accountNumber: '320194827', currentStatus: 'pendiente' },
-        { id: 'std-105', name: 'Espinoza Galindo Carlos Andrés', accountNumber: '319402914', currentStatus: 'pendiente' },
-        { id: 'std-106', name: 'Flores Navarrete Mariana', accountNumber: '318957204', currentStatus: 'pendiente' },
-        { id: 'std-107', name: 'García Villanueva Héctor', accountNumber: '320491823', currentStatus: 'pendiente' },
-        { id: 'std-108', name: 'Hernández Beltrán Fernanda', accountNumber: '318284910', currentStatus: 'pendiente' },
-        { id: 'std-109', name: 'Juárez Santillán Camila', accountNumber: '319028471', currentStatus: 'pendiente' },
-        { id: 'std-110', name: 'López Calderón Sebastián', accountNumber: '320394819', currentStatus: 'pendiente' },
-      ],
-    },
-    {
-      id: 'course-2301',
-      name: 'Álgebra Lineal',
-      code: 'MAC-2301',
-      group: 'Grupo 2301',
-      schedule: 'Lun, Mié · 09:00 - 11:00 hrs',
-      classroom: 'Edificio A-2, Salón 201',
-      colorTag: 'blue',
-      scheduleSlots: [
-        { day: 'Lunes', dayIndex: 1, startHour: 9, endHour: 11, displayTime: '09:00 - 11:00 hrs' },
-        { day: 'Miércoles', dayIndex: 3, startHour: 9, endHour: 11, displayTime: '09:00 - 11:00 hrs' },
-      ],
-      students: [
-        { id: 'std-201', name: 'Alvarado Reyes Gael', accountNumber: '319482910', currentStatus: 'pendiente' },
-        { id: 'std-202', name: 'Castillo Pineda Regina', accountNumber: '320194823', currentStatus: 'pendiente' },
-        { id: 'std-203', name: 'Díaz Corona Leonardo', accountNumber: '318392810', currentStatus: 'pendiente' },
-        { id: 'std-204', name: 'Fuentes Meza Andrea Paulina', accountNumber: '319502914', currentStatus: 'pendiente' },
-        { id: 'std-205', name: 'Gutiérrez Ortiz Bruno', accountNumber: '320948192', currentStatus: 'pendiente' },
-        { id: 'std-206', name: 'Márquez Lozano Emilio', accountNumber: '318928471', currentStatus: 'pendiente' },
-        { id: 'std-207', name: 'Ochoa Salgado Daniela', accountNumber: '319384721', currentStatus: 'pendiente' },
-        { id: 'std-208', name: 'Pérez Gallardo Alan', accountNumber: '320183749', currentStatus: 'pendiente' },
-      ],
-    },
-    {
-      id: 'course-1401',
-      name: 'Estructuras de Datos y Algoritmos',
-      code: 'MAC-1401',
-      group: 'Grupo 1401',
-      schedule: 'Mar, Jue · 09:00 - 11:00 hrs',
-      classroom: 'Laboratorio de Cómputo L-2',
-      colorTag: 'cyan',
-      scheduleSlots: [
-        { day: 'Martes', dayIndex: 2, startHour: 9, endHour: 11, displayTime: '09:00 - 11:00 hrs' },
-        { day: 'Jueves', dayIndex: 4, startHour: 9, endHour: 11, displayTime: '09:00 - 11:00 hrs' },
-      ],
-      students: [
-        { id: 'std-301', name: 'Bautista Vargas Iker Mateo', accountNumber: '318192840', currentStatus: 'pendiente' },
-        { id: 'std-302', name: 'Chávez Delgado Nicole', accountNumber: '320491820', currentStatus: 'pendiente' },
-        { id: 'std-303', name: 'Estrada Ramos Daniel', accountNumber: '319382910', currentStatus: 'pendiente' },
-        { id: 'std-304', name: 'Gómez Téllez Renata', accountNumber: '318492019', currentStatus: 'pendiente' },
-        { id: 'std-305', name: 'Navarro Silva Patricio', accountNumber: '320194812', currentStatus: 'pendiente' },
-        { id: 'std-306', name: 'Romero Valdés Sofía', accountNumber: '319482019', currentStatus: 'pendiente' },
-        { id: 'std-307', name: 'Torres Méndez Javier', accountNumber: '318392048', currentStatus: 'pendiente' },
-      ],
-    },
-    {
-      id: 'course-1701',
-      name: 'Sistemas Distribuidos y Redes',
-      code: 'MAC-1701',
-      group: 'Grupo 1701',
-      schedule: 'Mar, Jue · 11:00 - 13:00 hrs',
-      classroom: 'Edificio A-2, Salón 205',
-      colorTag: 'navy',
-      scheduleSlots: [
-        { day: 'Martes', dayIndex: 2, startHour: 11, endHour: 13, displayTime: '11:00 - 13:00 hrs' },
-        { day: 'Jueves', dayIndex: 4, startHour: 11, endHour: 13, displayTime: '11:00 - 13:00 hrs' },
-      ],
-      students: [
-        { id: 'std-401', name: 'Vargas Solís Ricardo', accountNumber: '319384910', currentStatus: 'pendiente' },
-        { id: 'std-402', name: 'Zúñiga Morales Andrea', accountNumber: '318294819', currentStatus: 'pendiente' },
-        { id: 'std-403', name: 'Reyes Trejo Carlos', accountNumber: '320194829', currentStatus: 'pendiente' },
-        { id: 'std-404', name: 'Sánchez Medina Paola', accountNumber: '318928401', currentStatus: 'pendiente' },
-        { id: 'std-405', name: 'Cruz Peña Esteban', accountNumber: '319482910', currentStatus: 'pendiente' },
-      ],
-    },
-  ],
+  courses: [],
 };
 
 // Clave segura para persistencia local de sesión docente sin chocar con estudiantes

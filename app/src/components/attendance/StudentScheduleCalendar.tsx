@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import styles from '../profesor/TeacherPage.module.css';
 import { DayOfWeek } from '../profesor/teacherTypes';
 import { EnrolledScheduleSubject } from '../../services/schedule.service';
@@ -13,21 +13,78 @@ interface StudentScheduleCalendarProps {
 
 const DAYS: DayOfWeek[] = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 const DEFAULT_HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
-
 const COLOR_PALETTE = ['gold', 'blue', 'cyan', 'navy'] as const;
+
+/**
+ * Obtiene el lunes de la semana para un offset dado (0 = semana actual)
+ */
+function getMondayOfWeek(offsetWeeks = 0): Date {
+  const d = new Date();
+  const day = d.getDay();
+  // En JS: 0=Domingo, 1=Lunes, ... 6=Sábado
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diffToMonday + offsetWeeks * 7);
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+}
+
+/**
+ * Formatea una fecha YYYY-MM-DD en hora local
+ */
+function toLocalDateKey(dateObj: Date): string {
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export default function StudentScheduleCalendar({
   subjects,
   attendanceRecords,
 }: StudentScheduleCalendarProps) {
+  const [viewMode, setViewMode] = useState<'calendar' | 'subjects'>('calendar');
+  const [weekOffset, setWeekOffset] = useState<number>(0);
   const [selectedSubject, setSelectedSubject] = useState<EnrolledScheduleSubject | null>(null);
+  const [selectedDayKey, setSelectedDayKey] = useState<string | null>(null);
 
-  // Mapear materias a slots en días y horas
-  const parsedCourses = React.useMemo(() => {
+  // Fechas concretas para Lunes a Viernes de la semana seleccionada
+  const weekDays = useMemo(() => {
+    const monday = getMondayOfWeek(weekOffset);
+    return DAYS.map((dayName, idx) => {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + idx);
+      const isToday = toLocalDateKey(date) === toLocalDateKey(new Date());
+      const dateKey = toLocalDateKey(date);
+      const dayNum = date.getDate();
+      const monthStr = date.toLocaleDateString('es-MX', { month: 'short' });
+      return {
+        dayName,
+        date,
+        dateKey,
+        dayNum,
+        monthStr,
+        isToday,
+      };
+    });
+  }, [weekOffset]);
+
+  // Texto legible del rango semanal (e.g. "Semana del 9 al 15 de Noviembre 2026")
+  const weekLabel = useMemo(() => {
+    const start = weekDays[0].date;
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    const startStr = `${start.getDate()} de ${start.toLocaleDateString('es-MX', { month: 'short' })}`;
+    const endStr = `${end.getDate()} de ${end.toLocaleDateString('es-MX', { month: 'short', year: 'numeric' })}`;
+    return `Semana del ${startStr} al ${endStr}`;
+  }, [weekDays]);
+
+  // Parseo y enriquecimiento de materias
+  const parsedCourses = useMemo(() => {
     return subjects.map((sub, idx) => {
       const colorTag = COLOR_PALETTE[idx % COLOR_PALETTE.length];
 
-      // Parsear días
+      // Días
       const daysFound: DayOfWeek[] = [];
       const lowerDays = (sub.days || '').toLowerCase();
       if (lowerDays.includes('lun') || lowerDays.includes('lu')) daysFound.push('Lunes');
@@ -36,8 +93,10 @@ export default function StudentScheduleCalendar({
       if (lowerDays.includes('jue') || lowerDays.includes('ju')) daysFound.push('Jueves');
       if (lowerDays.includes('vie') || lowerDays.includes('vi')) daysFound.push('Viernes');
 
-      // Parsear horas
-      const hourMatches = Array.from((sub.time || '').matchAll(/(\d{1,2}):\d{2}/g)).map(m => parseInt(m[1], 10));
+      // Horas
+      const hourMatches = Array.from((sub.time || '').matchAll(/(\d{1,2}):\d{2}/g)).map((m) =>
+        parseInt(m[1], 10),
+      );
       let startHour = 7;
       let endHour = 9;
 
@@ -49,10 +108,11 @@ export default function StudentScheduleCalendar({
         endHour = startHour + 2;
       }
 
-      // Horario de visualización
-      const displayTime = `${startHour.toString().padStart(2, '0')}:00 - ${endHour.toString().padStart(2, '0')}:00`;
+      const displayTime = `${startHour.toString().padStart(2, '0')}:00 - ${endHour
+        .toString()
+        .padStart(2, '0')}:00`;
 
-      // Cruzar con registros de asistencia
+      // Cruzar con registros de asistencia del backend
       const cleanSubCode = String(sub.code || '').replace(/\D/g, '');
       const subSectionId = (sub as any).sectionId;
       const normalize = (str: string) =>
@@ -68,24 +128,16 @@ export default function StudentScheduleCalendar({
 
       const matchingRecords = attendanceRecords.filter((rec: any) => {
         const recSectionId = rec.session?.sectionId || rec.session?.section?.id;
+        if (subSectionId && recSectionId && subSectionId === recSectionId) return true;
 
-        // 1. Coincidencia directa por ID de sección (el identificador más exacto)
-        if (subSectionId && recSectionId && subSectionId === recSectionId) {
-          return true;
-        }
-
-        // 2. Coincidencia por clave oficial de materia (ej. 1754 vs 1086)
         const recSubCode = String(rec.session?.section?.subject?.code || '').replace(/\D/g, '');
-        if (cleanSubCode && recSubCode && cleanSubCode === recSubCode) {
-          return true;
-        }
+        if (cleanSubCode && recSubCode && cleanSubCode === recSubCode) return true;
 
-        // 3. Coincidencia por nombre normalizado de materia
         const recSubName = normalize(
           rec.session?.section?.subject?.subject ||
-          rec.session?.section?.subject?.name ||
-          rec.session?.section?.name ||
-          ''
+            rec.session?.section?.subject?.name ||
+            rec.session?.section?.name ||
+            '',
         );
 
         if (cleanSubName && recSubName) {
@@ -98,21 +150,10 @@ export default function StudentScheduleCalendar({
             return true;
           }
         }
-
         return false;
       });
 
-      const hasPresent = matchingRecords.some(r => r.status === 'PRESENT');
-      const hasAbsent = matchingRecords.some(r => r.status === 'ABSENT');
-
-      let attendanceStatus: 'present' | 'absent' | 'pending' = 'pending';
-      if (hasPresent) {
-        attendanceStatus = 'present';
-      } else if (hasAbsent) {
-        attendanceStatus = 'absent';
-      }
-
-      const scheduleSlots = daysFound.map(day => ({
+      const scheduleSlots = daysFound.map((day) => ({
         day,
         startHour,
         endHour,
@@ -129,25 +170,22 @@ export default function StudentScheduleCalendar({
         professor: sub.professor || 'Profesor asignado',
         colorTag,
         scheduleSlots,
-        attendanceStatus,
         matchingRecords,
         rawSubject: sub,
       };
     });
   }, [subjects, attendanceRecords]);
 
-  // Determinar rango horario dinámico para mostrar en el calendario
-  const calendarHours = React.useMemo(() => {
+  // Rango horario dinámico
+  const calendarHours = useMemo(() => {
     let minH = 7;
     let maxH = 15;
-
     for (const c of parsedCourses) {
       for (const s of c.scheduleSlots) {
         if (s.startHour < minH) minH = s.startHour;
         if (s.endHour > maxH) maxH = s.endHour;
       }
     }
-
     const hours: number[] = [];
     for (let h = Math.max(7, minH); h <= Math.min(22, maxH); h++) {
       hours.push(h);
@@ -155,6 +193,7 @@ export default function StudentScheduleCalendar({
     return hours.length > 0 ? hours : DEFAULT_HOURS;
   }, [parsedCourses]);
 
+  // Encuentra la clase que corresponde a un día y hora
   const getSlotAt = (day: DayOfWeek, hour: number) => {
     for (const course of parsedCourses) {
       for (const slot of course.scheduleSlots) {
@@ -172,180 +211,532 @@ export default function StudentScheduleCalendar({
     return null;
   };
 
+  // Verifica el estatus de asistencia de un curso en una fecha concreta YYYY-MM-DD
+  const getAttendanceForCourseOnDate = (course: (typeof parsedCourses)[0], dateKey: string) => {
+    const recordOnDate = course.matchingRecords.find((rec: any) => {
+      // 1. Verificar por sessionDate directa (@db.Date)
+      if (rec.sessionDate) {
+        const dStr = String(rec.sessionDate).substring(0, 10);
+        if (dStr === dateKey) return true;
+      }
+      if (rec.session?.sessionDate) {
+        const dStr = String(rec.session.sessionDate).substring(0, 10);
+        if (dStr === dateKey) return true;
+      }
+      // 2. Verificar por markedAt o startsAt
+      const rawDate = rec.markedAt || rec.session?.startsAt;
+      if (rawDate) {
+        const dObj = new Date(rawDate);
+        if (toLocalDateKey(dObj) === dateKey) return true;
+      }
+      return false;
+    });
+
+    if (recordOnDate) {
+      return {
+        hasRecord: true,
+        status: recordOnDate.status,
+        markedAt: recordOnDate.markedAt,
+        method: recordOnDate.method,
+        recordId: recordOnDate.id,
+      };
+    }
+
+    return {
+      hasRecord: false,
+      status: 'PENDING' as const,
+      markedAt: null,
+      method: null,
+      recordId: null,
+    };
+  };
+
   return (
     <div className={styles.calendarCard}>
+      {/* ── BARRA SUPERIOR CON SELECTOR DE VISTAS ── */}
       <div className={styles.calendarHeader}>
         <div className={styles.calendarTitleWrap}>
-          <h2 className={styles.calendarTitle}>
-            <CalendarGridIcon /> Mi Horario Semanal y Asistencias
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 className={styles.calendarTitle}>
+              <CalendarGridIcon /> Asistencias y Horario de Clases
+            </h2>
+          </div>
           <span className={styles.calendarSub}>
-            Horario oficial de asignaturas inscritas con estatus de asistencia en tiempo real.
+            Consulta tus asistencias por clase en fechas concretas y el historial detallado por materia.
           </span>
         </div>
 
-        {/* Leyenda interactiva de materias inscritas */}
-        <div className={styles.calendarLegend}>
-          {parsedCourses.map((c) => {
-            const isSelected = selectedSubject?.code === c.code;
-            return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setSelectedSubject(c.rawSubject)}
-                className={`${styles.legendPill} ${styles[`legend_${c.colorTag}`]} ${
-                  isSelected ? styles.legendPillActive : ''
-                }`}
-                title={`Ver detalles de ${c.name} (${c.group})`}
-              >
-                <span className={styles.legendDot} />
-                <span className={styles.legendGroupName}>{c.group}</span>
-                <span className={styles.legendCourseName}>· {c.name}</span>
-                {c.attendanceStatus === 'present' && (
-                  <span style={{ fontSize: '10px', color: '#4ade80', marginLeft: '4px' }}>
-                    ✓ Asistencia
-                  </span>
-                )}
-              </button>
-            );
-          })}
+        {/* Botones de alternancia entre Vista Semanal y Vista General por Materia */}
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={() => setViewMode('calendar')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: viewMode === 'calendar' ? '1px solid #c9a84c' : '1px solid rgba(255,255,255,0.12)',
+              background: viewMode === 'calendar' ? 'rgba(201, 168, 76, 0.2)' : 'rgba(255,255,255,0.04)',
+              color: viewMode === 'calendar' ? '#ffd54f' : 'rgba(255,255,255,0.7)',
+            }}
+          >
+            Vista Semanal (Fechas)
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('subjects')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              borderRadius: '8px',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              border: viewMode === 'subjects' ? '1px solid #c9a84c' : '1px solid rgba(255,255,255,0.12)',
+              background: viewMode === 'subjects' ? 'rgba(201, 168, 76, 0.2)' : 'rgba(255,255,255,0.04)',
+              color: viewMode === 'subjects' ? '#ffd54f' : 'rgba(255,255,255,0.7)',
+            }}
+          >
+            Resumen por Materia ({parsedCourses.length})
+          </button>
         </div>
       </div>
 
-      {/* Grid del Calendario */}
-      <div className={styles.calendarGridWrapper}>
-        <div className={styles.calendarTable}>
-          {/* Cabecera de días */}
-          <div className={styles.calendarHeaderRow}>
-            <div className={styles.hourCornerCell}>Hora</div>
-            {DAYS.map((day) => (
-              <div key={day} className={styles.dayHeaderCell}>
-                <span className={styles.dayName}>{day}</span>
-              </div>
-            ))}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/* VISTA 1: CALENDARIO SEMANAL CON NAVEGACIÓN Y FECHAS CONCRETAS */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {viewMode === 'calendar' && (
+        <div>
+          {/* Navegador de Semanas */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 18px',
+              background: 'rgba(0, 0, 0, 0.25)',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              flexWrap: 'wrap',
+              gap: '12px',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setWeekOffset((prev) => prev - 1)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.07)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '6px',
+                  color: '#fff',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+                title="Semana anterior"
+              >
+                ← Semana anterior
+              </button>
+
+              <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff', marginLeft: '6px' }}>
+                {weekLabel} {weekOffset === 0 && <span style={{ color: '#c9a84c', fontSize: '12px' }}>(Semana actual)</span>}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setWeekOffset((prev) => prev + 1)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.07)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '6px',
+                  color: '#fff',
+                  padding: '6px 12px',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                }}
+                title="Semana siguiente"
+              >
+                Semana siguiente →
+              </button>
+            </div>
+
+            {weekOffset !== 0 && (
+              <button
+                type="button"
+                onClick={() => setWeekOffset(0)}
+                style={{
+                  background: 'rgba(201, 168, 76, 0.2)',
+                  border: '1px solid rgba(201, 168, 76, 0.4)',
+                  color: '#ffd54f',
+                  borderRadius: '6px',
+                  padding: '6px 14px',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Volver a la semana actual
+              </button>
+            )}
           </div>
 
-          {/* Filas horarias */}
-          {calendarHours.map((hour) => {
-            const hourLabel = `${hour.toString().padStart(2, '0')}:00`;
-            return (
-              <div key={hour} className={styles.calendarHourRow}>
-                <div className={styles.hourLabelCell}>{hourLabel}</div>
-
-                {DAYS.map((day) => {
-                  const match = getSlotAt(day, hour);
-
-                  if (!match) {
-                    return (
-                      <div
-                        key={`${day}-${hour}`}
-                        className={styles.calendarEmptyCell}
-                      />
-                    );
-                  }
-
-                  const { course, slot, isFirstHour } = match;
-                  const isSelected = selectedSubject?.code === course.code;
-
-                  if (!isFirstHour) {
-                    return (
-                      <div
-                        key={`${day}-${hour}`}
-                        className={`${styles.calendarFilledCell} ${styles.slotContinuation} ${
-                          styles[`slot_${course.colorTag}`]
-                        } ${isSelected ? styles.slotSelected : ''}`}
-                        onClick={() => setSelectedSubject(course.rawSubject)}
-                        title={`Continuación de clase: ${course.name} (${course.group})`}
-                      />
-                    );
-                  }
-
+          {/* Grid Semanal con Días y Fechas */}
+          <div className={styles.calendarGridWrapper}>
+            <div className={styles.calendarTable}>
+              {/* Cabecera de días con fechas reales */}
+              <div
+                className={styles.calendarHeaderRow}
+                style={{ gridTemplateColumns: `70px repeat(${DAYS.length}, 1fr)` }}
+              >
+                <div className={styles.hourCornerCell}>Hora</div>
+                {weekDays.map((dayInfo) => {
+                  const isDaySelected = selectedDayKey === dayInfo.dateKey;
                   return (
                     <div
-                      key={`${day}-${hour}`}
-                      className={`${styles.calendarFilledCell} ${
-                        styles[`slot_${course.colorTag}`]
-                      } ${isSelected ? styles.slotSelected : ''}`}
-                      onClick={() => setSelectedSubject(course.rawSubject)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          setSelectedSubject(course.rawSubject);
-                        }
+                      key={dayInfo.dateKey}
+                      className={styles.dayHeaderCell}
+                      onClick={() =>
+                        setSelectedDayKey((prev) => (prev === dayInfo.dateKey ? null : dayInfo.dateKey))
+                      }
+                      style={{
+                        cursor: 'pointer',
+                        background: isDaySelected
+                          ? 'rgba(201, 168, 76, 0.25)'
+                          : dayInfo.isToday
+                            ? 'rgba(201, 168, 76, 0.12)'
+                            : undefined,
+                        borderBottom: isDaySelected ? '2px solid #c9a84c' : undefined,
+                        transition: 'all 0.2s ease',
                       }}
-                      title={`Clic para ver detalles de ${course.name} (${course.group})`}
+                      title={`Clic para filtrar clases del ${dayInfo.dayName} ${dayInfo.dayNum} ${dayInfo.monthStr}`}
                     >
-                      <div className={styles.slotContent}>
-                        <div className={styles.slotTopRow}>
-                          <span className={styles.slotGroupBadge}>{course.group}</span>
-                          <span className={styles.slotTimeBadge}>{slot.displayTime}</span>
-                        </div>
-
-                        <div className={styles.slotCourseName}>{course.name}</div>
-
-                        <div className={styles.slotClassroom}>
-                          <ClassroomIcon />
-                          <span>{course.classroom}</span>
-                        </div>
-
-                        {/* Estatus de asistencia de la materia */}
-                        <div style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          {course.attendanceStatus === 'present' ? (
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                fontWeight: 700,
-                                color: '#4ade80',
-                                background: 'rgba(74, 222, 128, 0.15)',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                              }}
-                            >
-                              ✓ Asistencia registrada
-                            </span>
-                          ) : course.attendanceStatus === 'absent' ? (
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                fontWeight: 700,
-                                color: '#f87171',
-                                background: 'rgba(239, 68, 68, 0.15)',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                              }}
-                            >
-                              ✗ Falta registrada
-                            </span>
-                          ) : (
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                color: 'rgba(255, 255, 255, 0.65)',
-                                background: 'rgba(255, 255, 255, 0.08)',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                              }}
-                            >
-                              • Sesión programada
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                      <span className={styles.dayName}>{dayInfo.dayName}</span>
+                      <span
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: dayInfo.isToday ? '#ffd54f' : 'rgba(255,255,255,0.7)',
+                          display: 'block',
+                          marginTop: '2px',
+                        }}
+                      >
+                        {dayInfo.dayNum} {dayInfo.monthStr}
+                      </span>
+                      {dayInfo.isToday && (
+                        <span
+                          style={{
+                            fontSize: '9px',
+                            fontWeight: 800,
+                            color: '#060d1f',
+                            background: '#ffd54f',
+                            padding: '1px 5px',
+                            borderRadius: '4px',
+                            marginTop: '2px',
+                            display: 'inline-block',
+                          }}
+                        >
+                          HOY
+                        </span>
+                      )}
                     </div>
                   );
                 })}
               </div>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* Modal / Ficha de detalles de la materia seleccionada */}
+              {/* Filas horarias con slots de clase y estado por fecha */}
+              {calendarHours.map((hour) => {
+                const hourLabel = `${hour.toString().padStart(2, '0')}:00`;
+                return (
+                  <div
+                    key={hour}
+                    className={styles.calendarHourRow}
+                    style={{ gridTemplateColumns: `70px repeat(${DAYS.length}, 1fr)` }}
+                  >
+                    <div className={styles.hourLabelCell}>{hourLabel}</div>
+
+                    {weekDays.map((dayInfo) => {
+                      const match = getSlotAt(dayInfo.dayName, hour);
+
+                      if (!match) {
+                        return (
+                          <div
+                            key={`${dayInfo.dateKey}-${hour}`}
+                            className={styles.calendarEmptyCell}
+                          />
+                        );
+                      }
+
+                      const { course, slot, isFirstHour } = match;
+                      const isSelected = selectedSubject?.code === course.code;
+
+                      if (!isFirstHour) {
+                        return (
+                          <div
+                            key={`${dayInfo.dateKey}-${hour}`}
+                            className={`${styles.calendarFilledCell} ${styles.slotContinuation} ${
+                              styles[`slot_${course.colorTag}`]
+                            } ${isSelected ? styles.slotSelected : ''}`}
+                            onClick={() => setSelectedSubject(course.rawSubject)}
+                            title={`Continuación de clase: ${course.name} (${course.group})`}
+                          />
+                        );
+                      }
+
+                      // Estatus puntual de asistencia en ESTA FECHA concreta
+                      const att = getAttendanceForCourseOnDate(course, dayInfo.dateKey);
+                      const isPresentOnDate = att.status === 'PRESENT';
+                      const isAbsentOnDate = att.status === 'ABSENT';
+
+                      return (
+                        <div
+                          key={`${dayInfo.dateKey}-${hour}`}
+                          className={`${styles.calendarFilledCell} ${
+                            styles[`slot_${course.colorTag}`]
+                          } ${isSelected ? styles.slotSelected : ''}`}
+                          onClick={() => setSelectedSubject(course.rawSubject)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              setSelectedSubject(course.rawSubject);
+                            }
+                          }}
+                          title={`Clic para ver detalles de ${course.name} (${course.group})`}
+                        >
+                          <div className={styles.slotContent}>
+                            <div className={styles.slotTopRow}>
+                              <span className={styles.slotGroupBadge}>{course.group}</span>
+                              <span className={styles.slotTimeBadge}>{slot.displayTime}</span>
+                            </div>
+
+                            <div className={styles.slotCourseName}>{course.name}</div>
+
+                            <div className={styles.slotClassroom}>
+                              <ClassroomIcon />
+                              <span>{course.classroom}</span>
+                            </div>
+
+                            {/* Badge de asistencia puntual por día */}
+                            <div style={{ marginTop: '6px' }}>
+                              {isPresentOnDate ? (
+                                <span
+                                  style={{
+                                    fontSize: '10px',
+                                    fontWeight: 700,
+                                    color: '#4ade80',
+                                    background: 'rgba(74, 222, 128, 0.2)',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    border: '1px solid rgba(74, 222, 128, 0.35)',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                  }}
+                                >
+                                  ✓ Asistencia (QR)
+                                </span>
+                              ) : isAbsentOnDate ? (
+                                <span
+                                  style={{
+                                    fontSize: '10px',
+                                    fontWeight: 700,
+                                    color: '#f87171',
+                                    background: 'rgba(239, 68, 68, 0.2)',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    border: '1px solid rgba(239, 68, 68, 0.35)',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px',
+                                  }}
+                                >
+                                  ✗ Falta registrada
+                                </span>
+                              ) : (
+                                <span
+                                  style={{
+                                    fontSize: '10px',
+                                    color: 'rgba(255, 255, 255, 0.65)',
+                                    background: 'rgba(255, 255, 255, 0.08)',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    display: 'inline-block',
+                                  }}
+                                >
+                                  • Sesión {dayInfo.isToday ? 'de hoy' : 'programada'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/* VISTA 2: RESUMEN Y CONSULTA GENERAL POR MATERIA               */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {viewMode === 'subjects' && (
+        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#fff', margin: 0 }}>
+              Historial General de Asistencias por Asignatura
+            </h3>
+            <span style={{ fontSize: '13px', color: '#c9a84c' }}>
+              Total: {parsedCourses.length} Asignaturas cursadas
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+            {parsedCourses.map((c) => {
+              const records = c.matchingRecords;
+              const presentCount = records.filter((r: any) => r.status === 'PRESENT').length;
+              const absentCount = records.filter((r: any) => r.status === 'ABSENT').length;
+              const percentage = records.length > 0 ? Math.round((presentCount / records.length) * 100) : 100;
+
+              return (
+                <div
+                  key={c.id}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '12px',
+                    padding: '16px 18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    cursor: 'pointer',
+                    transition: 'border-color 0.2s',
+                  }}
+                  onClick={() => setSelectedSubject(c.rawSubject)}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          color: '#c9a84c',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {c.group} · Clave {c.code}
+                      </span>
+                      <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#fff', margin: '2px 0 0' }}>
+                        {c.name}
+                      </h4>
+                    </div>
+
+                    <span
+                      style={{
+                        fontSize: '14px',
+                        fontWeight: 800,
+                        color: percentage >= 80 ? '#4ade80' : percentage >= 60 ? '#facc15' : '#f87171',
+                        background: 'rgba(0,0,0,0.3)',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                      }}
+                    >
+                      {records.length > 0 ? `${percentage}%` : 'Sin clases'}
+                    </span>
+                  </div>
+
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)' }}>
+                    <span>Profesor: </span>
+                    <strong style={{ color: 'rgba(255,255,255,0.9)' }}>{c.professor}</strong>
+                  </div>
+
+                  {/* Barra de progreso */}
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '6px',
+                      background: 'rgba(255,255,255,0.1)',
+                      borderRadius: '100px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${percentage}%`,
+                        background: percentage >= 80 ? '#4ade80' : percentage >= 60 ? '#facc15' : '#f87171',
+                        borderRadius: '100px',
+                      }}
+                    />
+                  </div>
+
+                  {/* Contadores */}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr 1fr',
+                      gap: '8px',
+                      fontSize: '11.5px',
+                      textAlign: 'center',
+                      background: 'rgba(0,0,0,0.2)',
+                      padding: '8px',
+                      borderRadius: '8px',
+                    }}
+                  >
+                    <div>
+                      <span style={{ color: 'rgba(255,255,255,0.5)', display: 'block' }}>Sesiones</span>
+                      <strong style={{ color: '#fff', fontSize: '13px' }}>{records.length}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'rgba(255,255,255,0.5)', display: 'block' }}>Asistencias</span>
+                      <strong style={{ color: '#4ade80', fontSize: '13px' }}>{presentCount}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'rgba(255,255,255,0.5)', display: 'block' }}>Faltas</span>
+                      <strong style={{ color: absentCount > 0 ? '#f87171' : '#fff', fontSize: '13px' }}>
+                        {absentCount}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    style={{
+                      background: 'rgba(201, 168, 76, 0.15)',
+                      border: '1px solid rgba(201, 168, 76, 0.35)',
+                      color: '#ffd54f',
+                      padding: '8px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Ver historial de fechas →
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL / FICHA DETALLADA DE LA MATERIA SELECCIONADA ── */}
       {selectedSubject && (
         <div
           style={{
-            marginTop: '20px',
+            margin: '20px 24px 24px',
             background: 'rgba(255, 255, 255, 0.04)',
             border: '1px solid rgba(201, 168, 76, 0.3)',
             borderRadius: '14px',
@@ -377,7 +768,7 @@ export default function StudentScheduleCalendar({
                 fontSize: '12px',
               }}
             >
-              Cerrar
+              ✕ Cerrar
             </button>
           </div>
 
@@ -398,15 +789,17 @@ export default function StudentScheduleCalendar({
             </div>
             <div>
               <span style={{ color: 'rgba(255,255,255,0.5)', display: 'block' }}>Días y Horario:</span>
-              <strong style={{ color: '#fff' }}>{selectedSubject.days} ({selectedSubject.time})</strong>
+              <strong style={{ color: '#fff' }}>
+                {selectedSubject.days} ({selectedSubject.time})
+              </strong>
             </div>
             <div>
               <span style={{ color: 'rgba(255,255,255,0.5)', display: 'block' }}>Aula / Salón:</span>
-              <strong style={{ color: '#fff' }}>{selectedSubject.classroom || 'Acatlán'}</strong>
+              <strong style={{ color: '#fff' }}>{selectedSubject.classroom || 'FES Acatlán'}</strong>
             </div>
           </div>
 
-          {/* Apartado de asistencias por materia requerido por PumaIA */}
+          {/* Historial de clases individuales registradas por fecha */}
           {(() => {
             const courseMatch = parsedCourses.find(
               (c) =>
@@ -431,68 +824,33 @@ export default function StudentScheduleCalendar({
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '13px', fontWeight: 600, color: '#c9a84c' }}>
-                    Registro de Asistencias · {selectedSubject.officialName || selectedSubject.name}
+                    Historial de Asistencias por Fecha · {selectedSubject.officialName || selectedSubject.name}
                   </span>
                   <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.6)' }}>
                     {presentCount} de {currentRecords.length} asistencias
                   </span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
-                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 10px', borderRadius: '6px' }}>
-                    <span style={{ color: 'rgba(255,255,255,0.5)', display: 'block' }}>Total de sesiones registradas:</span>
-                    <strong style={{ color: '#fff', fontSize: '14px' }}>{currentRecords.length}</strong>
-                  </div>
-                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '8px 10px', borderRadius: '6px' }}>
-                    <span style={{ color: 'rgba(255,255,255,0.5)', display: 'block' }}>Total de asistencias del alumno:</span>
-                    <strong style={{ color: '#4ade80', fontSize: '14px' }}>{presentCount}</strong>
-                  </div>
-                </div>
-
                 {currentRecords.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                      Sesiones Registradas:
-                    </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '4px' }}>
                     {currentRecords.map((rec: any, idx: number) => {
-                      const markedDate = new Date(rec.markedAt || rec.session?.startsAt || Date.now());
+                      const markedDate = new Date(
+                        rec.sessionDate || rec.markedAt || rec.session?.startsAt || Date.now(),
+                      );
                       const dateStr = markedDate.toLocaleDateString('es-MX', {
-                        weekday: 'short',
+                        weekday: 'long',
                         day: 'numeric',
-                        month: 'short',
+                        month: 'long',
                         year: 'numeric',
                       });
-                      const timeStr = markedDate.toLocaleTimeString('es-MX', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      });
+                      const timeStr = rec.markedAt
+                        ? new Date(rec.markedAt).toLocaleTimeString('es-MX', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : '—';
                       const isPresent = rec.status === 'PRESENT';
                       const isAbsent = rec.status === 'ABSENT';
-                      const sessionClosed = rec.session?.status === 'CLOSED';
-
-                      let statusBadge = (
-                        <span style={{ color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.08)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px' }}>
-                          Sesión pendiente
-                        </span>
-                      );
-
-                      if (isPresent) {
-                        statusBadge = (
-                          <span style={{ color: '#4ade80', background: 'rgba(74, 222, 128, 0.15)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-                            ✓ Asistencia registrada (QR)
-                          </span>
-                        );
-                      } else if (isAbsent || sessionClosed) {
-                        statusBadge = (
-                          <span style={{ color: '#f87171', background: 'rgba(239, 68, 68, 0.15)', padding: '2px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
-                            ✗ Sesión finalizada sin registro
-                          </span>
-                        );
-                      }
-
-                      const profName = rec.session?.section?.professor
-                        ? `${rec.session.section.professor.name} ${rec.session.section.professor.lastNameP}`
-                        : selectedSubject.professor || 'Profesor asignado';
 
                       return (
                         <div
@@ -501,29 +859,69 @@ export default function StudentScheduleCalendar({
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
-                            background: 'rgba(255,255,255,0.02)',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            fontSize: '12px',
-                            borderLeft: `3px solid ${isPresent ? '#4ade80' : isAbsent ? '#f87171' : '#c9a84c'}`,
+                            background: 'rgba(255,255,255,0.025)',
+                            padding: '10px 14px',
+                            borderRadius: '8px',
+                            fontSize: '12.5px',
+                            borderLeft: `4px solid ${isPresent ? '#4ade80' : isAbsent ? '#f87171' : '#c9a84c'}`,
                           }}
                         >
                           <div>
-                            <strong style={{ color: '#fff', display: 'block' }}>
-                              {dateStr} · {timeStr} hrs
+                            <strong style={{ color: '#fff', display: 'block', textTransform: 'capitalize' }}>
+                              {dateStr}
                             </strong>
-                            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>
-                              Prof. {profName}
+                            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11.5px' }}>
+                              Hora de registro: {timeStr} hrs · Método: {rec.method === 'QR' ? 'Código QR Dinámico' : 'Registro del Profesor'}
                             </span>
                           </div>
-                          <div>{statusBadge}</div>
+                          <div>
+                            {isPresent ? (
+                              <span
+                                style={{
+                                  color: '#4ade80',
+                                  background: 'rgba(74, 222, 128, 0.15)',
+                                  padding: '4px 10px',
+                                  borderRadius: '6px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                ✓ Presente
+                              </span>
+                            ) : isAbsent ? (
+                              <span
+                                style={{
+                                  color: '#f87171',
+                                  background: 'rgba(239, 68, 68, 0.15)',
+                                  padding: '4px 10px',
+                                  borderRadius: '6px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                ✗ Falta
+                              </span>
+                            ) : (
+                              <span
+                                style={{
+                                  color: 'rgba(255,255,255,0.6)',
+                                  background: 'rgba(255,255,255,0.08)',
+                                  padding: '4px 10px',
+                                  borderRadius: '6px',
+                                  fontSize: '11.5px',
+                                }}
+                              >
+                                ⏱ Pendiente
+                              </span>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <div style={{ textAlign: 'center', padding: '10px', color: 'rgba(255,255,255,0.5)', fontSize: '12px' }}>
-                    No hay sesiones pasadas de lista registradas para esta asignatura todavía.
+                  <div style={{ textAlign: 'center', padding: '16px', color: 'rgba(255,255,255,0.5)', fontSize: '12.5px' }}>
+                    No se han registrado sesiones pasadas de lista para esta asignatura todavía.
                   </div>
                 )}
               </div>
@@ -555,4 +953,3 @@ function ClassroomIcon() {
     </svg>
   );
 }
-

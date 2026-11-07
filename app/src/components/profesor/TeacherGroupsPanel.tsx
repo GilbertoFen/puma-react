@@ -83,7 +83,24 @@ export default function TeacherGroupsPanel({
       </div>
 
       <div className={styles.cardsList}>
-        {courses.map((course) => {
+        {courses.length === 0 ? (
+          <div
+            style={{
+              padding: '36px 16px',
+              textAlign: 'center',
+              color: 'rgba(255, 255, 255, 0.65)',
+              fontSize: '13px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '120px',
+            }}
+          >
+            <span>Cargando asignaturas del docente...</span>
+          </div>
+        ) : (
+          courses.map((course) => {
           const isSelected = course.id === selectedCourseId;
           const isClassActive = Boolean(scheduleStatusMap[course.id]);
           const nextClassText = getNextClassInfo(course);
@@ -207,7 +224,8 @@ export default function TeacherGroupsPanel({
               )}
             </div>
           );
-        })}
+        })
+      )}
       </div>
     </div>
   );

@@ -94,17 +94,32 @@ async function completeClientSession(
   localStorage.setItem('userData', JSON.stringify(userToSave));
 
   if (userRoles.includes('PROFESSOR')) {
-    localStorage.setItem(
-      'puma_teacher_session',
-      JSON.stringify({
-        id: userPayload.professorId || userPayload.id || 'prof-1',
-        name: displayName,
-        accountNumber: String(resolvedCuenta || 'DOCENTE'),
-        email: userToSave.email,
-        department: 'Matemáticas Aplicadas y Computación',
-        faculty: 'FES Acatlán · UNAM',
-      }),
-    );
+    // Purge student-specific cached items from prior student session
+    try {
+      localStorage.removeItem('student_schedule');
+      localStorage.removeItem('student_profile');
+      localStorage.removeItem('quiz_answers');
+      localStorage.removeItem('pendingQuiz');
+      localStorage.removeItem('cached_attendance');
+    } catch {}
+
+    const teacherObj = {
+      id: userPayload.professorId || userPayload.id || 'prof-1',
+      name: displayName,
+      accountNumber: String(resolvedCuenta || 'DOCENTE'),
+      email: userToSave.email,
+      department: 'Matemáticas Aplicadas y Computación',
+      faculty: 'FES Acatlán · UNAM',
+      courses: [],
+    };
+
+    localStorage.setItem('puma_teacher_session', JSON.stringify(teacherObj));
+    localStorage.setItem('pumaia_teacher_session_v1', JSON.stringify(teacherObj));
+  } else {
+    try {
+      localStorage.removeItem('puma_teacher_session');
+      localStorage.removeItem('pumaia_teacher_session_v1');
+    } catch {}
   }
 
   if (userRoles.includes('INSTITUTION_ADMIN') || userRoles.includes('ANALYST')) {
@@ -356,7 +371,36 @@ function LoginForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="login-form">
+    <form onSubmit={handleSubmit} className="login-form" style={{ position: 'relative' }}>
+      {googleLoading && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'rgba(6, 13, 31, 0.78)',
+            backdropFilter: 'blur(4px)',
+            borderRadius: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 30,
+            animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          <div
+            style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '50%',
+              border: '3px solid rgba(201, 168, 76, 0.22)',
+              borderTopColor: '#ffd54f',
+              borderRightColor: '#c9a84c',
+              animation: 'spin 0.8s linear infinite',
+            }}
+          />
+        </div>
+      )}
+
       {error && <div className="login-error">{error}</div>}
 
       <div className="field-group">

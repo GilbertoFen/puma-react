@@ -1023,7 +1023,7 @@ function CustomSelect({ options, value, onChange, placeholder }: CustomSelectPro
   }, []);
 
   return (
-    <div className={styles.selectWrap} ref={ref}>
+    <div className={`${styles.selectWrap} ${open ? styles.selectWrapOpen : ''}`} ref={ref}>
       <button
         type="button"
         className={`${styles.selectTrigger} ${open ? styles.selectTriggerOpen : ''}`}

@@ -242,9 +242,15 @@
 }
 
 /* ── CustomSelect ── */
-.customSelect {
+.customSelect,
+.selectWrap {
   position: relative;
   width: 100%;
+  z-index: 10;
+}
+
+.selectWrapOpen {
+  z-index: 100;
 }
 
 .selectTrigger {
@@ -286,12 +292,12 @@
   top: calc(100% + 5px);
   left: 0;
   right: 0;
-  z-index: 50;
+  z-index: 9999;
   background: #0d1e3a;
-  border: 1.5px solid rgba(201, 168, 76, 0.25);
+  border: 1.5px solid rgba(201, 168, 76, 0.4);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.75);
   animation: dropIn 0.17s ease both;
   max-height: 220px;
   overflow-y: auto;

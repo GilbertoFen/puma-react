@@ -142,6 +142,7 @@ export const chatService = {
         headers: getAuthHeaders(),
         credentials: 'include',
         body: JSON.stringify({
+          value: feedback,
           feedback,
           ...(comment ? { comment: comment.trim() } : {}),
         }),

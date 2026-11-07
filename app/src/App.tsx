@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { StudentProfile } from './types';
 import { updateInfoService } from './services/updateInfo.service';
 import  PageLoader  from '../src/components/loaders/PageLoader';
+import { getSavedReturnUrl, clearSavedReturnUrl } from './utils/auth-redirect';
 // Definimos los estados de las pantallas de forma estricta
 const SCREENS = {
   LOGIN: 'login' as const,
@@ -68,6 +69,14 @@ export default function App() {
           parsedUser.semestre = `${profile.currentSemester}° semestre`;
           parsedUser.currentSemester = profile.currentSemester;
           localStorage.setItem('userData', JSON.stringify(parsedUser));
+        }
+
+        // Si existe una URL de retorno pendiente y la sesión es válida, redirigir directo
+        const returnUrl = getSavedReturnUrl();
+        if (returnUrl) {
+          clearSavedReturnUrl();
+          router.push(returnUrl);
+          return;
         }
 
         // Si el backend responde bien, usamos el dato fresco del perfil
@@ -135,6 +144,14 @@ export default function App() {
       }
       if (roles.includes('PROFESSOR') && !roles.includes('STUDENT')) {
         router.push('/profesor');
+        return;
+      }
+
+      // Redirección prioritaria a URL original de asistencia si existe
+      const returnUrl = getSavedReturnUrl();
+      if (returnUrl) {
+        clearSavedReturnUrl();
+        router.push(returnUrl);
         return;
       }
 

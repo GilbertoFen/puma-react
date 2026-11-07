@@ -1,4 +1,5 @@
 import { ENV } from '../config/env.config';
+import { saveReturnUrl } from './auth-redirect';
 
 export const API_URL = (ENV.API_URL || 'http://localhost:3001/api').replace(/\/+$/, '');
 
@@ -68,7 +69,14 @@ export const fetchWithAuth = async (
 
   if (response.status === 401 && typeof window !== 'undefined') {
     localStorage.removeItem('token');
-    if (window.location.pathname !== '/') {
+    localStorage.removeItem('userData');
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+
+    const currentPath = window.location.pathname + window.location.search;
+    if (currentPath && currentPath !== '/') {
+      saveReturnUrl(currentPath);
+      window.location.href = `/?returnUrl=${encodeURIComponent(currentPath)}`;
+    } else {
       window.location.href = '/';
     }
     throw new Error('Sesión expirada');

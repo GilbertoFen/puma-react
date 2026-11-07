@@ -4,29 +4,42 @@ import React from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { AI_LOGO } from '../../utils/img/assets';
 import { QrTokenPayload } from './teacherTypes';
+import { ENV } from '../../config/env.config';
 
 interface DynamicQrCodeProps {
   payload?: QrTokenPayload | null;
+  url?: string;
   size?: number;
 }
 
 /**
  * Generador visual de código QR dinámico funcional y estandarizado.
  * Utiliza QRCodeSVG de qrcode.react con nivel de corrección de error alto (level="H"),
- * codificando la URL oficial "https://pumaia.vercel.app" para lectura física con cualquier móvil
- * e incrustando el logotipo oficial de PumaIA en el centro excavado proporcionalmente.
+ * codificando la URL oficial y completa de asistencia para lectura física directa con
+ * cualquier dispositivo móvil (iOS / Android) e incrustando el logotipo oficial de PumaIA.
  */
-export default function DynamicQrCode({ payload, size = 260 }: DynamicQrCodeProps) {
-  const qrValue = payload && payload.sessionId && payload.dynamicSalt
-    ? JSON.stringify({
-        app: 'pumaia',
+export default function DynamicQrCode({ payload, url, size = 260 }: DynamicQrCodeProps) {
+  let qrValue = url || '';
+
+  if (!qrValue) {
+    if (payload && payload.sessionId && payload.dynamicSalt) {
+      const baseUrl =
+        (typeof window !== 'undefined' && window.location?.origin) ||
+        ENV.APP_URL ||
+        'http://localhost:3000';
+      const params = new URLSearchParams({
         sessionId: payload.sessionId,
         secret: payload.dynamicSalt,
-        courseId: payload.courseId,
-        groupId: payload.groupId,
-        expiresAt: payload.expiresAt,
-      })
-    : 'https://pumaia.vercel.app';
+        courseName: payload.courseId || 'Asignatura UNAM',
+        group: payload.groupId || 'Grupo',
+        sectionId: payload.courseId || '',
+      });
+      qrValue = `${baseUrl}/attendance?${params.toString()}`;
+    } else {
+      qrValue = 'https://pumaia.vercel.app/attendance';
+    }
+  }
+
   const logoSize = Math.round(size * 0.2); // ~20% del tamaño total para preservar legibilidad
 
   return (

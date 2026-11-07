@@ -4,15 +4,18 @@ export interface AttendanceRecordResponse {
   id: string;
   sessionId: string;
   studentId: string;
+  sessionDate?: string;
   status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
   method: 'QR' | 'MANUAL';
   markedAt: string;
   session?: {
     id: string;
     sectionId: string;
+    sessionDate?: string;
     status: string;
     startsAt: string;
     endsAt?: string;
+    closesAt?: string;
     section?: {
       id: string;
       code?: string;
@@ -24,6 +27,12 @@ export interface AttendanceRecordResponse {
         name?: string;
         subject?: string;
         code: string | number;
+      };
+      professor?: {
+        id?: string;
+        name?: string;
+        lastNameP?: string;
+        lastNameM?: string;
       };
     };
   };

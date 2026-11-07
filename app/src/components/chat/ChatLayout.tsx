@@ -239,20 +239,16 @@ const displayName = user?.nombre || user?.fullName || "Usuario";
         <button
           className={styles.hamburgerBtn}
           onClick={() => setDrawerOpen(true)}
+          aria-label="Abrir menú principal"
         >
           <HamburgerIcon />
         </button>
-        <button
-    className={styles.sidebarToggleBtn}
-    onClick={() => setSidebarOpen((o) => !o)}
-  >
-    <SidebarIcon />
-  </button>
 
         <span className={styles.toolbarGreeting}>
           Chat con PUMAIA
         </span>
       </div>
+
       <HomeDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
@@ -264,6 +260,14 @@ const displayName = user?.nombre || user?.fullName || "Usuario";
           onClick={() => setDrawerOpen(false)}
         />
       )}
+
+      {sidebarOpen && (
+        <div
+          className={styles.sidebarBackdrop}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       <div className={styles.content}>
         <ChatSidebar
           open={sidebarOpen}
@@ -283,6 +287,7 @@ const displayName = user?.nombre || user?.fullName || "Usuario";
           displayName={displayName}
           setDrawerOpen={setDrawerOpen}
           isTyping={isTyping}
+          setSidebarOpen={setSidebarOpen}
         />
       </div>
 
@@ -290,6 +295,16 @@ const displayName = user?.nombre || user?.fullName || "Usuario";
 
   );
 }
+
+function ChatBubbleIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
 function SidebarIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"

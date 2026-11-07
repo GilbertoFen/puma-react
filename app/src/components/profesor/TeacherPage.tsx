@@ -11,6 +11,7 @@ import {
 import {
   DEFAULT_TEACHER_PROFILE,
   TEACHER_SESSION_STORAGE_KEY,
+  FALLBACK_TEACHER_STUDENTS,
 } from './teacherMockData';
 import { TeacherAttendanceService } from './teacherAttendanceService';
 import { authService } from '../../services/auth.service';
@@ -26,11 +27,10 @@ import AppFooter from '../AppFooter';
 export default function TeacherPage() {
   const [teacherProfile, setTeacherProfile] = useState<TeacherProfile | null>(null);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
+  const [isLoadingSections, setIsLoadingSections] = useState(true);
 
-  const [courses, setCourses] = useState<TeacherCourse[]>(DEFAULT_TEACHER_PROFILE.courses);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>(
-    DEFAULT_TEACHER_PROFILE.courses[0].id
-  );
+  const [courses, setCourses] = useState<TeacherCourse[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
 
   const [qrModalCourse, setQrModalCourse] = useState<TeacherCourse | null>(null);
   const [studentsModalCourse, setStudentsModalCourse] = useState<TeacherCourse | null>(null);
@@ -38,10 +38,44 @@ export default function TeacherPage() {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(TEACHER_SESSION_STORAGE_KEY);
+      let stored = localStorage.getItem(TEACHER_SESSION_STORAGE_KEY);
+      if (!stored) {
+        stored = localStorage.getItem('puma_teacher_session');
+      }
       if (stored) {
         const parsed = JSON.parse(stored);
         setTeacherProfile(parsed);
+
+        // Si existen asignaturas cacheadas de este profesor específico, cargarlas de inmediato
+        const cachedCourses = localStorage.getItem(`pumaia_teacher_courses_${parsed.id}`);
+        if (cachedCourses) {
+          try {
+            const parsedCourses = JSON.parse(cachedCourses);
+            if (Array.isArray(parsedCourses) && parsedCourses.length > 0) {
+              setCourses(parsedCourses);
+              setSelectedCourseId(parsedCourses[0].id);
+              setIsLoadingSections(false);
+            }
+          } catch {}
+        }
+      } else {
+        const userStored = localStorage.getItem('userData');
+        if (userStored) {
+          const u = JSON.parse(userStored);
+          if (u.roles?.includes('PROFESSOR')) {
+            const profObj: TeacherProfile = {
+              ...DEFAULT_TEACHER_PROFILE,
+              id: u.professorId || u.id || 'prof-1',
+              name: u.nombreCompleto || u.name || DEFAULT_TEACHER_PROFILE.name,
+              accountNumber: String(u.cuenta || 'DOCENTE'),
+              email: u.email || DEFAULT_TEACHER_PROFILE.email,
+              courses: [],
+            };
+            setTeacherProfile(profObj);
+            localStorage.setItem(TEACHER_SESSION_STORAGE_KEY, JSON.stringify(profObj));
+            localStorage.setItem('puma_teacher_session', JSON.stringify(profObj));
+          }
+        }
       }
     } catch (e) {
       console.warn('Error leyendo sesión docente:', e);
@@ -54,6 +88,7 @@ export default function TeacherPage() {
   useEffect(() => {
     if (!teacherProfile) return;
 
+    setIsLoadingSections(true);
     TeacherAttendanceService.fetchProfessorSections(teacherProfile.id)
       .then((sections) => {
         if (!Array.isArray(sections) || sections.length === 0) return;
@@ -157,17 +192,23 @@ export default function TeacherPage() {
             students:
               students.length > 0
                 ? students
-                : DEFAULT_TEACHER_PROFILE.courses[0].students,
+                : FALLBACK_TEACHER_STUDENTS,
           };
         });
 
         setCourses(mappedCourses);
-        setSelectedCourseId(mappedCourses[0].id);
+        setSelectedCourseId((prev) => prev || mappedCourses[0]?.id || '');
+        try {
+          localStorage.setItem(`pumaia_teacher_courses_${teacherProfile.id}`, JSON.stringify(mappedCourses));
+        } catch {}
       })
       .catch((err) => {
         if (err?.message === 'ACCESO_DENEGADO') {
           setTeacherProfile(null);
         }
+      })
+      .finally(() => {
+        setIsLoadingSections(false);
       });
   }, [teacherProfile]);
 
@@ -175,18 +216,25 @@ export default function TeacherPage() {
     setTeacherProfile(profile);
     if (profile.courses && profile.courses.length > 0) {
       setCourses(profile.courses);
+      setSelectedCourseId(profile.courses[0].id);
     }
     showToast(`Bienvenido al Portal Docente, ${profile.name}`);
   };
 
   const handleLogout = async () => {
     try {
+      if (teacherProfile?.id) {
+        localStorage.removeItem(`pumaia_teacher_courses_${teacherProfile.id}`);
+      }
       localStorage.removeItem(TEACHER_SESSION_STORAGE_KEY);
+      localStorage.removeItem('puma_teacher_session');
       await authService.logout();
     } catch (e) {
       console.warn('Error eliminando sesión docente:', e);
     }
     setTeacherProfile(null);
+    setCourses([]);
+    setSelectedCourseId('');
     setQrModalCourse(null);
     setStudentsModalCourse(null);
     showToast('Sesión de profesor cerrada.');
@@ -269,7 +317,7 @@ export default function TeacherPage() {
   };
 
   const selectedCourse =
-    courses.find((c) => c.id === selectedCourseId) || courses[0];
+    courses.find((c) => c.id === selectedCourseId) || courses[0] || null;
 
   const studentsCountMap: Record<string, number> = {};
   courses.forEach((c) => {
@@ -331,7 +379,16 @@ export default function TeacherPage() {
 
           <div className={styles.statusRight}>
             <span className={styles.selectedCoursePill}>
-              Asignatura activa: <strong>{selectedCourse.name}</strong> ({selectedCourse.group})
+              Asignatura activa:{' '}
+              {selectedCourse ? (
+                <>
+                  <strong>{selectedCourse.name}</strong> ({selectedCourse.group})
+                </>
+              ) : (
+                <strong>
+                  {isLoadingSections ? 'Cargando asignaturas...' : 'Sin asignaturas'}
+                </strong>
+              )}
             </span>
           </div>
         </div>

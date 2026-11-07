@@ -233,6 +233,50 @@
   .inputWrapper {
     padding: 10px 12px 14px;
   }
+
+  .mobileChatHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(201, 168, 76, 0.08);
+    border-bottom: 1px solid rgba(201, 168, 76, 0.2);
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+  }
+
+  .mobileBackBtn {
+    background: rgba(201, 168, 76, 0.15);
+    border: 1px solid rgba(201, 168, 76, 0.35);
+    border-radius: 6px;
+    color: #ffd54f;
+    font-size: 11.5px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 4px 10px;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+
+  .mobileBackBtn:active {
+    transform: scale(0.97);
+    background: rgba(201, 168, 76, 0.25);
+  }
+
+  .mobileChatTitle {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+  }
+}
+
+.mobileChatHeader {
+  display: none;
 }
 .suggestionHighlight {
   position: relative;

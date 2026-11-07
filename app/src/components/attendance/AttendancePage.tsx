@@ -10,6 +10,7 @@ import { scheduleService, StudentScheduleData } from '../../services/schedule.se
 import { attendanceService, AttendanceRecordResponse } from '../../services/attendance.service';
 import { authService } from '../../services/auth.service';
 import { getAuthToken } from '../../utils/api';
+import { saveReturnUrl } from '../../utils/auth-redirect';
 import styles from './AttendancePage.module.css';
 import InlineLoader from '../loaders/InlineLoader';
 
@@ -74,6 +75,15 @@ export default function AttendancePage() {
   };
 
   useEffect(() => {
+    // 1. Verificación obligatoria de sesión para proteger la ruta
+    const token = getAuthToken();
+    if (!token && typeof window !== 'undefined') {
+      saveReturnUrl();
+      const currentUrl = window.location.pathname + window.location.search;
+      window.location.href = `/?returnUrl=${encodeURIComponent(currentUrl)}`;
+      return;
+    }
+
     loadData();
 
     // Detección automática del enlace de prueba local de asistencia (?sessionId=...&secret=...)
@@ -429,7 +439,10 @@ export default function AttendancePage() {
                 type="button"
                 className={styles.btnDismissAlert}
                 onClick={() => {
-                  window.location.href = '/';
+                  saveReturnUrl();
+                  window.location.href = `/?returnUrl=${encodeURIComponent(
+                    window.location.pathname + window.location.search,
+                  )}`;
                 }}
               >
                 Ir a pantalla de inicio de sesión

@@ -18,7 +18,7 @@ type Props = {
   displayName: string;
   setDrawerOpen: (open: boolean) => void;
   isTyping: boolean;
-
+  setSidebarOpen?: (open: boolean) => void;
 };
 
 function AiLogo() {
@@ -31,7 +31,16 @@ function AiLogo() {
   );
 }
 
-export default function ChatArea({ conversation, suggestions, onSend, sidebarOpen, displayName, setDrawerOpen, isTyping }: Props) {
+export default function ChatArea({
+  conversation,
+  suggestions,
+  onSend,
+  sidebarOpen,
+  displayName,
+  setDrawerOpen,
+  isTyping,
+  setSidebarOpen,
+}: Props) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isEmpty = !conversation || !conversation.messages || conversation.messages.length === 0;
   useEffect(() => {
@@ -40,9 +49,22 @@ export default function ChatArea({ conversation, suggestions, onSend, sidebarOpe
   const router = useRouter();
 
   return (
-
     <div className={styles.main}>
       <div className={styles.container}>
+        {/* Barra móvil para volver a ver los chats o ver el título de la conversación actual */}
+        <div className={styles.mobileChatHeader}>
+          <button
+            type="button"
+            className={styles.mobileBackBtn}
+            onClick={() => setSidebarOpen && setSidebarOpen(true)}
+            aria-label="Abrir lista de chats"
+          >
+            ← Mis chats
+          </button>
+          <span className={styles.mobileChatTitle}>
+            {conversation ? conversation.title : 'Nueva conversación'}
+          </span>
+        </div>
         {isEmpty && !isTyping ? (
           <div className={styles.emptyState}>
             <AiLogo />

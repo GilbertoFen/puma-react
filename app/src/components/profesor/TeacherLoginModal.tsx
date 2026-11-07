@@ -55,6 +55,15 @@ export default function TeacherLoginModal({ onLoginSuccess }: TeacherLoginModalP
         document.cookie = `token=${authData.accessToken}; path=/; max-age=900; SameSite=Lax`;
       }
 
+      // Limpiar datos y cachés residuales de estudiante previo
+      try {
+        localStorage.removeItem('student_schedule');
+        localStorage.removeItem('student_profile');
+        localStorage.removeItem('quiz_answers');
+        localStorage.removeItem('pendingQuiz');
+        localStorage.removeItem('cached_attendance');
+      } catch {}
+
       const profileToSave: TeacherProfile = {
         ...DEFAULT_TEACHER_PROFILE,
         id: authData?.user?.professorId || DEFAULT_TEACHER_PROFILE.id,
@@ -65,6 +74,7 @@ export default function TeacherLoginModal({ onLoginSuccess }: TeacherLoginModalP
       };
 
       localStorage.setItem(TEACHER_SESSION_STORAGE_KEY, JSON.stringify(profileToSave));
+      localStorage.setItem('puma_teacher_session', JSON.stringify(profileToSave));
       onLoginSuccess(profileToSave);
     } catch (err: any) {
       setError(

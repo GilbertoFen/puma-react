@@ -22,7 +22,7 @@ interface TeacherQrModalProps {
   onResetAllAttendances?: () => void;
 }
 
-const ROTATION_INTERVAL_SECONDS = 25; // Rotación segura cada 25 segundos (rango 20-30s)
+const ROTATION_INTERVAL_SECONDS = 5; // Rotación automática continua cada 5 segundos
 
 export default function TeacherQrModal({
   course,
@@ -229,10 +229,8 @@ export default function TeacherQrModal({
         studentName: pendingStudent.name,
         timestamp: timeStr,
       });
-
-      rotateToken('scan');
+      // El escaneo registra la asistencia pero NO interrumpe ni altera la rotación cada 5s
     } else {
-      rotateToken('scan');
       setScanFeedback({
         studentName: 'Todos los alumnos están presentes',
         timestamp: new Date().toLocaleTimeString(),
@@ -312,12 +310,12 @@ export default function TeacherQrModal({
 
         <div className={styles.qrModalBody}>
           <div className={styles.qrDisplayCard}>
-            <DynamicQrCode payload={qrPayload} size={280} />
+            <DynamicQrCode url={testUrl} payload={qrPayload} size={280} />
 
             <div className={styles.timerContainer}>
               <div className={styles.timerHeaderRow}>
                 <span className={styles.timerLabel}>
-                  <TimerIcon /> Rotación de seguridad automática (25s):
+                  <TimerIcon /> Rotación de seguridad automática (5s):
                 </span>
                 <span className={styles.countdownDigits}>
                   {formatCountdown(secondsLeft)} ({secondsLeft}s)
@@ -332,17 +330,16 @@ export default function TeacherQrModal({
               </div>
             </div>
 
-            {/* Enlace de prueba local para validar asistencia del alumno en otra pestaña */}
+            {/* Enlace de asistencia del alumno */}
             {testUrl && (
               <div className={styles.qrTestLinkCard}>
                 <div className={styles.qrTestLinkHeader}>
-                  <span className={styles.qrTestBadge}>⚡ Enlace de prueba local</span>
-                  <span style={{ fontSize: '11px', color: '#ffd54f' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: '#ffd54f' }}>
                     {course.group} · {course.name}
                   </span>
                 </div>
                 <p className={styles.qrTestDesc}>
-                  Abre este enlace en una pestaña donde hayas iniciado sesión como alumno para registrar tu asistencia automáticamente:
+                  Enlace directo para validar asistencia del alumno:
                 </p>
                 <div className={styles.qrTestInputRow}>
                   <input
@@ -359,17 +356,8 @@ export default function TeacherQrModal({
                     onClick={handleCopyLink}
                     title="Copiar enlace al portapapeles"
                   >
-                    {copied ? '✓ ¡Copiado!' : '📋 Copiar'}
+                    {copied ? '¡Copiado!' : 'Copiar'}
                   </button>
-                  <a
-                    href={testUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.qrTestBtnOpen}
-                    title="Abrir en nueva pestaña para el alumno"
-                  >
-                    🔗 Abrir
-                  </a>
                 </div>
               </div>
             )}
@@ -466,20 +454,6 @@ export default function TeacherQrModal({
               >
                 <RefreshIcon />
                 <span>Rotar código manualmente</span>
-              </button>
-
-              <button
-                type="button"
-                className={styles.btnManualRotateAction}
-                style={{
-                  background: 'rgba(239, 68, 68, 0.15)',
-                  borderColor: 'rgba(239, 68, 68, 0.4)',
-                  color: '#fca5a5',
-                }}
-                onClick={handleCloseSession}
-                title="Finalizar e invalidar la sesión de asistencia actual"
-              >
-                <span>Finalizar sesión de clase</span>
               </button>
             </div>
           </div>
