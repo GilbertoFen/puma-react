@@ -618,3 +618,81 @@
   }
 }
 
+
+/* ==========================================================================
+   Impresión del reporte (hoja carta, fondo blanco). Solo aplica a @media print;
+   en pantalla no cambia nada.
+   ========================================================================== */
+@media print {
+  .dashboardContainer {
+    gap: 12px;
+  }
+
+  .cardBox,
+  .indicatorCard,
+  .periodHeaderCard,
+  .privacyFooterNotice,
+  .procedureRow {
+    background: #ffffff !important;
+    border: 1px solid #cccccc !important;
+    backdrop-filter: none;
+    transform: none !important;
+    padding: 12px;
+    break-inside: avoid;
+  }
+
+  .cardTitle,
+  .mainDashboardTitle,
+  .indicatorPrimaryValue,
+  .barCategoryName,
+  .subjectTextBold,
+  .simpleTable td {
+    color: #111111 !important;
+  }
+
+  .cardSubtitle,
+  .mainDashboardSubtitle,
+  .indicatorLabel,
+  .indicatorSubtext,
+  .legendItem,
+  .simpleTable th,
+  .privacyFooterList {
+    color: #444444 !important;
+  }
+
+  .indicatorPrimaryValueGold,
+  .barStudentsCount,
+  .rateNumber,
+  .badgeSampleN,
+  .periodLabel {
+    color: #8a6d1d !important;
+  }
+
+  .badgeSampleN {
+    background: #ffffff;
+    border-color: #c9a84c;
+  }
+
+  .barTrack,
+  .stackedTrack {
+    background: #eeeeee;
+  }
+
+  .simpleTable th {
+    border-bottom-color: #bbbbbb;
+  }
+
+  .simpleTable td {
+    border-bottom-color: #e5e5e5;
+  }
+
+  .indicatorsGrid,
+  .twoColumnsRow {
+    gap: 12px;
+  }
+
+  .wellbeingLinkBtn {
+    color: #8a6d1d;
+    background: #ffffff;
+  }
+}

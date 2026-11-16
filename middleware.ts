@@ -18,7 +18,9 @@ function getSafeReturnUrl(rawUrl?: string | null): string | null {
 }
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('token')?.value;
+  // Bandera sin datos puesta por el cliente al tener sesión (el token nunca va en cookies de JS).
+  // Solo decide la navegación; la autorización real la hace el backend en cada petición.
+  const token = request.cookies.get('pumaia_session')?.value === '1';
   const { pathname } = request.nextUrl;
 
   const isStudentLoginRoute = pathname === '/';
@@ -40,14 +42,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Si accede a la raíz '/' con sesión previa y existe returnUrl, dirigir al returnUrl
+  // Si accede a la raíz '/' con sesión previa y existe returnUrl, dirigir al returnUrl.
+  // Sin returnUrl ya NO se manda a /home: '/' decide según los roles (alumno, personal o
+  // pantalla para elegir), y eso solo lo sabe el cliente con /autenticacion/me.
   if (isStudentLoginRoute && token) {
     const queryReturnUrl = request.nextUrl.searchParams.get('returnUrl');
     const safeReturn = getSafeReturnUrl(queryReturnUrl);
     if (safeReturn) {
       return NextResponse.redirect(new URL(safeReturn, request.url));
     }
-    return NextResponse.redirect(new URL('/home', request.url));
   }
 }
 

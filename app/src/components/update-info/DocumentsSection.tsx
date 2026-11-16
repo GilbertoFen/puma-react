@@ -1,4 +1,5 @@
 'use client';
+import { getAuthToken } from '../../utils/api';
 import React, { useState, useRef } from 'react';
 import type { UploadedDocument } from '../../types/shared.types';
 import { gradeService, Subject } from '../../services/grades.service';
@@ -43,7 +44,7 @@ export default function DocumentsSection({ documents: initial }: Props) {
     setUploadState('loading_pdf');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       if (!token) throw new Error("Sesión expirada");
 
       const data = await gradeService.analyzePDF(targetFile, token);
@@ -58,7 +59,7 @@ export default function DocumentsSection({ documents: initial }: Props) {
 
   const handleConfirmGrades = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       if (!token) throw new Error("Sesión caducada.");
 
       setUploadState('saving_supabase');
@@ -88,7 +89,7 @@ export default function DocumentsSection({ documents: initial }: Props) {
     setScheduleState('loading_pdf');
 
     try {
-      const token = localStorage.getItem('token') || undefined;
+      const token = getAuthToken() || undefined;
       const result = await scheduleService.analyzeSchedulePDF(targetFile, token);
 
       setDetectedScheduleSubjects(result.subjects);
@@ -104,7 +105,7 @@ export default function DocumentsSection({ documents: initial }: Props) {
   const handleConfirmSchedule = async () => {
     try {
       setScheduleState('saving');
-      const token = localStorage.getItem('token') || undefined;
+      const token = getAuthToken() || undefined;
       const activeSchedule = scheduleService.getStudentSchedule();
 
       if (activeSchedule) {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import styles from './TeacherPage.module.css';
 import '../../pages/LoginPage.css';
 import {
@@ -8,13 +8,10 @@ import {
   TeacherCourse,
   AttendanceStatus,
 } from './teacherTypes';
-import {
-  DEFAULT_TEACHER_PROFILE,
-  TEACHER_SESSION_STORAGE_KEY,
-  FALLBACK_TEACHER_STUDENTS,
-} from './teacherMockData';
+import { FALLBACK_TEACHER_STUDENTS } from './teacherMockData';
 import { TeacherAttendanceService } from './teacherAttendanceService';
-import { authService } from '../../services/auth.service';
+import { fullName } from '../../context/SessionContext';
+import { usePortalGuard } from '../../hooks/usePortalGuard';
 import Navbar from '../Navbar';
 import TeacherLoginModal from './TeacherLoginModal';
 import TeacherHeader from './TeacherHeader';
@@ -25,8 +22,28 @@ import TeacherStudentsModal from './TeacherStudentsModal';
 import AppFooter from '../AppFooter';
 
 export default function TeacherPage() {
-  const [teacherProfile, setTeacherProfile] = useState<TeacherProfile | null>(null);
-  const [isLoadingSession, setIsLoadingSession] = useState(true);
+  // Sesión única (SessionContext). Sin rol PROFESSOR, el guard manda a la ruta que corresponde.
+  const session = usePortalGuard('/profesores');
+  const isLoadingSession = session.status === 'loading' || session.redirecting;
+  const sessionUser = session.allowed ? session.user : null;
+  const teacherProfile = useMemo<TeacherProfile | null>(
+    () =>
+      sessionUser
+        ? {
+            id: sessionUser.professor?.id ?? '',
+            accountNumber: 'DOCENTE',
+            name: fullName(sessionUser),
+            email: sessionUser.email,
+            role: 'Profesor',
+            department: 'Matemáticas Aplicadas y Computación',
+            institution: 'FES Acatlán · UNAM',
+            semester: '',
+            avatarInitial: (sessionUser.name.charAt(0) || 'P').toUpperCase(),
+            courses: [],
+          }
+        : null,
+    [sessionUser],
+  );
   const [isLoadingSections, setIsLoadingSections] = useState(true);
 
   const [courses, setCourses] = useState<TeacherCourse[]>([]);
@@ -35,54 +52,6 @@ export default function TeacherPage() {
   const [qrModalCourse, setQrModalCourse] = useState<TeacherCourse | null>(null);
   const [studentsModalCourse, setStudentsModalCourse] = useState<TeacherCourse | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      let stored = localStorage.getItem(TEACHER_SESSION_STORAGE_KEY);
-      if (!stored) {
-        stored = localStorage.getItem('puma_teacher_session');
-      }
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setTeacherProfile(parsed);
-
-        // Si existen asignaturas cacheadas de este profesor específico, cargarlas de inmediato
-        const cachedCourses = localStorage.getItem(`pumaia_teacher_courses_${parsed.id}`);
-        if (cachedCourses) {
-          try {
-            const parsedCourses = JSON.parse(cachedCourses);
-            if (Array.isArray(parsedCourses) && parsedCourses.length > 0) {
-              setCourses(parsedCourses);
-              setSelectedCourseId(parsedCourses[0].id);
-              setIsLoadingSections(false);
-            }
-          } catch {}
-        }
-      } else {
-        const userStored = localStorage.getItem('userData');
-        if (userStored) {
-          const u = JSON.parse(userStored);
-          if (u.roles?.includes('PROFESSOR')) {
-            const profObj: TeacherProfile = {
-              ...DEFAULT_TEACHER_PROFILE,
-              id: u.professorId || u.id || 'prof-1',
-              name: u.nombreCompleto || u.name || DEFAULT_TEACHER_PROFILE.name,
-              accountNumber: String(u.cuenta || 'DOCENTE'),
-              email: u.email || DEFAULT_TEACHER_PROFILE.email,
-              courses: [],
-            };
-            setTeacherProfile(profObj);
-            localStorage.setItem(TEACHER_SESSION_STORAGE_KEY, JSON.stringify(profObj));
-            localStorage.setItem('puma_teacher_session', JSON.stringify(profObj));
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('Error leyendo sesión docente:', e);
-    } finally {
-      setIsLoadingSession(false);
-    }
-  }, []);
 
   // Sincronización con los grupos reales del profesor en /api/sections
   useEffect(() => {
@@ -198,41 +167,28 @@ export default function TeacherPage() {
 
         setCourses(mappedCourses);
         setSelectedCourseId((prev) => prev || mappedCourses[0]?.id || '');
-        try {
-          localStorage.setItem(`pumaia_teacher_courses_${teacherProfile.id}`, JSON.stringify(mappedCourses));
-        } catch {}
+        // Ya no se guardan los grupos (con nombres de alumnos) en localStorage.
       })
       .catch((err) => {
         if (err?.message === 'ACCESO_DENEGADO') {
-          setTeacherProfile(null);
+          // La sesión ya no es válida: se vuelve a consultar /me (y, si no hay sesión, se ve la portada).
+          void session.reload();
         }
       })
       .finally(() => {
         setIsLoadingSections(false);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teacherProfile]);
-
-  const handleLoginSuccess = (profile: TeacherProfile) => {
-    setTeacherProfile(profile);
-    if (profile.courses && profile.courses.length > 0) {
-      setCourses(profile.courses);
-      setSelectedCourseId(profile.courses[0].id);
-    }
-    showToast(`Bienvenido al Portal Docente, ${profile.name}`);
-  };
 
   const handleLogout = async () => {
     try {
-      if (teacherProfile?.id) {
-        localStorage.removeItem(`pumaia_teacher_courses_${teacherProfile.id}`);
-      }
-      localStorage.removeItem(TEACHER_SESSION_STORAGE_KEY);
-      localStorage.removeItem('puma_teacher_session');
-      await authService.logout();
+      // Limpia el caché de grupos de versiones anteriores del portal.
+      if (teacherProfile?.id) localStorage.removeItem(`pumaia_teacher_courses_${teacherProfile.id}`);
+      await session.logout();
     } catch (e) {
-      console.warn('Error eliminando sesión docente:', e);
+      console.warn('Error al cerrar sesión docente:', e);
     }
-    setTeacherProfile(null);
     setCourses([]);
     setSelectedCourseId('');
     setQrModalCourse(null);
@@ -353,7 +309,7 @@ export default function TeacherPage() {
             </p>
           </div>
 
-          <TeacherLoginModal onLoginSuccess={handleLoginSuccess} />
+          <TeacherLoginModal />
         </main>
 
         <div className="gold-line" style={{ marginTop: 'auto' }} />

@@ -1,4 +1,9 @@
-import { API_URL, getAuthToken } from '../utils/api';
+import {
+  API_URL,
+  clearAccessToken,
+  getAuthToken,
+  refreshAccessToken,
+} from '../utils/api';
 
 export const INSTITUTIONAL_DOMAIN = '@pcpuma.acatlan.unam.mx';
 export const ALLOWED_STAFF_DOMAINS = [
@@ -85,22 +90,12 @@ export const authService = {
    * Renueva el accessToken utilizando la cookie httpOnly de refresh token.
    */
   refresh: async (): Promise<{ accessToken: string }> => {
-    const response = await fetch(`${API_URL}/autenticacion/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({}),
-    });
-
-    const data = await response.json();
-    if (!response.ok || !data?.accessToken) {
-      throw new Error(
-        data?.message || 'La sesión ha expirado. Inicia sesión nuevamente.',
-      );
+    // El token queda solo en memoria (ver utils/api.ts).
+    const accessToken = await refreshAccessToken();
+    if (!accessToken) {
+      throw new Error('La sesión ha expirado. Inicia sesión nuevamente.');
     }
-    localStorage.setItem('token', data.accessToken);
-    document.cookie = `token=${data.accessToken}; path=/; max-age=900; SameSite=Lax`;
-    return data;
+    return { accessToken };
   },
 
   /**
@@ -298,10 +293,8 @@ export const authService = {
       // Continuar con limpieza local aunque falle la red
     } finally {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
+        clearAccessToken();
         localStorage.removeItem('userData');
-        document.cookie =
-          'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
       }
     }
   },

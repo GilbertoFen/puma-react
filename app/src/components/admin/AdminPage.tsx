@@ -1,501 +1,409 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Navbar from '../Navbar';
 import AppFooter from '../AppFooter';
 import '../../pages/LoginPage.css';
 import styles from './AdminPage.module.css';
-import { API_URL, getAuthHeaders, getAuthToken } from '../../utils/api';
-import { authService } from '../../services/auth.service';
-import {
-  AdminUser,
-  MacroMetric,
-  RealTimeScheduleItem,
-  AcademicReport,
-  DayOfWeek,
-} from '../../types/admin.types';
-import {
-  ADMIN_SESSION_STORAGE_KEY,
-  MACRO_METRICS_DATA,
-  REPORTS_CATALOG,
-  ANOMALY_OBSERVATIONS_DATA,
-  REAL_TIME_SCHEDULE_DATA,
-} from './adminMockData';
+import s from './panel/AdminPanel.module.css';
+import { API_URL, fetchWithAuth } from '../../utils/api';
+import { adminService, type PanelFilters } from '../../services/admin.service';
+import { fullName } from '../../context/SessionContext';
+import { usePortalGuard } from '../../hooks/usePortalGuard';
+import type { DayOfWeek, RealTimeScheduleItem } from '../../types/admin.types';
+import type { QuestionnaireKind, ReportReceipt, ReportSection, RoleType } from '../../types/adminMetrics.types';
 
 import AdminLoginModal from './AdminLoginModal';
-import AdminHeader from './AdminHeader';
-import AdminPdfDashboard from './AdminPdfDashboard';
-import AdminMacroMetricsGrid from './AdminMacroMetricsGrid';
-import AdminMetricDetailModal from './AdminMetricDetailModal';
-import AdminReportsBar from './AdminReportsBar';
-import AdminReportModal from './AdminReportModal';
-import AdminObservationsSection from './AdminObservationsSection';
+import AdminHeader, { type AdminTab } from './AdminHeader';
 import AdminScheduleCalendar from './AdminScheduleCalendar';
 import AdminScheduleDetailModal from './AdminScheduleDetailModal';
+import { PanelContext, type PanelContextValue, periodLabel, useAsync } from './panel/common';
+import { fmtDateTime } from './panel/charts';
+import SummaryTab from './panel/SummaryTab';
+import AcademicTab from './panel/AcademicTab';
+import AttendanceTab from './panel/AttendanceTab';
+import ChatTab from './panel/ChatTab';
+import SuggestionsTab from './panel/SuggestionsTab';
+import StaffTab from './panel/StaffTab';
+import LabelingTab from './panel/LabelingTab';
+
+interface PanelUser {
+  id: string;
+  email: string;
+  fullName: string;
+  roles: RoleType[];
+}
 
 export default function AdminPage() {
-  const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
-  const [isLoadingSession, setIsLoadingSession] = useState(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'calendar'>('dashboard');
-  const [metricsData, setMetricsData] = useState<MacroMetric[]>(MACRO_METRICS_DATA);
-  const [selectedMetric, setSelectedMetric] = useState<MacroMetric | null>(null);
-  const [activeReportModal, setActiveReportModal] = useState<AcademicReport | null>(null);
-  const [selectedScheduleItem, setSelectedScheduleItem] = useState<RealTimeScheduleItem | null>(null);
-  const [scheduleItems, setScheduleItems] = useState<RealTimeScheduleItem[]>(REAL_TIME_SCHEDULE_DATA);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [selectedCycle] = useState('Semestre 2026-1');
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
-      if (stored) {
-        const parsed: AdminUser = JSON.parse(stored);
-        setAdminUser(parsed);
-      }
-    } catch (e) {
-      console.warn('Error al leer sesión administrativa:', e);
-    } finally {
-      setIsLoadingSession(false);
-    }
-  }, []);
-
-  // Sincronización con los endpoints reales de /api/metrics/* protegidos con k-anonimato >= 10
-  useEffect(() => {
-    if (!adminUser) return;
-
-    const fetchInstitutionalMetrics = async () => {
-      const token = getAuthToken();
-      if (!token) return;
-
-      const headers = getAuthHeaders();
-
-      try {
-        const [perfRes, riskRes, attRes, topicsRes, satRes] = await Promise.all([
-          fetch(`${API_URL}/metrics/academic-performance`, {
-            headers,
-            credentials: 'include',
-          }),
-          fetch(`${API_URL}/metrics/retention-risk`, {
-            headers,
-            credentials: 'include',
-          }),
-          fetch(`${API_URL}/metrics/attendance`, {
-            headers,
-            credentials: 'include',
-          }),
-          fetch(`${API_URL}/metrics/chat-topics`, {
-            headers,
-            credentials: 'include',
-          }),
-          fetch(`${API_URL}/metrics/satisfaction`, {
-            headers,
-            credentials: 'include',
-          }),
-        ]);
-
-        if (
-          perfRes.status === 401 ||
-          perfRes.status === 403 ||
-          riskRes.status === 401 ||
-          riskRes.status === 403
-        ) {
-          localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
-          setAdminUser(null);
-          return;
+  // Sesión única (SessionContext). Si la cuenta no tiene rol de admin/analista, el guard la manda a su ruta.
+  const session = usePortalGuard('/admin');
+  const user: PanelUser | null =
+    session.allowed && session.user
+      ? {
+          id: session.user.id,
+          email: session.user.email,
+          fullName: fullName(session.user),
+          roles: session.user.roles as RoleType[],
         }
-
-        const perfData = perfRes.ok ? await perfRes.json() : [];
-        const riskData = riskRes.ok ? await riskRes.json() : [];
-        const attData = attRes.ok ? await attRes.json() : [];
-        const topicsData = topicsRes.ok ? await topicsRes.json() : [];
-        const satData = satRes.ok ? await satRes.json() : [];
-
-        if (
-          Array.isArray(perfData) &&
-          perfData.length === 0 &&
-          Array.isArray(riskData) &&
-          riskData.length === 0
-        ) {
-          return;
-        }
-
-        setMetricsData((prev) => {
-          const updated = [...prev];
-
-          if (Array.isArray(perfData) && perfData.length > 0 && updated[0]) {
-            updated[0] = {
-              ...updated[0],
-              details: perfData.map((p: any, idx: number) => ({
-                key: `perf_${p.subjectId || idx}`,
-                value: p.kAnonymityProtected ? 0 : parseFloat(String(p.passRate)) || 0,
-                label: p.subjectName || 'Materia',
-                formattedValue: p.kAnonymityProtected
-                  ? 'RESTRINGIDO (<10)'
-                  : `${p.passRate} aprob. / Prom: ${p.averageGrade}`,
-                subValue: `Muestra: ${p.totalStudents} alumnos`,
-                notes: p.kAnonymityProtected
-                  ? 'Protegido por k-anonimato institucional (umbral < 10 estudiantes únicos)'
-                  : `Reprobación: ${p.failRate}`,
-              })),
-            };
-          }
-
-          if (Array.isArray(riskData) && riskData.length > 0 && updated[1]) {
-            updated[1] = {
-              ...updated[1],
-              details: riskData.map((r: any, idx: number) => ({
-                key: `risk_${idx}`,
-                value: r.kAnonymityProtected ? 0 : parseFloat(String(r.riskRate)) || 0,
-                label: `${r.career} · ${r.semester}° Semestre`,
-                formattedValue: r.kAnonymityProtected
-                  ? 'RESTRINGIDO (<10)'
-                  : String(r.riskRate),
-                subValue: `Cohorte: ${r.totalStudents} alumnos`,
-                notes: r.kAnonymityProtected
-                  ? 'Protegido por k-anonimato (< 10 alumnos)'
-                  : `NP: ${r.notPresentedCount} · Bajas: ${r.withdrawnCount}`,
-              })),
-            };
-          }
-
-          if (Array.isArray(attData) && attData.length > 0 && updated[2]) {
-            updated[2] = {
-              ...updated[2],
-              details: attData.map((a: any, idx: number) => ({
-                key: `att_${a.sectionId || idx}`,
-                value: a.kAnonymityProtected ? 0 : parseFloat(String(a.presentPercentage)) || 0,
-                label: `${a.subject} (Gpo. ${a.groupCode})`,
-                formattedValue: a.kAnonymityProtected
-                  ? 'RESTRINGIDO (<10)'
-                  : String(a.presentPercentage),
-                subValue: `Asistentes únicos: ${a.attendeesCount}`,
-                notes: a.kAnonymityProtected
-                  ? 'Protegido por k-anonimato (< 10 alumnos)'
-                  : `Inasistencia: ${a.absencePercentage} · Retardo: ${a.latePercentage}`,
-              })),
-            };
-          }
-
-          if (Array.isArray(topicsData) && topicsData.length > 0 && updated[3]) {
-            updated[3] = {
-              ...updated[3],
-              details: topicsData.map((t: any, idx: number) => ({
-                key: `topic_${t.topicCode || idx}`,
-                value: typeof t.totalQueries === 'number' ? t.totalQueries : 0,
-                label: `${t.label} (${t.topicGroup})`,
-                formattedValue: t.kAnonymityProtected
-                  ? 'RESTRINGIDO (<10)'
-                  : `${t.totalQueries} consultas`,
-                subValue: `Alumnos únicos: ${t.totalStudents || '<10'}`,
-                notes: t.kAnonymityProtected
-                  ? 'Excluido por k-anonimato (< 10 estudiantes únicos con consentimiento ANALYTICS)'
-                  : `Confianza promedio: ${t.averageConfidence ?? 'N/A'}`,
-              })),
-            };
-          }
-
-          if (Array.isArray(satData) && satData.length > 0 && updated[4]) {
-            updated[4] = {
-              ...updated[4],
-              details: satData.map((s: any, idx: number) => ({
-                key: `sat_${s.questionCode || idx}`,
-                value: s.kAnonymityProtected ? 0 : parseFloat(String(s.averageScale)) || 0,
-                label: s.text || s.questionCode,
-                formattedValue: s.kAnonymityProtected
-                  ? 'RESTRINGIDO (<10)'
-                  : `Escala prom: ${s.averageScale}`,
-                subValue: `Muestra única: ${s.sampleCount} alumnos`,
-                notes: s.kAnonymityProtected
-                  ? 'Protegido por k-anonimato (< 10 estudiantes únicos)'
-                  : `Categoría: ${s.category || 'General'}`,
-              })),
-            };
-          }
-
-          return updated;
-        });
-      } catch (err) {
-        console.warn('Error consultando métricas reales del backend:', err);
-      }
-    };
-
-    fetchInstitutionalMetrics();
-
-    const fetchRealSections = async () => {
-      try {
-        const headers = getAuthHeaders();
-        const res = await fetch(`${API_URL}/sections`, {
-          headers,
-          credentials: 'include',
-        });
-        if (!res.ok) return;
-        const sections = await res.json();
-        if (!Array.isArray(sections)) return;
-
-        const dayNameMap: Record<number, DayOfWeek> = {
-          1: 'Lunes',
-          2: 'Martes',
-          3: 'Miércoles',
-          4: 'Jueves',
-          5: 'Viernes',
-          6: 'Sábado',
-        };
-
-        const colors: ('gold' | 'cyan' | 'purple' | 'emerald' | 'rose' | 'amber')[] = [
-          'gold',
-          'cyan',
-          'purple',
-          'emerald',
-          'rose',
-          'amber',
-        ];
-
-        const mapped: RealTimeScheduleItem[] = [];
-
-        sections.forEach((sec: any) => {
-          const meetings = sec.meetings || [];
-          meetings.forEach((m: any, mIdx: number) => {
-            const sDate = new Date(m.startTime);
-            const eDate = new Date(m.endTime);
-            const startHour = sDate.getUTCHours();
-            const endHour = eDate.getUTCHours();
-            const startTime = `${startHour.toString().padStart(2, '0')}:${sDate.getUTCMinutes().toString().padStart(2, '0')}`;
-            const endTime = `${endHour.toString().padStart(2, '0')}:${eDate.getUTCMinutes().toString().padStart(2, '0')}`;
-
-            const day = dayNameMap[m.weekday] || 'Lunes';
-            const profName = sec.professor
-              ? `${sec.professor.name} ${sec.professor.lastNameP}`.trim()
-              : 'Profesor por asignar';
-
-            const enrolled = sec._count?.enrollments || sec.enrollments?.length || 0;
-            const capacity = sec.capacity || 40;
-            const colorTag = colors[(sec.subject?.code || mIdx) % colors.length] || 'gold';
-
-            mapped.push({
-              id: `${sec.id}-${m.id || mIdx}`,
-              subjectName: sec.subject?.subject || sec.subject?.name || 'Asignatura',
-              groupCode: `Grupo ${sec.groupCode}`,
-              professorName: profName,
-              classroom: m.room || 'Edificio A-8',
-              day,
-              startTime,
-              endTime,
-              startHour,
-              endHour,
-              semester: sec.subject?.semester || 1,
-              area: sec.subject?.category?.name || 'Computación',
-              currentStatus: 'upcoming',
-              enrolledStudents: enrolled,
-              capacity,
-              averageAttendanceRate: 85,
-              historicalPassRate: 80,
-              colorTag,
-            });
-          });
-        });
-
-        if (mapped.length > 0) {
-          setScheduleItems(mapped);
-        }
-      } catch (err) {
-        console.warn('Error fetching real admin schedule from backend:', err);
-      }
-    };
-
-    fetchRealSections();
-  }, [adminUser]);
-
-  const handleLoginSuccess = (user: AdminUser) => {
-    setAdminUser(user);
-    showToast(`Bienvenido al Panel Directivo, ${user.fullName}`);
-  };
+      : null;
 
   const handleLogout = async () => {
-    try {
-      localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
-      await authService.logout();
-    } catch (e) {
-      console.warn('Error al eliminar sesión:', e);
-    }
-    setAdminUser(null);
-    setSelectedMetric(null);
-    setActiveReportModal(null);
-    setSelectedScheduleItem(null);
-    showToast('Sesión de coordinación cerrada.');
+    await session.logout();
   };
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage((curr) => (curr === msg ? null : curr));
-    }, 4000);
-  };
-
-  const handleGenerateGeneralReport = () => {
-    const report = REPORTS_CATALOG['general_trajectory'];
-    if (report) {
-      setActiveReportModal(report);
-    }
-  };
-
-  const handleGenerateIndicatorReport = (metric: MacroMetric) => {
-    const indicatorReport: AcademicReport = {
-      id: `report_${metric.id}`,
-      type: 'general_trajectory',
-      title: `Ficha Técnica Institucional: ${metric.label}`,
-      cycle: selectedCycle,
-      generationDate: new Date().toLocaleDateString('es-MX', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      }),
-      executiveSummary: `Ficha técnica macroscópica emitida para el indicador "${metric.label}". La cohorte evaluada registra una tasa agregada del ${metric.mainValueProb} (${metric.mainValueRatio}). ${metric.description}`,
-      keyInsights: [
-        `Tasa agregada del indicador: ${metric.mainValueProb}`,
-        `Expresión en razón poblacional: ${metric.mainValueRatio}`,
-        `Evolución histórica registrada: ${metric.change || 'Estable'}`,
-        `Volumen de desglose evaluado: ${metric.details.length} elementos sin PII estudiantil.`,
-      ],
-      columns: [
-        { key: 'label', label: 'Concepto / Segmento Evaluado', align: 'left' },
-        { key: 'formattedValue', label: 'Tasa / Valor', align: 'center' },
-        { key: 'subValue', label: 'Razón / Alcance', align: 'center' },
-        { key: 'notes', label: 'Diagnóstico Curricular', align: 'left' },
-      ],
-      rows: metric.details.map((d) => ({
-        label: d.label,
-        formattedValue: d.formattedValue,
-        subValue: d.subValue || 'N/A',
-        notes: d.notes || 'En seguimiento estándar',
-      })),
-    };
-    setSelectedMetric(null);
-    setActiveReportModal(indicatorReport);
-  };
-
-  const handleDownloadReport = (format: 'PDF' | 'CSV', title: string) => {
-    showToast(`Descarga completada: ${title} (${format})`);
-  };
-
-  if (isLoadingSession) {
+  if (session.status === 'loading' || session.redirecting) {
     return (
       <div className={styles.root}>
         <div className={styles.bgMesh} />
         <div className={styles.loadingScreen}>
           <div className={styles.spinnerLarge} />
-          <span>Iniciando Portal de Supervisión PumaIA...</span>
+          <span>{session.redirecting ? 'Llevándote a tu portal…' : 'Verificando sesión…'}</span>
         </div>
       </div>
     );
   }
 
-  if (!adminUser) {
+  if (!user) {
     return (
       <div className="page login-page" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <div className="bg-mesh" />
         <Navbar />
         <div className="gold-line" />
-
         <main className="login-main">
           <div className="login-hero">
             <h1 className="login-title">
-              Acceso de Supervisión<br />Directiva
+              Panel de
+              <br />
+              administración
             </h1>
             <p className="login-subtitle">
-              Área de gestión y analítica académica para la Coordinación de Matemáticas Aplicadas y Computación.
+              Cifras agregadas de PumaIA para la coordinación. Sin listas ni datos de alumnos individuales.
             </p>
           </div>
-
-          <AdminLoginModal onLoginSuccess={handleLoginSuccess} />
+          <AdminLoginModal />
         </main>
-
         <div className="gold-line" style={{ marginTop: 'auto' }} />
         <AppFooter variant="dark" />
       </div>
     );
   }
 
+  return <AdminPanel user={user} onLogout={handleLogout} />;
+}
+
+// ---------------------------------------------------------------------------
+// Panel con sesión
+// ---------------------------------------------------------------------------
+
+interface PrintJob {
+  section: ReportSection;
+  receipt: ReportReceipt;
+  kind?: QuestionnaireKind;
+}
+
+const SECTION_TITLE: Record<ReportSection, string> = {
+  full: 'Reporte general',
+  summary: 'Resumen',
+  academic: 'Académico',
+  attendance: 'Asistencia',
+  chat: 'Chat y cuestionarios',
+  suggestions: 'Sugerencias (datos de ejemplo)',
+};
+
+function AdminPanel({ user, onLogout }: { user: PanelUser; onLogout: () => void }) {
+  const isAdmin = user.roles.includes('INSTITUTION_ADMIN');
+  const isAnalyst = user.roles.includes('ANALYST');
+
+  const tabs = useMemo(() => {
+    const t: { id: AdminTab; label: string }[] = [
+      { id: 'summary', label: 'Resumen' },
+      { id: 'academic', label: 'Académico' },
+      { id: 'attendance', label: 'Asistencia' },
+      { id: 'chat', label: 'Chat y cuestionarios' },
+      { id: 'suggestions', label: 'Sugerencias' },
+    ];
+    if (isAdmin) t.push({ id: 'staff', label: 'Personal e invitaciones' });
+    t.push({ id: 'calendar', label: 'Horarios' });
+    if (isAnalyst) t.push({ id: 'labeling', label: 'Etiquetado' });
+    return t;
+  }, [isAdmin, isAnalyst]);
+
+  const [tab, setTab] = useState<AdminTab>('summary');
+  const [filters, setFilters] = useState<PanelFilters>({ periodId: '', weeks: 12 });
+  const periods = useAsync(() => adminService.periods(), []);
+  const [printJob, setPrintJob] = useState<PrintJob | null>(null);
+  const [reportBusy, setReportBusy] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast((cur) => (cur === msg ? null : cur)), 5000);
+  }, []);
+
+  /** 1) Registra REPORT_GENERATED en el backend. 2) Monta la copia imprimible. 3) Imprime cuando cargó. */
+  const printReport = useCallback(
+    async (section: ReportSection, extra: { kind?: QuestionnaireKind } = {}) => {
+      setReportBusy(true);
+      try {
+        const receipt = await adminService.registerReport(section, filters, extra);
+        setPrintJob({ section, receipt, kind: extra.kind });
+      } catch (e) {
+        setReportBusy(false);
+        showToast(
+          `No se generó el reporte: ${e instanceof Error ? e.message : 'no se pudo registrar en la bitácora'}.`,
+        );
+      }
+    },
+    [filters, showToast],
+  );
+
+  useEffect(() => {
+    if (!printJob) return;
+    let cancelled = false;
+    const started = Date.now();
+    let timer: ReturnType<typeof setTimeout>;
+    const finish = () => {
+      setPrintJob(null);
+      setReportBusy(false);
+    };
+    const tick = () => {
+      if (cancelled) return;
+      const root = printRef.current;
+      const busy = !root || root.querySelector('[data-loading="true"]') !== null;
+      if (busy && Date.now() - started < 20000) {
+        timer = setTimeout(tick, 250);
+        return;
+      }
+      window.addEventListener('afterprint', finish, { once: true });
+      window.print();
+    };
+    timer = setTimeout(tick, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      window.removeEventListener('afterprint', finish);
+    };
+  }, [printJob]);
+
+  const baseCtx: Omit<PanelContextValue, 'printing'> = {
+    filters,
+    setFilters,
+    periods: periods.data?.items ?? [],
+    periodsError: periods.error,
+    printReport: (section, extra) => void printReport(section, extra),
+    reportBusy,
+  };
+
+  const headerUser = { fullName: user.fullName, roles: user.roles };
+
   return (
-    <div className={styles.root}>
-      <div className={styles.bgMesh} />
+    <PanelContext.Provider value={{ ...baseCtx, printing: false }}>
+      <div className={styles.root}>
+        <div className={styles.bgMesh} />
+        <AdminHeader user={headerUser} tabs={tabs} activeTab={tab} onTabChange={setTab} onLogout={onLogout} />
 
-      <AdminHeader
-        user={adminUser}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onLogout={handleLogout}
-      />
+        <main className={styles.main}>
+          {tab === 'summary' && <SummaryTab />}
+          {tab === 'academic' && <AcademicTab />}
+          {tab === 'attendance' && <AttendanceTab />}
+          {tab === 'chat' && <ChatTab />}
+          {tab === 'suggestions' && <SuggestionsTab onGoTo={setTab} />}
+          {tab === 'staff' && isAdmin && <StaffTab />}
+          {tab === 'calendar' && <ScheduleTab />}
+          {tab === 'labeling' && isAnalyst && <LabelingTab />}
+        </main>
 
-      <main className={styles.main}>
-        {activeTab === 'dashboard' && (
-          <>
-            <AdminPdfDashboard />
+        {toast && (
+          <div className={styles.toastNotification} role="status">
+            <span>{toast}</span>
+          </div>
+        )}
+        <AppFooter variant="dark" />
+      </div>
 
-            <div style={{ marginTop: '20px' }}>
-              <AdminReportsBar onGenerateGeneralReport={handleGenerateGeneralReport} />
+      {printJob &&
+        createPortal(
+          <PanelContext.Provider value={{ ...baseCtx, printing: true }}>
+            <div className={s.printPortal} ref={printRef}>
+              <PrintHeader job={printJob} filters={filters} periodText={periodLabel(filters, baseCtx.periods)} />
+              <PrintBody job={printJob} />
+              <footer className={s.printFooter}>
+                Solo cifras agregadas; ninguna lista ni nombre de alumnos. Las celdas con menos de{' '}
+                {printJob.receipt.minGroupSize} alumnos aparecen como “Protegido”. Sin ranking ni comparación de
+                profesores. Este reporte quedó registrado en la bitácora de auditoría.
+              </footer>
             </div>
-          </>
+          </PanelContext.Provider>,
+          document.body,
         )}
+    </PanelContext.Provider>
+  );
+}
 
-        {activeTab === 'calendar' && (
-          <AdminScheduleCalendar
-            scheduleItems={scheduleItems}
-            onSelectScheduleItem={setSelectedScheduleItem}
-          />
-        )}
-      </main>
-
-      <AdminMetricDetailModal
-        metric={selectedMetric}
-        onClose={() => setSelectedMetric(null)}
-        onGenerateIndividualReport={handleGenerateIndicatorReport}
-      />
-
-      <AdminReportModal
-        report={activeReportModal}
-        onClose={() => setActiveReportModal(null)}
-        onDownload={handleDownloadReport}
-      />
-
-      <AdminScheduleDetailModal
-        item={selectedScheduleItem}
-        onClose={() => setSelectedScheduleItem(null)}
-      />
-
-      {toastMessage && (
-        <div className={styles.toastNotification}>
-          <span className={styles.toastIcon}>✔</span>
-          <span>{toastMessage}</span>
+function PrintHeader({ job, filters, periodText }: { job: PrintJob; filters: PanelFilters; periodText: string }) {
+  const by = job.receipt.generatedBy;
+  return (
+    <header className={s.printHeader}>
+      <p className={s.printSubtitle}>PumaIA · Panel de administración · FES Acatlán, UNAM</p>
+      <h1 className={s.printTitle}>{SECTION_TITLE[job.section]}</h1>
+      <dl className={s.printMeta}>
+        <div>
+          <dt>Periodo:</dt>
+          <dd>{periodText}</dd>
         </div>
-      )}
-
-      <AppFooter variant="dark" />
-    </div>
+        <div>
+          <dt>Series semanales:</dt>
+          <dd>últimas {filters.weeks} semanas</dd>
+        </div>
+        <div>
+          <dt>Fecha de generación:</dt>
+          <dd>{fmtDateTime(job.receipt.generatedAt)}</dd>
+        </div>
+        <div>
+          <dt>Generado por:</dt>
+          <dd>{[by.name, by.email ? `(${by.email})` : null].filter(Boolean).join(' ') || '—'}</dd>
+        </div>
+        <div>
+          <dt>Umbral de privacidad:</dt>
+          <dd>{job.receipt.minGroupSize} alumnos por celda</dd>
+        </div>
+      </dl>
+    </header>
   );
 }
 
-function ShieldCheckIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
+function PrintBody({ job }: { job: PrintJob }) {
+  const block = (key: string, node: React.ReactNode) => (
+    <section key={key} className={s.printSection}>
+      {node}
+    </section>
   );
+  switch (job.section) {
+    case 'full':
+      return (
+        <>
+          {block('summary', <SummaryTab />)}
+          {block('academic', <AcademicTab />)}
+          {block('attendance', <AttendanceTab />)}
+          {block('chat', <ChatTab initialKind={job.kind} />)}
+        </>
+      );
+    case 'summary':
+      return block('summary', <SummaryTab />);
+    case 'academic':
+      return block('academic', <AcademicTab />);
+    case 'attendance':
+      return block('attendance', <AttendanceTab />);
+    case 'chat':
+      return block('chat', <ChatTab initialKind={job.kind} />);
+    case 'suggestions':
+      return block('suggestions', <SuggestionsTab />);
+  }
 }
 
-function FilterCrossIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-    </svg>
-  );
+// ---------------------------------------------------------------------------
+// Horarios (pestaña existente; ahora sin datos inventados)
+// ---------------------------------------------------------------------------
+
+const DAY_BY_WEEKDAY: Record<number, DayOfWeek> = {
+  1: 'Lunes',
+  2: 'Martes',
+  3: 'Miércoles',
+  4: 'Jueves',
+  5: 'Viernes',
+  6: 'Sábado',
+};
+const COLORS: RealTimeScheduleItem['colorTag'][] = ['gold', 'cyan', 'purple', 'emerald', 'rose', 'amber'];
+
+interface SectionDto {
+  id: string;
+  groupCode: string;
+  capacity?: number | null;
+  subject?: { subject?: string; name?: string; semester?: number | null; code?: number | string } | null;
+  professor?: { name: string; lastNameP: string } | null;
+  meetings?: { id?: string; weekday: number; startTime: string; endTime: string; room?: string | null }[];
+  _count?: { enrollments?: number };
 }
 
-function LockIcon() {
+function statusFor(weekday: number, start: Date, end: Date, now: Date): RealTimeScheduleItem['currentStatus'] {
+  // Los horarios se guardan como hora local en UTC (ver getUTCHours).
+  const today = now.getDay();
+  if (weekday !== today) return 'upcoming';
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const s0 = start.getUTCHours() * 60 + start.getUTCMinutes();
+  const e0 = end.getUTCHours() * 60 + end.getUTCMinutes();
+  if (mins < s0) return 'upcoming';
+  if (mins < e0) return 'ongoing';
+  return 'completed';
+}
+
+function ScheduleTab() {
+  const [selected, setSelected] = useState<RealTimeScheduleItem | null>(null);
+  const sections = useAsync(async () => {
+    const res = await fetchWithAuth(`${API_URL}/sections`, { redirectOn401: false });
+    if (!res.ok) throw new Error(`No se pudieron cargar los horarios (error ${res.status}).`);
+    const data = (await res.json()) as SectionDto[];
+    const now = new Date();
+    const items: RealTimeScheduleItem[] = [];
+    data.forEach((sec, si) => {
+      (sec.meetings ?? []).forEach((m, mi) => {
+        const day = DAY_BY_WEEKDAY[m.weekday];
+        if (!day) return;
+        const sd = new Date(m.startTime);
+        const ed = new Date(m.endTime);
+        const hhmm = (d: Date) =>
+          `${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+        items.push({
+          id: `${sec.id}-${m.id ?? mi}`,
+          subjectName: sec.subject?.subject || sec.subject?.name || 'Materia sin nombre',
+          groupCode: `Grupo ${sec.groupCode}`,
+          professorName: sec.professor
+            ? `${sec.professor.name} ${sec.professor.lastNameP}`.trim()
+            : 'Profesor por asignar',
+          classroom: m.room || null,
+          day,
+          startTime: hhmm(sd),
+          endTime: hhmm(ed),
+          startHour: sd.getUTCHours(),
+          endHour: Math.max(sd.getUTCHours() + 1, ed.getUTCMinutes() > 0 ? ed.getUTCHours() + 1 : ed.getUTCHours()),
+          semester: sec.subject?.semester ?? null,
+          area: null,
+          currentStatus: statusFor(m.weekday, sd, ed, now),
+          enrolledStudents: sec._count?.enrollments ?? 0,
+          capacity: sec.capacity ?? null,
+          colorTag: COLORS[si % COLORS.length],
+        });
+      });
+    });
+    return items;
+  }, []);
+
+  if (sections.loading && !sections.data) {
+    return (
+      <div className={s.stateBox}>
+        <span className={s.spinner} aria-hidden /> Cargando horarios…
+      </div>
+    );
+  }
+  if (sections.error) {
+    return (
+      <div className={`${s.stateBox} ${s.stateError}`} role="alert">
+        <span>{sections.error}</span>
+        <button type="button" className={s.btnGhost} onClick={sections.reload}>
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+  if (!sections.data || sections.data.length === 0) {
+    return <div className={s.stateBox}>No hay grupos con horario registrado.</div>;
+  }
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
+    <>
+      <AdminScheduleCalendar scheduleItems={sections.data} onSelectScheduleItem={setSelected} />
+      <AdminScheduleDetailModal item={selected} onClose={() => setSelected(null)} />
+    </>
   );
 }

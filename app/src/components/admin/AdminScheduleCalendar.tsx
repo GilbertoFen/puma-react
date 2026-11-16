@@ -310,9 +310,9 @@ export default function AdminScheduleCalendar({
                             <div className={styles.blockProfessor}>{item.professorName}</div>
 
                             <div className={styles.blockFooter}>
-                              <span className={styles.blockClassroom}>{item.classroom}</span>
+                              <span className={styles.blockClassroom}>{item.classroom ?? 'Sin aula'}</span>
                               <span className={styles.blockCapacity}>
-                                {item.enrolledStudents}/{item.capacity} al.
+                                {item.capacity ? `${item.enrolledStudents}/${item.capacity}` : item.enrolledStudents} al.
                               </span>
                             </div>
                           </div>

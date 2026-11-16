@@ -8,7 +8,6 @@ import AttendanceScanner from './AttendanceScanner';
 import StudentScheduleCalendar from './StudentScheduleCalendar';
 import { scheduleService, StudentScheduleData } from '../../services/schedule.service';
 import { attendanceService, AttendanceRecordResponse } from '../../services/attendance.service';
-import { authService } from '../../services/auth.service';
 import { getAuthToken } from '../../utils/api';
 import { saveReturnUrl } from '../../utils/auth-redirect';
 import styles from './AttendancePage.module.css';
@@ -179,91 +178,6 @@ export default function AttendancePage() {
     }
   }, []);
 
-  const handleQuickStudentLogin = async () => {
-    if (!autoAttendance.sessionId || !autoAttendance.secret) return;
-    const currentSessionId = autoAttendance.sessionId;
-    const currentSecret = autoAttendance.secret;
-    const currentCourse = autoAttendance.courseName || 'Asignatura UNAM';
-    const currentGroup = autoAttendance.group || 'Grupo asignado';
-
-    setAutoAttendance((prev) => ({ ...prev, status: 'recording' }));
-    try {
-      const loginRes = await authService.login({
-        email: '321191399@pcpuma.acatlan.unam.mx',
-        password: 'Alumno2026*',
-      });
-      const token = loginRes.token || loginRes.accessToken || loginRes.access_token;
-      if (token) {
-        localStorage.setItem('token', token);
-        document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`;
-        if (loginRes.user) {
-          localStorage.setItem('userData', JSON.stringify(loginRes.user));
-          const initial =
-            loginRes.user.initial || loginRes.user.nombre?.charAt(0) || 'L';
-          setUserInitial(initial.toUpperCase());
-        }
-      }
-
-      const recRes = await attendanceService.recordAttendance({
-        sessionId: currentSessionId,
-        secret: currentSecret,
-      });
-
-      const timeStr = recRes.record?.markedAt
-        ? new Date(recRes.record.markedAt).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-          })
-        : new Date().toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-          });
-
-      const officialSub =
-        recRes.record?.session?.section?.subject?.subject ||
-        recRes.record?.session?.section?.subject?.name ||
-        currentCourse;
-      const officialGrp = recRes.record?.session?.section?.groupCode
-        ? `Grupo ${recRes.record.session.section.groupCode}`
-        : currentGroup;
-
-      setAutoAttendance({
-        status: 'success',
-        courseName: officialSub,
-        group: officialGrp,
-        markedAt: timeStr,
-      });
-      loadData();
-      window.history.replaceState({}, '', window.location.pathname);
-    } catch (err: any) {
-      const msg = err.message || '';
-      if (
-        msg.includes('Ya has registrado') ||
-        msg.includes('registrado tu asistencia')
-      ) {
-        setAutoAttendance({
-          status: 'already',
-          courseName: currentCourse,
-          group: currentGroup,
-          markedAt: new Date().toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          }),
-        });
-        loadData();
-        window.history.replaceState({}, '', window.location.pathname);
-      } else {
-        setAutoAttendance({
-          status: 'error',
-          courseName: currentCourse,
-          group: currentGroup,
-          errorMsg: msg || 'No se pudo autenticar al alumno para la asistencia.',
-        });
-      }
-    }
-  };
 
   return (
     <div className={styles.root}>
@@ -431,13 +345,6 @@ export default function AttendancePage() {
               <button
                 type="button"
                 className={styles.btnQuickAuthAction}
-                onClick={handleQuickStudentLogin}
-              >
-                ⚡ Iniciar sesión como Alumno de Prueba (321191399) y Confirmar
-              </button>
-              <button
-                type="button"
-                className={styles.btnDismissAlert}
                 onClick={() => {
                   saveReturnUrl();
                   window.location.href = `/?returnUrl=${encodeURIComponent(
@@ -445,7 +352,7 @@ export default function AttendancePage() {
                   )}`;
                 }}
               >
-                Ir a pantalla de inicio de sesión
+                Iniciar sesión con Google y confirmar
               </button>
             </div>
           </div>

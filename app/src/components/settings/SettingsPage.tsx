@@ -6,6 +6,7 @@ import styles from './SettingsPage.module.css';
 import HomeDrawer from '../home/HomeDrawer';
 import AppFooter from '../AppFooter';
 import { authService } from '../../services/auth.service';
+import { clearAccessToken } from '../../utils/api';
 
 type ToggleSetting = {
   kind: 'toggle';
@@ -147,7 +148,7 @@ export default function SettingsPage() {
     } catch {
       // continuar con limpieza local aunque falle la red
     }
-    localStorage.removeItem('token');
+    clearAccessToken();
     localStorage.removeItem('userData');
     localStorage.clear();
     sessionStorage.clear();
