@@ -32,7 +32,7 @@ export default function AdminScheduleDetailModal({
           <div className={styles.modalHeaderTitleWrap}>
             <div className={styles.modalBadgeRow}>
               <span className={styles.groupBadgePill}>
-                {item.groupCode} · {item.semester}° Semestre
+                {item.groupCode}{item.semester ? ` · ${item.semester}° Semestre` : ''}
               </span>
 
               <span
@@ -52,7 +52,7 @@ export default function AdminScheduleDetailModal({
             <h2 id="schedule-modal-title" className={styles.scheduleModalTitle}>
               {item.subjectName}
             </h2>
-            <span className={styles.areaTag}>Área Formativa: {item.area}</span>
+            {item.area && <span className={styles.areaTag}>Área: {item.area}</span>}
           </div>
 
           <button
@@ -73,7 +73,7 @@ export default function AdminScheduleDetailModal({
               <span>Profesor Titular de Cátedra</span>
             </div>
             <div className={styles.infoCardValue}>{item.professorName}</div>
-            <span className={styles.infoCardMeta}>Adscrito a la División de Matemáticas / Computación</span>
+            <span className={styles.infoCardMeta}>Según el horario cargado</span>
           </div>
 
           <div className={styles.scheduleInfoCard}>
@@ -81,8 +81,8 @@ export default function AdminScheduleDetailModal({
               <BuildingIcon />
               <span>Espacio Asignado</span>
             </div>
-            <div className={styles.infoCardValueGold}>{item.classroom}</div>
-            <span className={styles.infoCardMeta}>FES Acatlán · Campus Principal</span>
+            <div className={styles.infoCardValueGold}>{item.classroom ?? 'Sin aula registrada'}</div>
+            <span className={styles.infoCardMeta}>Según el horario cargado</span>
           </div>
 
           <div className={styles.scheduleInfoCard}>
@@ -102,51 +102,22 @@ export default function AdminScheduleDetailModal({
               <span>Ocupación y Matrícula</span>
             </div>
             <div className={styles.infoCardValue}>
-              {item.enrolledStudents} / {item.capacity} alumnos
+              {item.enrolledStudents} inscritos
+              {item.capacity ? ` / ${item.capacity} de cupo` : ''}
             </div>
             <span className={styles.infoCardMeta}>
-              {Math.round((item.enrolledStudents / item.capacity) * 100)}% de capacidad cubierta
+              {item.capacity
+                ? `${Math.round((item.enrolledStudents / item.capacity) * 100)}% del cupo cubierto`
+                : 'Sin cupo registrado'}
             </span>
           </div>
         </div>
 
-        {/* Métricas agregadas de desempeño del grupo (Sin PII) */}
-        <div className={styles.groupAnalyticsCard}>
-          <div className={styles.groupAnalyticsHeader}>
-            <ChartSmallIcon />
-            <span>Métricas Agregadas del Grupo (Cero PII)</span>
-          </div>
-
-          <div className={styles.groupAnalyticsRow}>
-            <div className={styles.groupMetricItem}>
-              <span className={styles.groupMetricLabel}>Asistencia Media Estimada</span>
-              <div className={styles.groupMetricValueRow}>
-                <span className={styles.metricValLarge}>{item.averageAttendanceRate}%</span>
-                <span className={styles.metricHint}>Basado en registros de aula</span>
-              </div>
-              <div className={styles.meterTrack}>
-                <div
-                  className={styles.meterFillGreen}
-                  style={{ width: `${item.averageAttendanceRate}%` }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.groupMetricItem}>
-              <span className={styles.groupMetricLabel}>Tasa Histórica de Acreditación</span>
-              <div className={styles.groupMetricValueRow}>
-                <span className={styles.metricValLarge}>{item.historicalPassRate}%</span>
-                <span className={styles.metricHint}>Promedio de la cátedra</span>
-              </div>
-              <div className={styles.meterTrack}>
-                <div
-                  className={item.historicalPassRate > 70 ? styles.meterFillGold : styles.meterFillAmber}
-                  style={{ width: `${item.historicalPassRate}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+        {/*
+          Sin asistencia ni aprobación por grupo en esta ficha: no hay dato real aquí y, junto al
+          nombre del profesor, permitiría comparar profesores. La asistencia agregada por grupo
+          (sin profesor) está en la pestaña Asistencia.
+        */}
 
         {/* Footer del Modal */}
         <div className={styles.modalFooter}>
@@ -211,15 +182,6 @@ function UsersIcon() {
   );
 }
 
-function ChartSmallIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10" />
-      <line x1="12" y1="20" x2="12" y2="4" />
-      <line x1="6" y1="20" x2="6" y2="14" />
-    </svg>
-  );
-}
 
 function ShieldIcon() {
   return (

@@ -1,4 +1,5 @@
 'use client';
+import { getAuthToken } from '../../utils/api';
 import React, { useState, useRef } from 'react';
 import Navbar from '../Navbar';
 import styles from './AcademicUploadPage.module.css';
@@ -74,7 +75,7 @@ export default function AcademicUploadPage({ user, onContinue }: Props) {
     setPageState('loading');
 
     try {
-      const token = localStorage.getItem('token') || undefined;
+      const token = getAuthToken() || undefined;
       const combinedSubjects: DisplaySubject[] = [];
       let parsedScheduleResult: any = null;
 

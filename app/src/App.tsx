@@ -1,7 +1,9 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './styles/globals.css';
-import LoginPage from './pages/LoginPage';
+import LoginPage, { prepareStudentSession } from './pages/LoginPage';
+import { useSession } from './context/SessionContext';
+import { homeFor } from './utils/roleRouting';
 import WelcomePage from './pages/WelcomePage';
 import QuestionnairePage from './pages/QuestionnairePage';
 import AcademicUploadPage from './components/academic-upload/AcademicUploadPage';
@@ -29,36 +31,39 @@ export default function App() {
   const router = useRouter();
   const [fullProfile, setFullProfile] = useState<StudentProfile | null>(null);
 
-  // 1. COMPROBACIÓN DE SESIÓN AL CARGAR LA PÁGINA
+  // 1. COMPROBACIÓN DE SESIÓN AL CARGAR LA PÁGINA (una sola vez, con la sesión única)
+  // Los logins que ocurren en esta pantalla los maneja LoginPage → handleLogin.
+  const session = useSession();
+  const checkedRef = useRef(false);
   useEffect(() => {
-    const checkActiveSession = async () => {
-      const rawData = localStorage.getItem('userData');
-      const token = localStorage.getItem('token');
+    if (session.status === 'loading' || checkedRef.current) return;
+    checkedRef.current = true;
 
-      // Si falta alguno, limpiamos por seguridad y directo al Login
-      if (!rawData || !token) {
-        localStorage.clear();
-        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
+    const checkActiveSession = async () => {
+      await Promise.resolve(); // el estado se actualiza fuera del cuerpo síncrono del efecto
+
+      if (session.status !== 'authenticated' || !session.user) {
+        // Sin sesión: portada con el login de Google.
+        localStorage.removeItem('userData');
         setCurrentScreen(SCREENS.LOGIN);
         setIsCheckingSession(false);
         return;
       }
 
-      try {
-        const parsedUser = JSON.parse(rawData);
-        setUser(parsedUser);
+      // "/" es el portal del alumno. Si la cuenta no es de alumno, va a su portal (o a elegir).
+      if (!session.user.roles.includes('STUDENT')) {
+        router.replace(homeFor(session.user.roles));
+        return;
+      }
 
-        const roles: string[] = Array.isArray(parsedUser?.roles)
-          ? parsedUser.roles
-          : [];
-        if (roles.includes('INSTITUTION_ADMIN') || roles.includes('ANALYST')) {
-          router.push('/admin');
-          return;
-        }
-        if (roles.includes('PROFESSOR') && !roles.includes('STUDENT')) {
-          router.push('/profesor');
-          return;
-        }
+      try {
+        const rawData = localStorage.getItem('userData');
+        const cached = rawData ? JSON.parse(rawData) : null;
+        const parsedUser =
+          cached && cached.email === session.user.email
+            ? cached
+            : await prepareStudentSession(session.user);
+        setUser(parsedUser);
 
         // ────────────────────────────────────────────────────────────────
         // EL FILTRO MAESTRO: Validamos el token en tiempo real contra el Back.
@@ -90,12 +95,9 @@ export default function App() {
         // ────────────────────────────────────────────────────────────────
 
       } catch (e) {
-        console.warn("⚠️ La sesión del almacenamiento local expiró o es inválida. Aplicando Cierre de Seguridad...", e);
-
-        // BORRADO AUTOMÁTICO CONTROLADO (Adiós pantalla azul fea)
-        localStorage.clear();
-        document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
-
+        console.warn('La sesión expiró o es inválida; se cierra.', e);
+        localStorage.removeItem('userData');
+        await session.logout();
         setUser(null);
         setCurrentScreen(SCREENS.LOGIN);
       } finally {
@@ -103,8 +105,8 @@ export default function App() {
       }
     };
 
-    checkActiveSession();
-  }, [router]);
+    void checkActiveSession();
+  }, [session, router]);
 
   // 2. LOGIC PARA PROCESAR EL INICIO DE SESIÓN
   // page.tsx - Función handleLogin Ultra-Defensiva
@@ -134,18 +136,8 @@ export default function App() {
 
       console.log("¿El alumno ya completó el cuestionario según el Back?:", hasCompleted);
 
-      // 5. Redirección inteligente por rol y estado de onboarding
-      const roles: string[] = Array.isArray(userData?.roles)
-        ? userData.roles
-        : [];
-      if (roles.includes('INSTITUTION_ADMIN') || roles.includes('ANALYST')) {
-        router.push('/admin');
-        return;
-      }
-      if (roles.includes('PROFESSOR') && !roles.includes('STUDENT')) {
-        router.push('/profesor');
-        return;
-      }
+      // 5. La redirección por rol ya la hizo el login de Google (utils/roleRouting.ts):
+      //    si llegamos aquí, la persona eligió o solo tiene el portal del alumno.
 
       // Redirección prioritaria a URL original de asistencia si existe
       const returnUrl = getSavedReturnUrl();

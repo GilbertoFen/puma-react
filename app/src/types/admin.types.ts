@@ -66,19 +66,26 @@ export interface RealTimeScheduleItem {
   subjectName: string;
   groupCode: string;
   professorName: string;
-  classroom: string;
+  /** null si el horario no trae aula. */
+  classroom: string | null;
   day: DayOfWeek;
   startTime: string; // e.g. "07:00"
   endTime: string;   // e.g. "09:00"
   startHour: number; // 7, 8, etc.
   endHour: number;   // 9, 11, etc.
-  semester: number;
-  area: 'Matemáticas' | 'Computación' | 'Modelación' | 'Optativa';
+  semester: number | null;
+  area: string | null;
   currentStatus: 'ongoing' | 'upcoming' | 'completed';
   enrolledStudents: number;
-  capacity: number;
-  averageAttendanceRate: number; // Porcentaje agregado 0 - 100 (sin PII)
-  historicalPassRate: number;    // Porcentaje de acreditación histórica
+  /** null si el grupo no tiene cupo registrado. */
+  capacity: number | null;
+  /**
+   * @deprecated No hay dato real por grupo y, junto al nombre del profesor, permitiría compararlos.
+   * El modal de horario ya no lo muestra; queda opcional solo por los datos de ejemplo antiguos.
+   */
+  averageAttendanceRate?: number;
+  /** @deprecated Igual que averageAttendanceRate. */
+  historicalPassRate?: number;
   colorTag: 'gold' | 'cyan' | 'purple' | 'emerald' | 'rose' | 'amber';
 }
 

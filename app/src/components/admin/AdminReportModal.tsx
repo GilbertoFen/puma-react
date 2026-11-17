@@ -178,28 +178,7 @@ export default function AdminReportModal({
             </p>
           </section>
 
-          {/* 4. Sección de firmas de validación institucional de la coordinación */}
-          <section className={styles.formalSignaturesSection}>
-            <div className={styles.signaturesRow}>
-              <div className={styles.signatureBox}>
-                <div className={styles.signatureLine} />
-                <strong className={styles.signatoryName}>Mtro. Carlos Benítez Morales</strong>
-                <span className={styles.signatoryRole}>
-                  Coordinador de Matemáticas Aplicadas y Computación
-                </span>
-                <span className={styles.signatoryInst}>FES Acatlán · UNAM</span>
-              </div>
-
-              <div className={styles.signatureBox}>
-                <div className={styles.signatureLine} />
-                <strong className={styles.signatoryName}>Dirección de la Facultad</strong>
-                <span className={styles.signatoryRole}>
-                  Facultad de Estudios Superiores Acatlán
-                </span>
-                <span className={styles.signatoryInst}>Universidad Nacional Autónoma de México</span>
-              </div>
-            </div>
-          </section>
+          {/* Sin firmas: el reporte no lleva nombres ni cargos que no vengan del sistema. */}
         </div>
       </div>
     </div>

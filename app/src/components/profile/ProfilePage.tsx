@@ -1,4 +1,5 @@
 'use client';
+import { getAuthToken } from '../../utils/api';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../Navbar';
@@ -42,7 +43,7 @@ export default function ProfilePage() {
     setLoadingUser(false);
 
     const fetchProfileAndHistory = async () => {
-      const token = localStorage.getItem('token');
+      const token = getAuthToken();
       if (!token) {
         setLoadingHistory(false);
         setLoadingProfile(false);
@@ -95,7 +96,7 @@ export default function ProfilePage() {
     fetchProfileAndHistory();
   }, []);
   const handleAvatarUpload = async (file: File): Promise<string> => {
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     if (!token) throw new Error("No hay sesión activa");
 
     // Llamamos al backend real
